@@ -1,0 +1,3 @@
+{
+  "extends": "@feed-plan/typescript-config/base.json"
+}

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1781370383836,
+      "tag": "0000_damp_sugar_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781681512885,
+      "tag": "0001_yellow_moonstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781683971639,
+      "tag": "0002_elite_warstar",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@feed-plan/prettier-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.cjs",
+  "exports": {
+    ".": "./index.cjs"
+  },
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+.turbo
+*.tsbuildinfo
+
+.agents
+.claude
+AGENTS.md
+CLAUDE.md
+openspec
+pnpm-lock.yaml
+packages/db/drizzle/meta
