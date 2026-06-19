@@ -31,13 +31,13 @@
   },
   "dependencies": {
     "@feed-plan/shared": "workspace:*",
-    "drizzle-orm": "^0.45.2",
-    "pg": "^8.21.0"
+    "drizzle-orm": "catalog:backend",
+    "pg": "catalog:backend"
   },
   "devDependencies": {
     "@feed-plan/typescript-config": "workspace:*",
-    "@types/pg": "^8.20.0",
-    "drizzle-kit": "^0.31.10",
-    "typescript": "^5.7.2"
+    "@types/pg": "catalog:backend",
+    "drizzle-kit": "catalog:backend",
+    "typescript": "catalog:"
   }
 }

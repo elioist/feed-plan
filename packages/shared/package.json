@@ -21,10 +21,10 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "zod": "^3.24.1"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@feed-plan/typescript-config": "workspace:*",
-    "typescript": "^5.7.2"
+    "typescript": "catalog:"
   }
 }
