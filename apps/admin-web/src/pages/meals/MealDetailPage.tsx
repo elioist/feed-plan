@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { Button, Card, Descriptions, Table, Tag, App as AntdApp } from 'antd';
+import { Button, Card, Descriptions, Popconfirm, Table, Tag, App as AntdApp } from 'antd';
 import { PageHeader } from '~/shared/components/PageHeader';
 import { completeMeal, mealQueries } from '~/features/meals/api';
 
@@ -16,6 +16,9 @@ export function MealDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['meals'] });
       message.success('本次点餐已完成');
     },
+    onError: () => {
+      message.error('完成点餐失败，请稍后重试');
+    },
   });
 
   return (
@@ -23,14 +26,22 @@ export function MealDetailPage() {
       <PageHeader
         title="菜单详情"
         actions={
-          <Button
-            type="primary"
+          <Popconfirm
+            title="完成点餐"
+            description="完成后本场点餐会锁定，确认继续？"
             disabled={data.meal.status === 'completed'}
-            loading={completeMutation.isPending}
-            onClick={() => completeMutation.mutate(data.meal.id)}
+            okText="完成"
+            cancelText="取消"
+            onConfirm={() => completeMutation.mutate(data.meal.id)}
           >
-            完成本次点餐
-          </Button>
+            <Button
+              type="primary"
+              disabled={data.meal.status === 'completed'}
+              loading={completeMutation.isPending}
+            >
+              完成本次点餐
+            </Button>
+          </Popconfirm>
         }
       />
       <Card>

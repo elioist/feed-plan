@@ -6,9 +6,9 @@ import {
   Form,
   Image,
   Input,
+  Popconfirm,
   Select,
   Space,
-  Switch,
   Tag,
   App as AntdApp,
 } from 'antd';
@@ -17,7 +17,13 @@ import type { CreateDishInput, DishDifficulty, DishSummary } from '@feed-plan/sh
 import { DataTable } from '~/shared/components/DataTable';
 import { PageScaffold } from '~/shared/components/PageScaffold';
 import { categoryQueries } from '~/features/categories/api';
-import { createDish, dishQueries, setDishActive, updateDish } from '~/features/dishes/api';
+import {
+  createDish,
+  deleteDish,
+  dishQueries,
+  setDishActive,
+  updateDish,
+} from '~/features/dishes/api';
 import { DishForm } from '~/features/dishes/components/DishForm';
 
 const difficultyLabels: Record<DishDifficulty, string> = {
@@ -84,9 +90,23 @@ export function DishListPage() {
   const activeMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       setDishActive(id, { isActive }),
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ['dishes'] });
+      message.success(variables.isActive ? '菜谱已启用' : '菜谱状态已更新');
+    },
+    onError: () => {
+      message.error('菜谱状态更新失败，请稍后重试');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteDish,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['dishes'] });
-      message.success('菜谱状态已更新');
+      message.success('菜谱已停用');
+    },
+    onError: () => {
+      message.error('停用失败，请稍后重试');
     },
   });
 
@@ -207,12 +227,28 @@ export function DishListPage() {
                   <Button type="link" onClick={() => openEditDrawer(dish.id)}>
                     编辑
                   </Button>
-                  <Switch
-                    checked={dish.isActive}
-                    checkedChildren="启用"
-                    unCheckedChildren="停用"
-                    onChange={(isActive) => activeMutation.mutate({ id: dish.id, isActive })}
-                  />
+                  {dish.isActive ? (
+                    <Popconfirm
+                      title="停用菜谱"
+                      description="停用后食客将无法继续看到这道菜，确认继续？"
+                      okText="停用"
+                      okButtonProps={{ danger: true }}
+                      cancelText="取消"
+                      onConfirm={() => deleteMutation.mutate(dish.id)}
+                    >
+                      <Button type="link" danger loading={deleteMutation.isPending}>
+                        停用
+                      </Button>
+                    </Popconfirm>
+                  ) : (
+                    <Button
+                      type="link"
+                      loading={activeMutation.isPending}
+                      onClick={() => activeMutation.mutate({ id: dish.id, isActive: true })}
+                    >
+                      启用
+                    </Button>
+                  )}
                 </Space>
               ),
             },

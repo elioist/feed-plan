@@ -53,6 +53,7 @@ const mealApiMocks = vi.hoisted(() => ({
 
 const antdAppMocks = vi.hoisted(() => ({
   message: {
+    error: vi.fn(),
     success: vi.fn(),
   },
 }));
@@ -79,6 +80,14 @@ vi.mock('antd', async (importOriginal) => {
       ...actual.App,
       useApp: () => ({ message: antdAppMocks.message }),
     },
+    Popconfirm: ({ children, onConfirm }: { children: React.ReactNode; onConfirm: () => void }) => (
+      <span>
+        {children}
+        <button type="button" onClick={onConfirm}>
+          确认完成
+        </button>
+      </span>
+    ),
   };
 });
 
@@ -99,6 +108,7 @@ describe('MealDetailPage', () => {
       meal: { ...menuDetail.meal, status: 'completed' },
     });
     mealApiMocks.mealQueries.detail.mockClear();
+    antdAppMocks.message.error.mockReset();
     antdAppMocks.message.success.mockReset();
   });
 
@@ -111,7 +121,7 @@ describe('MealDetailPage', () => {
     expect(screen.getByText('番茄炒蛋')).toBeInTheDocument();
     expect(screen.getByText('chef')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '完成本次点餐' }));
+    await user.click(screen.getByRole('button', { name: '确认完成' }));
 
     await waitFor(() => {
       expect(mealApiMocks.completeMeal).toHaveBeenCalledWith(menuDetail.meal.id);

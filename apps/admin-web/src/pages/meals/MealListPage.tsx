@@ -1,16 +1,29 @@
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
-import { Button, Form, Input, Select, Space, Tag } from 'antd';
+import { Button, Form, Input, Popconfirm, Select, Space, Tag, App as AntdApp } from 'antd';
 import type { MenuDetail } from '@feed-plan/shared';
 import { DataTable } from '~/shared/components/DataTable';
 import { PageScaffold } from '~/shared/components/PageScaffold';
-import { mealQueries } from '~/features/meals/api';
+import { completeMeal, mealQueries } from '~/features/meals/api';
 
 export function MealListPage() {
   const search = useSearch({ from: '/_authenticated/meals' });
   const navigate = useNavigate();
   const { data } = useSuspenseQuery(mealQueries.list(search));
+  const queryClient = useQueryClient();
+  const { message } = AntdApp.useApp();
   const [filterForm] = Form.useForm<typeof search>();
+
+  const completeMutation = useMutation({
+    mutationFn: completeMeal,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['meals'] });
+      message.success('本次点餐已完成');
+    },
+    onError: () => {
+      message.error('完成点餐失败，请稍后重试');
+    },
+  });
 
   const updateSearch = async (values: typeof search) => {
     await navigate({ to: '/meals', search: values });
@@ -91,9 +104,28 @@ export function MealListPage() {
           {
             title: '操作',
             render: (_, item) => (
-              <Link to="/meals/$mealId" params={{ mealId: item.meal.id }}>
-                查看
-              </Link>
+              <Space>
+                <Link to="/meals/$mealId" params={{ mealId: item.meal.id }}>
+                  查看
+                </Link>
+                {item.meal.status === 'ordering' ? (
+                  <Popconfirm
+                    title="完成点餐"
+                    description="完成后本场点餐会锁定，确认继续？"
+                    okText="完成"
+                    cancelText="取消"
+                    onConfirm={() => completeMutation.mutate(item.meal.id)}
+                  >
+                    <Button type="link" loading={completeMutation.isPending}>
+                      完成
+                    </Button>
+                  </Popconfirm>
+                ) : (
+                  <Button type="link" disabled>
+                    已完成
+                  </Button>
+                )}
+              </Space>
             ),
           },
         ]}

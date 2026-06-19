@@ -53,6 +53,12 @@ export function setDishActive(id: string, input: UpdateDishActiveInput) {
   });
 }
 
+export function deleteDish(id: string) {
+  return apiClient<DishDetail>(`/dishes/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export function uploadDishImage(file: File) {
   const formData = new FormData();
   formData.append('file', file);

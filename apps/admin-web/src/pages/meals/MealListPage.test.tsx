@@ -47,11 +47,31 @@ const routerMocks = vi.hoisted(() => ({
 }));
 
 const reactQueryMocks = vi.hoisted(() => ({
+  invalidateQueries: vi.fn(),
+  useMutation: vi.fn(),
   useSuspenseQuery: vi.fn(),
+}));
+
+const mealApiMocks = vi.hoisted(() => ({
+  completeMeal: vi.fn(),
+  mealQueries: {
+    list: vi.fn((query: unknown) => ({ queryKey: ['meals', query] })),
+  },
+}));
+
+const antdAppMocks = vi.hoisted(() => ({
+  message: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
 }));
 
 vi.mock('@tanstack/react-query', () => ({
   queryOptions: (options: unknown) => options,
+  useMutation: reactQueryMocks.useMutation,
+  useQueryClient: () => ({
+    invalidateQueries: reactQueryMocks.invalidateQueries,
+  }),
   useSuspenseQuery: reactQueryMocks.useSuspenseQuery,
 }));
 
@@ -69,10 +89,24 @@ vi.mock('@tanstack/react-router', () => ({
   useSearch: () => routerMocks.search,
 }));
 
+vi.mock('~/features/meals/api', () => mealApiMocks);
+
 vi.mock('antd', async (importOriginal) => {
   const actual = await importOriginal<typeof import('antd')>();
   return {
     ...actual,
+    App: {
+      ...actual.App,
+      useApp: () => ({ message: antdAppMocks.message }),
+    },
+    Popconfirm: ({ children, onConfirm }: { children: ReactNode; onConfirm: () => void }) => (
+      <span>
+        {children}
+        <button type="button" onClick={onConfirm}>
+          确认完成
+        </button>
+      </span>
+    ),
     Select: ({
       id,
       onChange,
@@ -105,9 +139,29 @@ vi.mock('antd', async (importOriginal) => {
 
 describe('MealListPage', () => {
   beforeEach(() => {
+    reactQueryMocks.invalidateQueries.mockReset();
+    reactQueryMocks.useMutation.mockImplementation((options) => ({
+      isPending: false,
+      mutate: async (id: string) => {
+        try {
+          await options.mutationFn(id);
+          await options.onSuccess?.(undefined, id, undefined);
+        } catch (error) {
+          options.onError?.(error, id, undefined);
+        }
+      },
+    }));
     routerMocks.navigate.mockReset();
     routerMocks.search = {};
     reactQueryMocks.useSuspenseQuery.mockReturnValue({ data: menuDetails });
+    mealApiMocks.completeMeal.mockReset();
+    mealApiMocks.completeMeal.mockResolvedValue({
+      ...menuDetails[0],
+      meal: { ...menuDetails[0]!.meal, status: 'completed' },
+    });
+    mealApiMocks.mealQueries.list.mockClear();
+    antdAppMocks.message.error.mockReset();
+    antdAppMocks.message.success.mockReset();
   });
 
   it('renders today menu data', () => {
@@ -143,5 +197,18 @@ describe('MealListPage', () => {
         to: '/meals',
       });
     });
+  });
+
+  it('completes ordering meals from the list with confirmation', async () => {
+    const user = userEvent.setup();
+    render(<MealListPage />);
+
+    await user.click(screen.getByRole('button', { name: '确认完成' }));
+
+    await waitFor(() => {
+      expect(mealApiMocks.completeMeal).toHaveBeenCalledWith(menuDetails[0]!.meal.id);
+    });
+    expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['meals'] });
+    expect(antdAppMocks.message.success).toHaveBeenCalledWith('本次点餐已完成');
   });
 });
