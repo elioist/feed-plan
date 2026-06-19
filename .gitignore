@@ -6,6 +6,8 @@ dist/
 build/
 .turbo/
 *.tsbuildinfo
+/uploads/
+apps/server/uploads/
 
 # Env & secrets
 .env

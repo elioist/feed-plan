@@ -7,6 +7,7 @@ import { z } from 'zod';
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
+  UPLOAD_DIR: z.string().trim().min(1).default('uploads'),
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET 至少 16 个字符'),
   JWT_EXPIRES_IN: z.string().default('30d'),
