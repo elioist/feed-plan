@@ -18,6 +18,7 @@ import type {
 } from '@feed-plan/shared';
 import { DRIZZLE, type DrizzleDb } from '../drizzle/drizzle.constants.js';
 import { toDishDetail, toDishSummary } from './recipe-mappers.js';
+import { isForeignKeyViolation } from '../common/db-errors.js';
 
 @Injectable()
 export class DishesService {
@@ -255,13 +256,4 @@ function sanitizeRecipeContent(content: string): string {
       },
     )
     .trim();
-}
-
-function isForeignKeyViolation(error: unknown): boolean {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
-
-  const candidate = error as { code?: unknown; cause?: { code?: unknown } };
-  return candidate.code === '23503' || candidate.cause?.code === '23503';
 }

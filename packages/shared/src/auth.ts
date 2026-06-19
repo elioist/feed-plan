@@ -34,3 +34,23 @@ export interface JwtPayload {
   username: string;
   role: Role;
 }
+
+/** 管理后台用户信息（含创建时间，不含密码哈希） */
+export const adminUserSchema = authUserSchema.extend({
+  createdAt: z.coerce.date(),
+});
+export type AdminUser = z.infer<typeof adminUserSchema>;
+
+/** 创建用户 */
+export const createUserSchema = z.object({
+  username: z.string().trim().min(1, '用户名不能为空').max(64),
+  password: z.string().min(6, '密码至少 6 位').max(128),
+  role: roleSchema,
+});
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+/** 修改用户角色 */
+export const updateUserRoleSchema = z.object({
+  role: roleSchema,
+});
+export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
