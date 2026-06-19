@@ -7,7 +7,7 @@ export type DataTableColumn<RecordType extends Record<string, unknown>> = ProCol
 
 type DataTableProps<RecordType extends Record<string, unknown>> = Omit<
   ProTableProps<RecordType, DataTableParams>,
-  'options' | 'search' | 'tableAlertRender'
+  'cardProps' | 'options' | 'search' | 'tableAlertRender'
 >;
 
 export function DataTable<RecordType extends Record<string, unknown>>({
@@ -17,6 +17,7 @@ export function DataTable<RecordType extends Record<string, unknown>>({
   return (
     <ProTable<RecordType, DataTableParams>
       rowKey={rowKey}
+      cardProps={false}
       search={false}
       options={false}
       tableAlertRender={false}

@@ -1,6 +1,8 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
-import { Button, Form, Input, Select, Space, Table, Tag } from 'antd';
+import { Button, Form, Input, Select, Space, Tag } from 'antd';
+import type { MenuDetail } from '@feed-plan/shared';
+import { DataTable } from '~/shared/components/DataTable';
 import { PageScaffold } from '~/shared/components/PageScaffold';
 import { mealQueries } from '~/features/meals/api';
 
@@ -68,7 +70,7 @@ export function MealListPage() {
           <Button onClick={resetSearch}>重置</Button>
         </Space>
       </Form>
-      <Table
+      <DataTable<MenuDetail>
         rowKey={({ meal }) => meal.id}
         dataSource={data}
         pagination={{

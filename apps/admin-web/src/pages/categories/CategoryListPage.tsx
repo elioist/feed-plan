@@ -1,17 +1,8 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import {
-  Button,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Popconfirm,
-  Space,
-  Table,
-  App as AntdApp,
-} from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Popconfirm, Space, App as AntdApp } from 'antd';
 import { useState } from 'react';
 import type { Category, CreateCategoryInput } from '@feed-plan/shared';
+import { DataTable } from '~/shared/components/DataTable';
 import { PageScaffold } from '~/shared/components/PageScaffold';
 import {
   categoryQueries,
@@ -104,7 +95,7 @@ export function CategoryListPage() {
           </Button>
         }
       >
-        <Table
+        <DataTable<Category>
           rowKey="id"
           dataSource={data}
           pagination={{

@@ -9,12 +9,12 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Tag,
   App as AntdApp,
 } from 'antd';
 import { useState } from 'react';
-import type { CreateDishInput, DishDifficulty } from '@feed-plan/shared';
+import type { CreateDishInput, DishDifficulty, DishSummary } from '@feed-plan/shared';
+import { DataTable } from '~/shared/components/DataTable';
 import { PageScaffold } from '~/shared/components/PageScaffold';
 import { categoryQueries } from '~/features/categories/api';
 import { createDish, dishQueries, setDishActive, updateDish } from '~/features/dishes/api';
@@ -163,7 +163,7 @@ export function DishListPage() {
             <Button onClick={resetSearch}>重置</Button>
           </Space>
         </Form>
-        <Table
+        <DataTable<DishSummary>
           rowKey="id"
           dataSource={dishes}
           pagination={{
@@ -191,7 +191,7 @@ export function DishListPage() {
               title: '难度',
               dataIndex: 'difficulty',
               width: 120,
-              render: (difficulty: DishDifficulty) => difficultyLabels[difficulty],
+              render: (_, dish) => difficultyLabels[dish.difficulty],
             },
             {
               title: '状态',
