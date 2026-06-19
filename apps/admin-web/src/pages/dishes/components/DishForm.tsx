@@ -1,4 +1,5 @@
 import type { CreateDishInput, DishDetail } from '@feed-plan/shared';
+import { COMMON_DIETARY } from '@feed-plan/shared';
 import { Button, Form, Input, Select, Switch } from 'antd';
 import type { Category } from '@feed-plan/shared';
 import { CoverImageUpload } from './CoverImageUpload';
@@ -37,6 +38,21 @@ export function DishForm({ categories, initialValue, loading, onSubmit }: DishFo
             { label: '中等', value: 'medium' },
             { label: '困难', value: 'hard' },
           ]}
+        />
+      </Form.Item>
+      <Form.Item label="标签" name="tags">
+        <Select
+          mode="tags"
+          placeholder="输入标签后回车，如「快手」「下饭」"
+          tokenSeparators={[',', '，']}
+        />
+      </Form.Item>
+      <Form.Item label="忌口" name="dietary">
+        <Select
+          mode="tags"
+          placeholder="选择或输入忌口项，如香菜、葱"
+          tokenSeparators={[',', '，']}
+          options={COMMON_DIETARY.map((item) => ({ label: item, value: item }))}
         />
       </Form.Item>
       <Form.Item label="封面图" name="coverImage">

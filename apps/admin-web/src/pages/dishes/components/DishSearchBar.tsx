@@ -61,6 +61,18 @@ export function DishSearchBar({
     },
     {
       type: 'input',
+      name: 'tag',
+      label: '标签',
+      placeholder: '按标签筛选',
+    },
+    {
+      type: 'input',
+      name: 'dietary',
+      label: '忌口',
+      placeholder: '按忌口筛选',
+    },
+    {
+      type: 'input',
       name: 'createdBy',
       label: '创建人',
       placeholder: '请输入创建人',

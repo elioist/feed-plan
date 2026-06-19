@@ -24,6 +24,8 @@ const dishes: DishSummary[] = [
     description: '家常快手菜',
     referenceUrl: null,
     difficulty: 'easy',
+    tags: [],
+    dietary: [],
     isActive: true,
     createdAt: new Date('2026-01-02T00:00:00.000Z'),
     updatedAt: new Date('2026-01-02T00:00:00.000Z'),

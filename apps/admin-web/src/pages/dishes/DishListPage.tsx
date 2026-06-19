@@ -1,8 +1,24 @@
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { Button, Card, Drawer, Form, Image, Popconfirm, Space, Switch, App as AntdApp } from 'antd';
+import {
+  Button,
+  Card,
+  Drawer,
+  Form,
+  Image,
+  Popconfirm,
+  Space,
+  Switch,
+  Tag,
+  App as AntdApp,
+} from 'antd';
 import { useState } from 'react';
-import type { CreateDishInput, DishDifficulty, DishListQuery, DishSummary } from '@feed-plan/shared';
+import type {
+  CreateDishInput,
+  DishDifficulty,
+  DishListQuery,
+  DishSummary,
+} from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
 import { createDish, deleteDish, setDishActive, updateDish } from '~/api/dishes';
 import { categoryQueries } from '~/queries/categories';
@@ -184,6 +200,27 @@ export function DishListPage() {
               dataIndex: 'difficulty',
               width: 120,
               render: (_, dish) => difficultyLabels[dish.difficulty],
+            },
+            {
+              title: '标签',
+              width: 200,
+              render: (_, dish) =>
+                dish.tags.length || dish.dietary.length ? (
+                  <Space size={[0, 4]} wrap>
+                    {dish.tags.map((tag) => (
+                      <Tag key={`tag-${tag}`} color="blue">
+                        {tag}
+                      </Tag>
+                    ))}
+                    {dish.dietary.map((item) => (
+                      <Tag key={`diet-${item}`} color="orange">
+                        忌{item}
+                      </Tag>
+                    ))}
+                  </Space>
+                ) : (
+                  '-'
+                ),
             },
             {
               title: '状态',
