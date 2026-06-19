@@ -7,6 +7,7 @@
 ```
 apps/
   server/        # NestJS 后端（认证、API）
+  admin-web/     # PC 管理后台（React + Vite + Ant Design）
 packages/
   shared/        # 前后端共享类型与 Zod 校验
   db/            # Drizzle schema 与 migration
@@ -111,6 +112,14 @@ openspec/        # SDD 规约（变更提案与已确立规约）
    curl -X PATCH "http://localhost:3000/meals/$MEAL_ID/complete" \
      -H "Authorization: Bearer $TOKEN"
    ```
+
+7. 启动 PC 管理后台：
+
+   ```bash
+   VITE_API_BASE_URL=http://localhost:3000 pnpm --filter @feed-plan/admin-web dev
+   ```
+
+   打开 Vite 输出的本地地址，使用 seed 创建的 chef 账号登录。后台首版包含首页、分类管理、菜谱管理和点菜菜单。
 
 ### 常用脚本
 
