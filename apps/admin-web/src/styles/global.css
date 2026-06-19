@@ -483,6 +483,23 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   border-radius: calc(var(--custom-radius) / 2 + 4px);
 }
 
+.admin-notice-close {
+  margin-left: auto;
+  color: var(--gray-600);
+}
+
+.notification-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.notification-panel {
+  width: 320px;
+}
+
 .page-scaffold {
   min-height: 100%;
 }
@@ -754,4 +771,87 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* Art Design Pro 风格 - 搜索栏 */
+.art-search-bar {
+  margin-bottom: 16px;
+}
+
+.art-search-bar .ant-card-body {
+  padding: 15px 20px 0;
+}
+
+.art-search-bar .ant-form-item {
+  margin-bottom: 12px;
+}
+
+.art-search-bar .ant-form-item-label {
+  text-align: right;
+}
+
+.art-search-bar .ant-form-item-control {
+  min-width: 0;
+}
+
+.art-search-bar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.art-search-bar-actions .form-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.art-search-bar .filter-toggle {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  line-height: 32px;
+  color: var(--theme-color);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.art-search-bar .filter-toggle:hover {
+  color: #3b82f6;
+}
+
+.art-search-bar .filter-toggle span {
+  font-size: 14px;
+  user-select: none;
+}
+
+.art-search-bar .filter-toggle .icon-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+/* Art Design Pro 风格 - 表格头部 */
+.art-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-bottom: 12px;
+}
+
+.art-table-header-left,
+.art-table-header-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Art Design Pro 风格 - 表格卡片 */
+.art-table-card {
+  background: var(--default-box-color);
+  border: 1px solid var(--card-border);
+  border-radius: calc(var(--custom-radius) / 2 + 2px);
+  padding: 16px;
 }

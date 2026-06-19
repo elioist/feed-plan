@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import { Avatar, Button, Dropdown, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
-import { useAuthStore } from '~/features/auth/store';
+import { useAuthStore } from '~/store/modules/auth';
 
 export function UserMenu() {
   const user = useAuthStore((state) => state.user);

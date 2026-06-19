@@ -12,12 +12,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@feed-plan/shared": "workspace:*",
     "@ant-design/icons": "catalog:frontend",
     "@ant-design/pro-components": "catalog:frontend",
+    "@feed-plan/shared": "workspace:*",
     "@tanstack/react-query": "catalog:frontend",
     "@tanstack/react-router": "catalog:frontend",
     "antd": "catalog:frontend",
+    "dayjs": "^1.11.21",
     "ofetch": "catalog:frontend",
     "react": "catalog:frontend",
     "react-dom": "catalog:frontend",

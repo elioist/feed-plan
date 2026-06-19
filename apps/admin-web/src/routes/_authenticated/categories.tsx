@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { CategoryListPage } from '~/pages/categories/CategoryListPage';
-import { categoryQueries } from '~/features/categories/api';
+import { categoryQueries } from '~/queries/categories';
 
 export const Route = createFileRoute('/_authenticated/categories')({
   loader: async ({ context: { queryClient } }) => {

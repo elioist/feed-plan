@@ -1,18 +1,54 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
-import { Button, Form, Input, Popconfirm, Select, Space, Tag, App as AntdApp } from 'antd';
-import type { MenuDetail } from '@feed-plan/shared';
-import { DataTable } from '~/shared/components/DataTable';
-import { PageScaffold } from '~/shared/components/PageScaffold';
-import { completeMeal, mealQueries } from '~/features/meals/api';
+import { Button, Card, Form, Popconfirm, Space, Tag, App as AntdApp } from 'antd';
+import dayjs from 'dayjs';
+import type { MealQuery, MenuDetail } from '@feed-plan/shared';
+import { DataTable, TableHeader } from '~/components/core/tables';
+import { completeMeal } from '~/api/meals';
+import { mealQueries } from '~/queries/meals';
+import { MealSearchBar, type MealSearchFormValues } from './components/MealSearchBar';
+
+const toSearchFormValues = (search: MealQuery): MealSearchFormValues => {
+  const from = search.mealDateFrom ?? search.mealDate;
+  const to = search.mealDateTo ?? search.mealDate;
+
+  return {
+    mealDateRange: from && to ? [dayjs(from), dayjs(to)] : undefined,
+    mealType: search.mealType,
+    status: search.status,
+  };
+};
+
+const formatDateValue = (value: { format: (template: string) => string }) =>
+  value.format('YYYY-MM-DD');
+
+const toUrlSearch = (values: MealSearchFormValues): MealQuery => {
+  const next: MealQuery = {};
+  const [from, to] = values.mealDateRange ?? [];
+
+  if (from) {
+    next.mealDateFrom = formatDateValue(from);
+  }
+  if (to) {
+    next.mealDateTo = formatDateValue(to);
+  }
+  if (values.mealType) {
+    next.mealType = values.mealType;
+  }
+  if (values.status) {
+    next.status = values.status;
+  }
+
+  return next;
+};
 
 export function MealListPage() {
   const search = useSearch({ from: '/_authenticated/meals' });
   const navigate = useNavigate();
-  const { data } = useSuspenseQuery(mealQueries.list(search));
+  const { data, refetch } = useSuspenseQuery(mealQueries.list(search));
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
-  const [filterForm] = Form.useForm<typeof search>();
+  const [filterForm] = Form.useForm<MealSearchFormValues>();
 
   const completeMutation = useMutation({
     mutationFn: completeMeal,
@@ -25,8 +61,8 @@ export function MealListPage() {
     },
   });
 
-  const updateSearch = async (values: typeof search) => {
-    await navigate({ to: '/meals', search: values });
+  const updateSearch = async (values: MealSearchFormValues) => {
+    await navigate({ to: '/meals', search: toUrlSearch(values) });
   };
 
   const resetSearch = async () => {
@@ -35,101 +71,64 @@ export function MealListPage() {
   };
 
   return (
-    <PageScaffold
-      title="点菜菜单"
-      description="查看今日和历史点菜场次"
-      breadcrumbItems={[{ title: '首页' }, { title: '点菜菜单' }]}
-      tabs={[{ key: 'list', label: '菜单列表' }]}
-      activeTabKey="list"
-    >
-      <Form
-        key={JSON.stringify(search)}
+    <>
+      <MealSearchBar
         form={filterForm}
-        className="toolbar"
-        layout="inline"
-        initialValues={search}
-        onFinish={updateSearch}
-      >
-        <Form.Item name="mealDate">
-          <Input placeholder="日期 YYYY-MM-DD" />
-        </Form.Item>
-        <Form.Item name="mealType">
-          <Select
-            placeholder="餐型"
-            allowClear
-            style={{ width: 140 }}
-            options={[
-              { label: '早餐', value: 'breakfast' },
-              { label: '午餐', value: 'lunch' },
-              { label: '晚餐', value: 'dinner' },
-            ]}
-          />
-        </Form.Item>
-        <Form.Item name="status">
-          <Select
-            placeholder="状态"
-            allowClear
-            style={{ width: 140 }}
-            options={[
-              { label: '点菜中', value: 'ordering' },
-              { label: '已完成', value: 'completed' },
-            ]}
-          />
-        </Form.Item>
-        <Space>
-          <Button type="primary" htmlType="submit">
-            查询
-          </Button>
-          <Button onClick={resetSearch}>重置</Button>
-        </Space>
-      </Form>
-      <DataTable<MenuDetail>
-        rowKey={({ meal }) => meal.id}
-        dataSource={data}
-        pagination={{
-          showQuickJumper: true,
-          showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`,
-        }}
-        columns={[
-          { title: '标题', render: (_, item) => item.meal.title },
-          { title: '日期', render: (_, item) => item.meal.mealDate },
-          { title: '餐型', render: (_, item) => item.meal.mealType },
-          {
-            title: '状态',
-            render: (_, item) =>
-              item.meal.status === 'ordering' ? <Tag color="blue">点菜中</Tag> : <Tag>已完成</Tag>,
-          },
-          { title: '菜品数', render: (_, item) => item.items.length },
-          {
-            title: '操作',
-            render: (_, item) => (
-              <Space>
-                <Link to="/meals/$mealId" params={{ mealId: item.meal.id }}>
-                  查看
-                </Link>
-                {item.meal.status === 'ordering' ? (
-                  <Popconfirm
-                    title="完成点餐"
-                    description="完成后本场点餐会锁定，确认继续？"
-                    okText="完成"
-                    cancelText="取消"
-                    onConfirm={() => completeMutation.mutate(item.meal.id)}
-                  >
-                    <Button type="link" loading={completeMutation.isPending}>
-                      完成
-                    </Button>
-                  </Popconfirm>
-                ) : (
-                  <Button type="link" disabled>
-                    已完成
-                  </Button>
-                )}
-              </Space>
-            ),
-          },
-        ]}
+        searchParams={toSearchFormValues(search)}
+        onSearch={updateSearch}
+        onReset={resetSearch}
       />
-    </PageScaffold>
+
+      <Card className="art-table-card">
+        <TableHeader loading={completeMutation.isPending} onRefresh={() => refetch()} />
+        <DataTable<MenuDetail>
+          rowKey={({ meal }) => meal.id}
+          dataSource={data}
+          pagination={{
+            showQuickJumper: true,
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 条`,
+          }}
+          columns={[
+            { title: '标题', render: (_, item) => item.meal.title },
+            { title: '日期', render: (_, item) => item.meal.mealDate },
+            { title: '餐型', render: (_, item) => item.meal.mealType },
+            {
+              title: '状态',
+              render: (_, item) =>
+                item.meal.status === 'ordering' ? <Tag color="blue">点菜中</Tag> : <Tag>已完成</Tag>,
+            },
+            { title: '菜品数', render: (_, item) => item.items.length },
+            {
+              title: '操作',
+              render: (_, item) => (
+                <Space>
+                  <Link to="/meals/$mealId" params={{ mealId: item.meal.id }}>
+                    查看
+                  </Link>
+                  {item.meal.status === 'ordering' ? (
+                    <Popconfirm
+                      title="完成点餐"
+                      description="完成后本场点餐会锁定，确认继续？"
+                      okText="完成"
+                      cancelText="取消"
+                      onConfirm={() => completeMutation.mutate(item.meal.id)}
+                    >
+                      <Button type="link" loading={completeMutation.isPending}>
+                        完成
+                      </Button>
+                    </Popconfirm>
+                  ) : (
+                    <Button type="link" disabled>
+                      已完成
+                    </Button>
+                  )}
+                </Space>
+              ),
+            },
+          ]}
+        />
+      </Card>
+    </>
   );
 }

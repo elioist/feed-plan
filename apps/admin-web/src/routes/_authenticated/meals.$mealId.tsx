@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { mealQueries } from '~/features/meals/api';
+import { mealQueries } from '~/queries/meals';
 import { MealDetailPage } from '~/pages/meals/MealDetailPage';
 
 export const Route = createFileRoute('/_authenticated/meals/$mealId')({

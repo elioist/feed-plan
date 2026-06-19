@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { Button, Card, Descriptions, Popconfirm, Table, Tag, App as AntdApp } from 'antd';
-import { PageHeader } from '~/shared/components/PageHeader';
-import { completeMeal, mealQueries } from '~/features/meals/api';
+import { Button, Card, Descriptions, Popconfirm, Space, Table, Tag, Typography, App as AntdApp } from 'antd';
+import { completeMeal } from '~/api/meals';
+import { mealQueries } from '~/queries/meals';
+
+const { Title } = Typography;
 
 export function MealDetailPage() {
   const { mealId } = useParams({ from: '/_authenticated/meals/$mealId' });
@@ -23,27 +25,27 @@ export function MealDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title="菜单详情"
-        actions={
-          <Popconfirm
-            title="完成点餐"
-            description="完成后本场点餐会锁定，确认继续？"
+      <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Title level={3} style={{ margin: 0 }}>
+          菜单详情
+        </Title>
+        <Popconfirm
+          title="完成点餐"
+          description="完成后本场点餐会锁定，确认继续？"
+          disabled={data.meal.status === 'completed'}
+          okText="完成"
+          cancelText="取消"
+          onConfirm={() => completeMutation.mutate(data.meal.id)}
+        >
+          <Button
+            type="primary"
             disabled={data.meal.status === 'completed'}
-            okText="完成"
-            cancelText="取消"
-            onConfirm={() => completeMutation.mutate(data.meal.id)}
+            loading={completeMutation.isPending}
           >
-            <Button
-              type="primary"
-              disabled={data.meal.status === 'completed'}
-              loading={completeMutation.isPending}
-            >
-              完成本次点餐
-            </Button>
-          </Popconfirm>
-        }
-      />
+            完成本次点餐
+          </Button>
+        </Popconfirm>
+      </Space>
       <Card>
         <Descriptions column={3}>
           <Descriptions.Item label="标题">{data.meal.title}</Descriptions.Item>

@@ -1,7 +1,7 @@
 import { Layout } from 'antd';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
-import { useAuthStore } from '~/features/auth/store';
+import { useAuthStore } from '~/store/modules/auth';
 import { HeaderBar } from '~/components/core/layouts/header-bar/HeaderBar';
 import { SidebarMenu } from '~/components/core/layouts/menus/sidebar-menu/SidebarMenu';
 import { PageContent } from '~/components/core/layouts/page-content/PageContent';

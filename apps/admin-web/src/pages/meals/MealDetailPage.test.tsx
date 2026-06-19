@@ -70,7 +70,8 @@ vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ mealId: menuDetail.meal.id }),
 }));
 
-vi.mock('../../features/meals/api.js', () => mealApiMocks);
+vi.mock('~/api/meals', () => ({ completeMeal: mealApiMocks.completeMeal }));
+vi.mock('~/queries/meals', () => ({ mealQueries: mealApiMocks.mealQueries }));
 
 vi.mock('antd', async (importOriginal) => {
   const actual = await importOriginal<typeof import('antd')>();

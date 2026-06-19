@@ -1,18 +1,13 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { Button, Form, Input, InputNumber, Modal, Popconfirm, Space, App as AntdApp } from 'antd';
+import { Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Space, App as AntdApp } from 'antd';
 import { useState } from 'react';
 import type { Category, CreateCategoryInput } from '@feed-plan/shared';
-import { DataTable } from '~/shared/components/DataTable';
-import { PageScaffold } from '~/shared/components/PageScaffold';
-import {
-  categoryQueries,
-  createCategory,
-  deleteCategory,
-  updateCategory,
-} from '~/features/categories/api';
+import { DataTable, TableHeader } from '~/components/core/tables';
+import { createCategory, deleteCategory, updateCategory } from '~/api/categories';
+import { categoryQueries } from '~/queries/categories';
 
 export function CategoryListPage() {
-  const { data } = useSuspenseQuery(categoryQueries.all());
+  const { data, refetch } = useSuspenseQuery(categoryQueries.all());
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
   const [form] = Form.useForm<CreateCategoryInput>();
@@ -84,17 +79,16 @@ export function CategoryListPage() {
 
   return (
     <>
-      <PageScaffold
-        title="分类管理"
-        breadcrumbItems={[{ title: '首页' }, { title: '分类管理' }]}
-        tabs={[{ key: 'list', label: '分类列表' }]}
-        activeTabKey="list"
-        actions={
-          <Button type="primary" onClick={openCreateModal}>
-            新建分类
-          </Button>
-        }
-      >
+      <Card className="art-table-card">
+        <TableHeader
+          left={
+            <Button type="primary" onClick={openCreateModal}>
+              新建分类
+            </Button>
+          }
+          loading={createMutation.isPending || updateMutation.isPending}
+          onRefresh={() => refetch()}
+        />
         <DataTable<Category>
           rowKey="id"
           dataSource={data}
@@ -130,7 +124,7 @@ export function CategoryListPage() {
             },
           ]}
         />
-      </PageScaffold>
+      </Card>
       <Modal
         title={editingCategory ? '编辑分类' : '新建分类'}
         open={isModalOpen}

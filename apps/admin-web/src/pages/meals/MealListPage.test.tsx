@@ -89,10 +89,14 @@ vi.mock('@tanstack/react-router', () => ({
   useSearch: () => routerMocks.search,
 }));
 
-vi.mock('~/features/meals/api', () => mealApiMocks);
+vi.mock('~/api/meals', () => ({ completeMeal: mealApiMocks.completeMeal }));
+vi.mock('~/queries/meals', () => ({ mealQueries: mealApiMocks.mealQueries }));
 
 vi.mock('antd', async (importOriginal) => {
+  const React = await import('react');
   const actual = await importOriginal<typeof import('antd')>();
+  const toDateValue = (value: string) => ({ format: () => value });
+
   return {
     ...actual,
     App: {
@@ -134,6 +138,45 @@ vi.mock('antd', async (importOriginal) => {
         ))}
       </select>
     ),
+    DatePicker: Object.assign(() => <input type="text" />, {
+      RangePicker: ({
+        onChange,
+        placeholder = ['开始日期', '结束日期'],
+      }: {
+        onChange?: (value: unknown) => void;
+        placeholder?: [string, string];
+      }) => {
+        const startRef = React.useRef('');
+        const endRef = React.useRef('');
+        const emitChange = () => {
+          onChange?.([
+            startRef.current ? toDateValue(startRef.current) : null,
+            endRef.current ? toDateValue(endRef.current) : null,
+          ]);
+        };
+
+        return (
+          <span>
+            <input
+              aria-label="开始日期"
+              placeholder={placeholder[0]}
+              onChange={(event) => {
+                startRef.current = event.target.value;
+                emitChange();
+              }}
+            />
+            <input
+              aria-label="结束日期"
+              placeholder={placeholder[1]}
+              onChange={(event) => {
+                endRef.current = event.target.value;
+                emitChange();
+              }}
+            />
+          </span>
+        );
+      },
+    }),
   };
 });
 
@@ -167,7 +210,8 @@ describe('MealListPage', () => {
   it('renders today menu data', () => {
     render(<MealListPage />);
 
-    expect(screen.getByRole('heading', { name: '点菜菜单' })).toBeInTheDocument();
+    expect(screen.getByLabelText('开始日期')).toBeInTheDocument();
+    expect(screen.getByLabelText('结束日期')).toBeInTheDocument();
     expect(screen.getByText('今日晚餐')).toBeInTheDocument();
     expect(screen.getByText('2026-06-19')).toBeInTheDocument();
     expect(screen.getAllByText('点菜中').length).toBeGreaterThan(0);
@@ -182,7 +226,8 @@ describe('MealListPage', () => {
     const user = userEvent.setup();
     render(<MealListPage />);
 
-    await user.type(screen.getByPlaceholderText('日期 YYYY-MM-DD'), '2026-06-19');
+    await user.type(screen.getByLabelText('开始日期'), '2026-06-01');
+    await user.type(screen.getByLabelText('结束日期'), '2026-06-19');
     await user.selectOptions(screen.getByLabelText('餐型'), 'dinner');
     await user.selectOptions(screen.getByLabelText('状态'), 'ordering');
     await user.click(screen.getByRole('button', { name: /查\s*询/ }));
@@ -190,7 +235,8 @@ describe('MealListPage', () => {
     await waitFor(() => {
       expect(routerMocks.navigate).toHaveBeenCalledWith({
         search: {
-          mealDate: '2026-06-19',
+          mealDateFrom: '2026-06-01',
+          mealDateTo: '2026-06-19',
           mealType: 'dinner',
           status: 'ordering',
         },

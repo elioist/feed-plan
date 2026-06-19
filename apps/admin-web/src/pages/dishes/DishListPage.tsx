@@ -1,30 +1,14 @@
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import {
-  Button,
-  Drawer,
-  Form,
-  Image,
-  Input,
-  Popconfirm,
-  Select,
-  Space,
-  Tag,
-  App as AntdApp,
-} from 'antd';
+import { Button, Card, Drawer, Form, Image, Popconfirm, Space, Switch, App as AntdApp } from 'antd';
 import { useState } from 'react';
-import type { CreateDishInput, DishDifficulty, DishSummary } from '@feed-plan/shared';
-import { DataTable } from '~/shared/components/DataTable';
-import { PageScaffold } from '~/shared/components/PageScaffold';
-import { categoryQueries } from '~/features/categories/api';
-import {
-  createDish,
-  deleteDish,
-  dishQueries,
-  setDishActive,
-  updateDish,
-} from '~/features/dishes/api';
-import { DishForm } from '~/features/dishes/components/DishForm';
+import type { CreateDishInput, DishDifficulty, DishListQuery, DishSummary } from '@feed-plan/shared';
+import { DataTable, TableHeader } from '~/components/core/tables';
+import { createDish, deleteDish, setDishActive, updateDish } from '~/api/dishes';
+import { categoryQueries } from '~/queries/categories';
+import { dishQueries } from '~/queries/dishes';
+import { DishForm } from './components/DishForm';
+import { DishSearchBar } from './components/DishSearchBar';
 
 const difficultyLabels: Record<DishDifficulty, string> = {
   easy: '简单',
@@ -34,10 +18,21 @@ const difficultyLabels: Record<DishDifficulty, string> = {
 
 type DrawerMode = 'create' | 'edit';
 
+const toUrlSearch = (values: DishListQuery): DishListQuery => {
+  const next = { ...values };
+
+  if (next.isActive === true) {
+    delete next.isActive;
+  }
+
+  return next;
+};
+
 export function DishListPage() {
   const search = useSearch({ from: '/_authenticated/dishes' });
   const navigate = useNavigate();
-  const { data: dishes } = useSuspenseQuery(dishQueries.list(search));
+  const listSearch = { ...search, isActive: search.isActive ?? true };
+  const { data: dishes, refetch } = useSuspenseQuery(dishQueries.list(listSearch));
   const { data: categories } = useSuspenseQuery(categoryQueries.all());
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
@@ -103,17 +98,17 @@ export function DishListPage() {
     mutationFn: deleteDish,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['dishes'] });
-      message.success('菜谱已停用');
+      message.success('菜谱已删除');
     },
     onError: () => {
-      message.error('停用失败，请稍后重试');
+      message.error('删除失败，若菜谱已被点餐引用，请改为停用');
     },
   });
 
   const updateSearch = async (values: typeof search) => {
     await navigate({
       to: '/dishes',
-      search: values,
+      search: toUrlSearch(values),
     });
   };
 
@@ -132,57 +127,34 @@ export function DishListPage() {
 
   const drawerLoading = createMutation.isPending || updateMutation.isPending;
   const editingDish = drawerMode === 'edit' ? editingDishQuery.data : undefined;
+  const isLoading =
+    createMutation.isPending || updateMutation.isPending || editingDishQuery.isFetching;
+
+  const categoryOptions = categories.map((category) => ({
+    label: category.name,
+    value: category.id,
+  }));
 
   return (
     <>
-      <PageScaffold
-        title="菜谱管理"
-        breadcrumbItems={[{ title: '首页' }, { title: '菜谱管理' }]}
-        tabs={[{ key: 'list', label: '菜谱列表' }]}
-        activeTabKey="list"
-        actions={
-          <Button type="primary" onClick={openCreateDrawer}>
-            新建菜谱
-          </Button>
-        }
-      >
-        <Form
-          key={JSON.stringify(search)}
-          form={filterForm}
-          className="toolbar"
-          layout="inline"
-          initialValues={search}
-          onFinish={updateSearch}
-        >
-          <Form.Item name="keyword">
-            <Input.Search placeholder="搜索菜名、描述或菜谱内容" allowClear />
-          </Form.Item>
-          <Form.Item name="categoryId">
-            <Select
-              placeholder="分类"
-              allowClear
-              style={{ width: 180 }}
-              options={categories.map((category) => ({ label: category.name, value: category.id }))}
-            />
-          </Form.Item>
-          <Form.Item name="isActive">
-            <Select
-              placeholder="状态"
-              allowClear
-              style={{ width: 140 }}
-              options={[
-                { label: '启用', value: true },
-                { label: '停用', value: false },
-              ]}
-            />
-          </Form.Item>
-          <Space>
-            <Button type="primary" htmlType="submit">
-              查询
+      <DishSearchBar
+        form={filterForm}
+        searchParams={listSearch}
+        onSearch={updateSearch}
+        onReset={resetSearch}
+        categoryOptions={categoryOptions}
+      />
+
+      <Card className="art-table-card">
+        <TableHeader
+          left={
+            <Button type="primary" onClick={openCreateDrawer}>
+              新建菜谱
             </Button>
-            <Button onClick={resetSearch}>重置</Button>
-          </Space>
-        </Form>
+          }
+          loading={isLoading}
+          onRefresh={() => refetch()}
+        />
         <DataTable<DishSummary>
           rowKey="id"
           dataSource={dishes}
@@ -215,46 +187,62 @@ export function DishListPage() {
             },
             {
               title: '状态',
-              width: 120,
+              width: 140,
               render: (_, dish) =>
-                dish.isActive ? <Tag color="green">启用</Tag> : <Tag>停用</Tag>,
+                dish.isActive ? (
+                  <Popconfirm
+                    title="停用菜谱"
+                    description="停用后食客将无法继续看到这道菜，确认继续？"
+                    okText="停用"
+                    okButtonProps={{ danger: true }}
+                    cancelText="取消"
+                    onConfirm={() => activeMutation.mutate({ id: dish.id, isActive: false })}
+                  >
+                    <Switch
+                      checked
+                      checkedChildren="启用"
+                      loading={activeMutation.isPending}
+                      unCheckedChildren="停用"
+                    />
+                  </Popconfirm>
+                ) : (
+                  <Switch
+                    checked={false}
+                    checkedChildren="启用"
+                    loading={activeMutation.isPending}
+                    unCheckedChildren="停用"
+                    onChange={(checked) =>
+                      activeMutation.mutate({ id: dish.id, isActive: checked })
+                    }
+                  />
+                ),
             },
             {
               title: '操作',
-              width: 220,
+              width: 180,
               render: (_, dish) => (
                 <Space>
                   <Button type="link" onClick={() => openEditDrawer(dish.id)}>
                     编辑
                   </Button>
-                  {dish.isActive ? (
-                    <Popconfirm
-                      title="停用菜谱"
-                      description="停用后食客将无法继续看到这道菜，确认继续？"
-                      okText="停用"
-                      okButtonProps={{ danger: true }}
-                      cancelText="取消"
-                      onConfirm={() => deleteMutation.mutate(dish.id)}
-                    >
-                      <Button type="link" danger loading={deleteMutation.isPending}>
-                        停用
-                      </Button>
-                    </Popconfirm>
-                  ) : (
-                    <Button
-                      type="link"
-                      loading={activeMutation.isPending}
-                      onClick={() => activeMutation.mutate({ id: dish.id, isActive: true })}
-                    >
-                      启用
+                  <Popconfirm
+                    title="删除菜谱"
+                    description="删除后不可恢复，确认继续？"
+                    okText="删除"
+                    cancelText="取消"
+                    onConfirm={() => deleteMutation.mutate(dish.id)}
+                  >
+                    <Button type="link" danger loading={deleteMutation.isPending}>
+                      删除
                     </Button>
-                  )}
+                  </Popconfirm>
                 </Space>
               ),
             },
           ]}
         />
-      </PageScaffold>
+      </Card>
+
       <Drawer
         title={drawerMode === 'edit' ? '编辑菜谱' : '新建菜谱'}
         open={drawerOpen}

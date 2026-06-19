@@ -1,10 +1,11 @@
-import { Card, Col, Row, Statistic } from 'antd';
-import { PageHeader } from '~/shared/components/PageHeader';
+import { Card, Col, Row, Statistic, Typography } from 'antd';
+
+const { Title } = Typography;
 
 export function DashboardPage() {
   return (
     <>
-      <PageHeader title="首页" description="主厨工作台" />
+      <Title level={3}>主厨工作台</Title>
       <Row gutter={16}>
         <Col span={8}>
           <Card>

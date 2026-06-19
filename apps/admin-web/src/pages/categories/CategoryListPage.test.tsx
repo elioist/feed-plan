@@ -51,7 +51,14 @@ vi.mock('@tanstack/react-query', () => ({
   useSuspenseQuery: reactQueryMocks.useSuspenseQuery,
 }));
 
-vi.mock('../../features/categories/api.js', () => categoryApiMocks);
+vi.mock('~/api/categories', () => ({
+  createCategory: categoryApiMocks.createCategory,
+  deleteCategory: categoryApiMocks.deleteCategory,
+  updateCategory: categoryApiMocks.updateCategory,
+}));
+vi.mock('~/queries/categories', () => ({
+  categoryQueries: categoryApiMocks.categoryQueries,
+}));
 
 vi.mock('antd', async (importOriginal) => {
   const actual = await importOriginal<typeof import('antd')>();
@@ -115,6 +122,7 @@ describe('CategoryListPage', () => {
     categoryApiMocks.categoryQueries.all.mockClear();
     categoryApiMocks.createCategory.mockReset();
     categoryApiMocks.deleteCategory.mockReset();
+    categoryApiMocks.deleteCategory.mockResolvedValue({ ok: true });
     categoryApiMocks.updateCategory.mockReset();
     antdAppMocks.message.error.mockReset();
     antdAppMocks.message.success.mockReset();
@@ -123,7 +131,7 @@ describe('CategoryListPage', () => {
   it('renders the category list', () => {
     render(<CategoryListPage />);
 
-    expect(screen.getByRole('heading', { name: '分类管理' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '新建分类' })).toBeInTheDocument();
     expect(screen.getByText('家常菜')).toBeInTheDocument();
     expect(screen.getByText('汤')).toBeInTheDocument();
     expect(screen.getAllByText('1').length).toBeGreaterThan(0);
@@ -156,6 +164,20 @@ describe('CategoryListPage', () => {
     });
     expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['categories'] });
     expect(antdAppMocks.message.success).toHaveBeenCalledWith('分类已创建');
+  });
+
+  it('deletes a category with confirmation and feedback', async () => {
+    const user = userEvent.setup();
+
+    render(<CategoryListPage />);
+
+    await user.click(screen.getAllByRole('button', { name: '确认删除' })[0]!);
+
+    await waitFor(() => {
+      expect(categoryApiMocks.deleteCategory).toHaveBeenCalledWith(categories[0]!.id);
+    });
+    expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['categories'] });
+    expect(antdAppMocks.message.success).toHaveBeenCalledWith('分类已删除');
   });
 
   it('shows feedback when deleting a referenced category fails', async () => {

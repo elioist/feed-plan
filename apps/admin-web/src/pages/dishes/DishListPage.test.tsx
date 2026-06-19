@@ -80,8 +80,14 @@ vi.mock('@tanstack/react-router', () => ({
   useSearch: () => routerMocks.search,
 }));
 
-vi.mock('~/features/dishes/api', () => dishApiMocks);
-vi.mock('~/features/categories/api', () => categoryApiMocks);
+vi.mock('~/api/dishes', () => ({
+  createDish: dishApiMocks.createDish,
+  deleteDish: dishApiMocks.deleteDish,
+  setDishActive: dishApiMocks.setDishActive,
+  updateDish: dishApiMocks.updateDish,
+}));
+vi.mock('~/queries/dishes', () => ({ dishQueries: dishApiMocks.dishQueries }));
+vi.mock('~/queries/categories', () => categoryApiMocks);
 
 vi.mock('antd', async (importOriginal) => {
   const actual = await importOriginal<typeof import('antd')>();
@@ -91,14 +97,25 @@ vi.mock('antd', async (importOriginal) => {
       ...actual.App,
       useApp: () => ({ message: antdAppMocks.message }),
     },
-    Popconfirm: ({ children, onConfirm }: { children: React.ReactNode; onConfirm: () => void }) => (
-      <span>
-        {children}
-        <button type="button" onClick={onConfirm}>
-          确认停用
-        </button>
-      </span>
-    ),
+    Popconfirm: ({
+      children,
+      onConfirm,
+      title,
+    }: {
+      children: React.ReactNode;
+      onConfirm: () => void;
+      title: React.ReactNode;
+    }) => {
+      const action = String(title).replace('菜谱', '');
+      return (
+        <span>
+          {children}
+          <button type="button" onClick={onConfirm}>
+            确认{action}
+          </button>
+        </span>
+      );
+    },
   };
 });
 
@@ -128,7 +145,7 @@ describe('DishListPage', () => {
 
     dishApiMocks.createDish.mockReset();
     dishApiMocks.deleteDish.mockReset();
-    dishApiMocks.deleteDish.mockResolvedValue({ ...dishes[0]!, isActive: false });
+    dishApiMocks.deleteDish.mockResolvedValue({ ok: true });
     dishApiMocks.dishQueries.detail.mockClear();
     dishApiMocks.dishQueries.list.mockClear();
     dishApiMocks.setDishActive.mockReset();
@@ -138,19 +155,61 @@ describe('DishListPage', () => {
     antdAppMocks.message.success.mockReset();
   });
 
-  it('soft deletes active dishes with confirmation and feedback', async () => {
+  it('loads active dishes by default', () => {
+    render(<DishListPage />);
+
+    expect(dishApiMocks.dishQueries.list).toHaveBeenCalledWith({ isActive: true });
+  });
+
+  it('keeps the default active filter out of the URL when searching', async () => {
     const user = userEvent.setup();
     render(<DishListPage />);
 
-    expect(screen.getByRole('heading', { name: '菜谱管理' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /查\s*询/ }));
+
+    await waitFor(() => {
+      expect(routerMocks.navigate).toHaveBeenCalledWith({ to: '/dishes', search: {} });
+    });
+  });
+
+  it('clears dish filters without writing default active state to the URL', async () => {
+    const user = userEvent.setup();
+    render(<DishListPage />);
+
+    await user.click(screen.getByRole('button', { name: /重\s*置/ }));
+
+    await waitFor(() => {
+      expect(routerMocks.navigate).toHaveBeenCalledWith({ to: '/dishes', search: {} });
+    });
+  });
+
+  it('deletes active dishes with confirmation and feedback', async () => {
+    const user = userEvent.setup();
+    render(<DishListPage />);
+
+    expect(screen.getByRole('button', { name: '新建菜谱' })).toBeInTheDocument();
     expect(screen.getByText('番茄炒蛋')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '确认停用' }));
+    await user.click(screen.getByRole('button', { name: '确认删除' }));
 
     await waitFor(() => {
       expect(dishApiMocks.deleteDish).toHaveBeenCalledWith(dishes[0]!.id);
     });
     expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['dishes'] });
-    expect(antdAppMocks.message.success).toHaveBeenCalledWith('菜谱已停用');
+    expect(antdAppMocks.message.success).toHaveBeenCalledWith('菜谱已删除');
+  });
+
+  it('toggles active dishes from the status column with confirmation', async () => {
+    const user = userEvent.setup();
+    render(<DishListPage />);
+
+    await user.click(screen.getByRole('button', { name: '确认停用' }));
+
+    await waitFor(() => {
+      expect(dishApiMocks.setDishActive).toHaveBeenCalledWith(dishes[0]!.id, {
+        isActive: false,
+      });
+    });
+    expect(antdAppMocks.message.success).toHaveBeenCalledWith('菜谱状态已更新');
   });
 });

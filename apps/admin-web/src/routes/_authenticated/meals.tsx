@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { mealQuerySchema } from '@feed-plan/shared';
-import { mealQueries } from '~/features/meals/api';
+import { mealQueries } from '~/queries/meals';
 import { MealListPage } from '~/pages/meals/MealListPage';
 
 export const Route = createFileRoute('/_authenticated/meals')({

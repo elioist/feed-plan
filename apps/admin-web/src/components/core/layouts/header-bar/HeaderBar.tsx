@@ -1,6 +1,7 @@
 import {
   AppstoreOutlined,
   BellOutlined,
+  CloseOutlined,
   FullscreenOutlined,
   MessageOutlined,
   MenuFoldOutlined,
@@ -55,6 +56,8 @@ export function HeaderBar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationsRead, setNotificationsRead] = useState(false);
 
   const headerConfig = AppConfig.headerBar;
 
@@ -115,6 +118,7 @@ export function HeaderBar() {
       description: '菜谱富文本、用户管理和 ProTable 迁移仍在 admin-web change 中排队。',
     },
   ];
+  const visibleNotificationItems = notificationsRead ? [] : notificationItems;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -228,22 +232,53 @@ export function HeaderBar() {
           ) : null}
           {headerConfig.notification.enabled ? (
             <Popover
+              open={notificationOpen}
               placement="bottomRight"
-              title="通知"
+              title={
+                <div className="notification-title">
+                  <span>通知</span>
+                  <Button
+                    aria-label="关闭通知"
+                    icon={<CloseOutlined />}
+                    size="small"
+                    type="text"
+                    onClick={() => setNotificationOpen(false)}
+                  />
+                </div>
+              }
               content={
-                <List
-                  className="header-popover-list"
-                  dataSource={notificationItems}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <List.Item.Meta title={item.title} description={item.description} />
-                    </List.Item>
+                <div className="notification-panel">
+                  {visibleNotificationItems.length > 0 ? (
+                    <>
+                      <List
+                        className="header-popover-list"
+                        dataSource={visibleNotificationItems}
+                        renderItem={(item) => (
+                          <List.Item>
+                            <List.Item.Meta title={item.title} description={item.description} />
+                          </List.Item>
+                        )}
+                      />
+                      <Button
+                        block
+                        type="link"
+                        onClick={() => {
+                          setNotificationsRead(true);
+                          setNotificationOpen(false);
+                        }}
+                      >
+                        全部已读
+                      </Button>
+                    </>
+                  ) : (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无通知" />
                   )}
-                />
+                </div>
               }
               trigger="click"
+              onOpenChange={setNotificationOpen}
             >
-              <Badge dot>
+              <Badge dot={!notificationsRead}>
                 <Button type="text" icon={<BellOutlined />} />
               </Badge>
             </Popover>
