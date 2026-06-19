@@ -1,8 +1,28 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { Column } from 'drizzle-orm';
 import { describe, expect, it, vi } from 'vitest';
 import type { CategoryRow, DishRow } from '@feed-plan/db';
-import type { DishDetail, JwtPayload } from '@feed-plan/shared';
+import type { DishDetail, DishListQuery, JwtPayload } from '@feed-plan/shared';
 import { DishesService } from './dishes.service.js';
+
+/** 递归收集 drizzle 条件里引用到的列名 */
+function collectColumns(node: unknown, columns = new Set<string>()): Set<string> {
+  if (!node || typeof node !== 'object') {
+    return columns;
+  }
+
+  if (node instanceof Column) {
+    columns.add(node.name);
+    return columns;
+  }
+
+  const chunks = (node as { queryChunks?: unknown[] }).queryChunks;
+  if (Array.isArray(chunks)) {
+    chunks.forEach((chunk) => collectColumns(chunk, columns));
+  }
+
+  return columns;
+}
 
 const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
@@ -133,5 +153,20 @@ describe('DishesService', () => {
 
     expect(db.update).toHaveBeenCalled();
     expect(set).toHaveBeenCalledWith(expect.objectContaining({ recipeContent: '<p>新的做法</p>' }));
+  });
+
+  it('keyword 搜索覆盖菜名、描述和菜谱内容三字段', () => {
+    const service = new DishesService({} as never);
+    const where = (
+      service as never as {
+        buildListWhere: (query: DishListQuery, user: JwtPayload) => unknown;
+      }
+    ).buildListWhere({ keyword: '番茄' }, chef);
+
+    const columns = collectColumns(where);
+
+    expect(columns).toContain('name');
+    expect(columns).toContain('description');
+    expect(columns).toContain('recipe_content');
   });
 });
