@@ -58,7 +58,7 @@ const menuDetail: MenuDetail = {
         category: null,
         coverImage: null,
         description: null,
-        biliVideo: null,
+        referenceUrl: null,
         difficulty: 'easy',
         isActive: true,
         createdAt: new Date('2026-01-01T00:00:00.000Z'),

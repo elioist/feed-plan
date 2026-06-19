@@ -3,8 +3,6 @@ import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import {
   categories,
   dishes,
-  ingredients,
-  recipeSteps,
   type CategoryRow,
   type DishRow,
 } from '@feed-plan/db';
@@ -45,50 +43,24 @@ export class DishesService {
   }
 
   async create(input: CreateDishInput): Promise<DishDetail> {
-    this.assertUniqueStepNos(input.steps);
     await this.assertCategoryExists(input.categoryId);
 
-    const dish = await this.db.transaction(async (tx) => {
-      const [created] = await tx
-        .insert(dishes)
-        .values({
-          name: input.name,
-          categoryId: input.categoryId,
-          coverImage: input.coverImage ?? null,
-          description: input.description ?? null,
-          biliVideo: input.biliVideo ?? null,
-          difficulty: input.difficulty,
-          isActive: input.isActive,
-        })
-        .returning();
-      if (!created) {
-        throw new BadRequestException('菜谱创建失败');
-      }
-
-      if (input.ingredients.length > 0) {
-        await tx.insert(ingredients).values(
-          input.ingredients.map((item, index) => ({
-            dishId: created.id,
-            name: item.name,
-            amount: item.amount,
-            sortOrder: item.sortOrder ?? index,
-          })),
-        );
-      }
-
-      if (input.steps.length > 0) {
-        await tx.insert(recipeSteps).values(
-          input.steps.map((step) => ({
-            dishId: created.id,
-            stepNo: step.stepNo,
-            content: step.content,
-            image: step.image ?? null,
-          })),
-        );
-      }
-
-      return created;
-    });
+    const [dish] = await this.db
+      .insert(dishes)
+      .values({
+        name: input.name,
+        categoryId: input.categoryId,
+        coverImage: input.coverImage ?? null,
+        description: input.description ?? null,
+        referenceUrl: input.referenceUrl ?? null,
+        recipeContent: sanitizeRecipeContent(input.recipeContent),
+        difficulty: input.difficulty,
+        isActive: input.isActive,
+      })
+      .returning();
+    if (!dish) {
+      throw new BadRequestException('菜谱创建失败');
+    }
 
     const detail = await this.loadDetail(dish.id);
     if (!detail) {
@@ -98,54 +70,21 @@ export class DishesService {
   }
 
   async update(id: string, input: UpdateDishInput): Promise<DishDetail> {
-    if (input.steps) {
-      this.assertUniqueStepNos(input.steps);
-    }
     await this.assertDishExists(id);
     if (input.categoryId) {
       await this.assertCategoryExists(input.categoryId);
     }
 
-    await this.db.transaction(async (tx) => {
-      const dishPatch = this.toDishPatch(input);
-      if (Object.keys(dishPatch).length > 0) {
-        await tx
-          .update(dishes)
-          .set({
-            ...dishPatch,
-            updatedAt: new Date(),
-          })
-          .where(eq(dishes.id, id));
-      }
-
-      if (input.ingredients) {
-        await tx.delete(ingredients).where(eq(ingredients.dishId, id));
-        if (input.ingredients.length > 0) {
-          await tx.insert(ingredients).values(
-            input.ingredients.map((item, index) => ({
-              dishId: id,
-              name: item.name,
-              amount: item.amount,
-              sortOrder: item.sortOrder ?? index,
-            })),
-          );
-        }
-      }
-
-      if (input.steps) {
-        await tx.delete(recipeSteps).where(eq(recipeSteps.dishId, id));
-        if (input.steps.length > 0) {
-          await tx.insert(recipeSteps).values(
-            input.steps.map((step) => ({
-              dishId: id,
-              stepNo: step.stepNo,
-              content: step.content,
-              image: step.image ?? null,
-            })),
-          );
-        }
-      }
-    });
+    const dishPatch = this.toDishPatch(input);
+    if (Object.keys(dishPatch).length > 0) {
+      await this.db
+        .update(dishes)
+        .set({
+          ...dishPatch,
+          updatedAt: new Date(),
+        })
+        .where(eq(dishes.id, id));
+    }
 
     const detail = await this.loadDetail(id);
     if (!detail) {
@@ -188,7 +127,13 @@ export class DishesService {
     }
     if (query.keyword) {
       const keyword = `%${query.keyword}%`;
-      conditions.push(or(ilike(dishes.name, keyword), ilike(dishes.description, keyword)));
+      conditions.push(
+        or(
+          ilike(dishes.name, keyword),
+          ilike(dishes.description, keyword),
+          ilike(dishes.recipeContent, keyword),
+        ),
+      );
     }
     return conditions.length > 0 ? and(...conditions) : undefined;
   }
@@ -196,8 +141,6 @@ export class DishesService {
   private async loadDetail(id: string): Promise<{
     dish: DishRow;
     category: CategoryRow | null;
-    ingredients: (typeof ingredients.$inferSelect)[];
-    steps: (typeof recipeSteps.$inferSelect)[];
   } | null> {
     const dishRows = await this.db
       .select({ dish: dishes, category: categories })
@@ -211,22 +154,9 @@ export class DishesService {
       return null;
     }
 
-    const ingredientRows = await this.db
-      .select()
-      .from(ingredients)
-      .where(eq(ingredients.dishId, id))
-      .orderBy(asc(ingredients.sortOrder), asc(ingredients.name));
-    const stepRows = await this.db
-      .select()
-      .from(recipeSteps)
-      .where(eq(recipeSteps.dishId, id))
-      .orderBy(asc(recipeSteps.stepNo));
-
     return {
       dish: row.dish,
       category: row.category,
-      ingredients: ingredientRows,
-      steps: stepRows,
     };
   }
 
@@ -252,25 +182,54 @@ export class DishesService {
     }
   }
 
-  private assertUniqueStepNos(steps: { stepNo: number }[]): void {
-    const stepNos = new Set<number>();
-    for (const step of steps) {
-      if (stepNos.has(step.stepNo)) {
-        throw new BadRequestException('做法步骤编号不能重复');
-      }
-      stepNos.add(step.stepNo);
-    }
-  }
-
   private toDishPatch(input: UpdateDishInput): Partial<typeof dishes.$inferInsert> {
     return {
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
       ...(input.coverImage !== undefined ? { coverImage: input.coverImage ?? null } : {}),
       ...(input.description !== undefined ? { description: input.description ?? null } : {}),
-      ...(input.biliVideo !== undefined ? { biliVideo: input.biliVideo ?? null } : {}),
+      ...(input.referenceUrl !== undefined ? { referenceUrl: input.referenceUrl ?? null } : {}),
+      ...(input.recipeContent !== undefined
+        ? { recipeContent: sanitizeRecipeContent(input.recipeContent) }
+        : {}),
       ...(input.difficulty !== undefined ? { difficulty: input.difficulty } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
     };
   }
+}
+
+function sanitizeRecipeContent(content: string): string {
+  const allowedTags = new Set([
+    'p',
+    'br',
+    'strong',
+    'b',
+    'em',
+    'i',
+    'u',
+    's',
+    'ul',
+    'ol',
+    'li',
+    'blockquote',
+    'h2',
+    'h3',
+    'a',
+  ]);
+
+  return content
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/<(\/?)([a-z0-9]+)([^>]*)>/gi, (_match, closing: string, tagName: string, attrs: string) => {
+      const tag = tagName.toLowerCase();
+      if (!allowedTags.has(tag)) return '';
+      if (closing) return '</' + tag + '>';
+      if (tag !== 'a') return '<' + tag + '>';
+
+      const href = attrs.match(/\shref=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+      const hrefValue = href?.[1] ?? href?.[2] ?? href?.[3] ?? '';
+      if (!/^https?:\/\//i.test(hrefValue)) return '<a>';
+      return '<a href="' + hrefValue + '" target="_blank" rel="noopener noreferrer">';
+    })
+    .trim();
 }

@@ -1,11 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigModule } from '@nestjs/config';
-import {
-  BadRequestException,
-  ConflictException,
-  INestApplication,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, INestApplication, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -41,7 +36,7 @@ const dishSummary: DishSummary = {
   category,
   coverImage: null,
   description: '下饭',
-  biliVideo: null,
+  referenceUrl: null,
   difficulty: 'easy',
   isActive: true,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -49,24 +44,7 @@ const dishSummary: DishSummary = {
 };
 const dishDetail: DishDetail = {
   ...dishSummary,
-  ingredients: [
-    {
-      id: '55555555-5555-5555-5555-555555555555',
-      dishId: dishSummary.id,
-      name: '鸡蛋',
-      amount: '2 个',
-      sortOrder: 0,
-    },
-  ],
-  steps: [
-    {
-      id: '66666666-6666-6666-6666-666666666666',
-      dishId: dishSummary.id,
-      stepNo: 1,
-      content: '炒鸡蛋',
-      image: null,
-    },
-  ],
+  recipeContent: '<h3>食材</h3><p>鸡蛋、番茄</p><h3>做法</h3><p>炒鸡蛋</p>',
 };
 
 const fakeUsers = {
@@ -221,8 +199,7 @@ describe('Recipes API (e2e)', () => {
       .get(`/dishes/${dishSummary.id}`)
       .set('Authorization', `Bearer ${dinerToken}`);
     expect(res.status).toBe(200);
-    expect(res.body.ingredients[0]).toMatchObject({ name: '鸡蛋' });
-    expect(res.body.steps[0]).toMatchObject({ stepNo: 1, content: '炒鸡蛋' });
+    expect(res.body.recipeContent).toContain('炒鸡蛋');
   });
 
   it('GET /dishes/:id 不存在 → 404', async () => {
@@ -241,8 +218,7 @@ describe('Recipes API (e2e)', () => {
         name: '番茄炒蛋',
         categoryId: category.id,
         difficulty: 'easy',
-        ingredients: [{ name: '鸡蛋', amount: '2 个' }],
-        steps: [{ stepNo: 1, content: '炒鸡蛋' }],
+        recipeContent: '<p>鸡蛋和番茄炒熟</p>',
       });
     expect(res.status).toBe(201);
   });
@@ -255,6 +231,7 @@ describe('Recipes API (e2e)', () => {
         name: '番茄炒蛋',
         categoryId: category.id,
         difficulty: 'unknown',
+        recipeContent: '<p>内容</p>',
       });
     expect(res.status).toBe(400);
   });
@@ -268,25 +245,9 @@ describe('Recipes API (e2e)', () => {
         name: '番茄炒蛋',
         categoryId: category.id,
         difficulty: 'easy',
+        recipeContent: '<p>内容</p>',
       });
     expect(res.status).toBe(404);
-  });
-
-  it('POST /dishes 重复 stepNo → 400', async () => {
-    dishesService.create.mockRejectedValueOnce(new BadRequestException('做法步骤编号不能重复'));
-    const res = await request(app.getHttpServer())
-      .post('/dishes')
-      .set('Authorization', `Bearer ${chefToken}`)
-      .send({
-        name: '番茄炒蛋',
-        categoryId: category.id,
-        difficulty: 'easy',
-        steps: [
-          { stepNo: 1, content: '切番茄' },
-          { stepNo: 1, content: '炒鸡蛋' },
-        ],
-      });
-    expect(res.status).toBe(400);
   });
 
   it('PATCH /dishes/:id diner → 403', async () => {

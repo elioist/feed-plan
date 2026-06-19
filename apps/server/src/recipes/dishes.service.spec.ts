@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import type { CategoryRow, DishRow } from '@feed-plan/db';
 import type { DishDetail, JwtPayload } from '@feed-plan/shared';
@@ -28,7 +28,8 @@ const dish: DishRow = {
   categoryId: category.id,
   coverImage: null,
   description: '下饭',
-  biliVideo: null,
+  referenceUrl: null,
+  recipeContent: '<h3>食材</h3><p>鸡蛋、番茄</p><h3>做法</h3><p>炒熟</p>',
   difficulty: 'easy',
   isActive: true,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -47,34 +48,15 @@ const detail: DishDetail = {
   },
   coverImage: null,
   description: '下饭',
-  biliVideo: null,
+  referenceUrl: null,
+  recipeContent: dish.recipeContent,
   difficulty: 'easy',
   isActive: true,
   createdAt: dish.createdAt,
   updatedAt: dish.updatedAt,
-  ingredients: [],
-  steps: [],
 };
 
 describe('DishesService', () => {
-  it('重复 stepNo 时拒绝创建，避免部分写入', async () => {
-    const service = new DishesService({} as never);
-
-    await expect(
-      service.create({
-        name: '番茄炒蛋',
-        categoryId: category.id,
-        difficulty: 'easy',
-        isActive: true,
-        ingredients: [],
-        steps: [
-          { stepNo: 1, content: '切番茄' },
-          { stepNo: 1, content: '炒鸡蛋' },
-        ],
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-  });
-
   it('diner 访问停用菜谱详情时返回 404，chef 可访问', async () => {
     const service = new DishesService({} as never);
     vi.spyOn(
@@ -83,8 +65,6 @@ describe('DishesService', () => {
     ).mockResolvedValue({
       dish: { ...dish, isActive: false },
       category,
-      ingredients: [],
-      steps: [],
     });
 
     await expect(service.getById(dish.id, diner)).rejects.toBeInstanceOf(NotFoundException);
@@ -105,26 +85,10 @@ describe('DishesService', () => {
     expect(setActive).toHaveBeenCalledWith(dish.id, { isActive: false });
   });
 
-  it('更新菜谱时在事务中整体替换食材与步骤', async () => {
-    const deleteCalls: unknown[] = [];
-    const insertCalls: unknown[] = [];
-    const tx = {
-      update: vi.fn(() => ({
-        set: vi.fn(() => ({
-          where: vi.fn(async () => undefined),
-        })),
-      })),
-      delete: vi.fn((table) => {
-        deleteCalls.push(table);
-        return { where: vi.fn(async () => undefined) };
-      }),
-      insert: vi.fn((table) => {
-        insertCalls.push(table);
-        return { values: vi.fn(async () => undefined) };
-      }),
-    };
+  it('更新菜谱时只更新菜谱主表字段', async () => {
+    const set = vi.fn(() => ({ where: vi.fn(async () => undefined) }));
     const db = {
-      transaction: vi.fn(async (callback) => callback(tx)),
+      update: vi.fn(() => ({ set })),
     };
     const service = new DishesService(db as never);
     vi.spyOn(
@@ -137,16 +101,13 @@ describe('DishesService', () => {
     ).mockResolvedValue({
       dish,
       category,
-      ingredients: [],
-      steps: [],
     });
 
     await service.update(dish.id, {
-      ingredients: [{ name: '鸡蛋', amount: '2 个' }],
-      steps: [{ stepNo: 1, content: '炒熟' }],
+      recipeContent: '<p>新的做法</p>',
     });
 
-    expect(deleteCalls).toHaveLength(2);
-    expect(insertCalls).toHaveLength(2);
+    expect(db.update).toHaveBeenCalled();
+    expect(set).toHaveBeenCalledWith(expect.objectContaining({ recipeContent: '<p>新的做法</p>' }));
   });
 });

@@ -12,6 +12,7 @@ export type IdParam = z.infer<typeof idParamSchema>;
 
 const optionalText = z.string().trim().max(1000).optional().nullable();
 const optionalImagePath = z.string().trim().max(255).optional().nullable();
+const optionalUrl = z.string().trim().max(255).optional().nullable();
 
 export const categorySchema = z.object({
   id: z.string().uuid(),
@@ -33,30 +34,15 @@ export const updateCategorySchema = createCategorySchema.partial().refine((value
 }, '至少提供一个要更新的字段');
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 
-export const ingredientInputSchema = z.object({
-  name: z.string().trim().min(1, '食材名称不能为空').max(64),
-  amount: z.string().trim().min(1, '食材用量不能为空').max(64),
-  sortOrder: z.number().int().min(0).optional(),
-});
-export type IngredientInput = z.infer<typeof ingredientInputSchema>;
-
-export const recipeStepInputSchema = z.object({
-  stepNo: z.number().int().min(1, '步骤编号必须大于 0'),
-  content: z.string().trim().min(1, '步骤内容不能为空').max(2000),
-  image: optionalImagePath,
-});
-export type RecipeStepInput = z.infer<typeof recipeStepInputSchema>;
-
 export const createDishSchema = z.object({
   name: z.string().trim().min(1, '菜谱名称不能为空').max(128),
   categoryId: z.string().uuid('分类 id 不合法'),
   coverImage: optionalImagePath,
   description: optionalText,
-  biliVideo: z.string().trim().max(255).optional().nullable(),
+  referenceUrl: optionalUrl,
+  recipeContent: z.string().trim().min(1, '菜谱内容不能为空').max(20000),
   difficulty: dishDifficultySchema,
   isActive: z.boolean().default(true),
-  ingredients: z.array(ingredientInputSchema).default([]),
-  steps: z.array(recipeStepInputSchema).default([]),
 });
 export type CreateDishInput = z.infer<typeof createDishSchema>;
 
@@ -80,24 +66,6 @@ export const dishListQuerySchema = z.object({
 });
 export type DishListQuery = z.infer<typeof dishListQuerySchema>;
 
-export const ingredientSchema = z.object({
-  id: z.string().uuid(),
-  dishId: z.string().uuid(),
-  name: z.string(),
-  amount: z.string(),
-  sortOrder: z.number().int(),
-});
-export type Ingredient = z.infer<typeof ingredientSchema>;
-
-export const recipeStepSchema = z.object({
-  id: z.string().uuid(),
-  dishId: z.string().uuid(),
-  stepNo: z.number().int(),
-  content: z.string(),
-  image: z.string().nullable(),
-});
-export type RecipeStep = z.infer<typeof recipeStepSchema>;
-
 export const dishSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -105,7 +73,7 @@ export const dishSummarySchema = z.object({
   category: categorySchema.nullable(),
   coverImage: z.string().nullable(),
   description: z.string().nullable(),
-  biliVideo: z.string().nullable(),
+  referenceUrl: z.string().nullable(),
   difficulty: dishDifficultySchema,
   isActive: z.boolean(),
   createdAt: z.coerce.date(),
@@ -114,7 +82,6 @@ export const dishSummarySchema = z.object({
 export type DishSummary = z.infer<typeof dishSummarySchema>;
 
 export const dishDetailSchema = dishSummarySchema.extend({
-  ingredients: z.array(ingredientSchema),
-  steps: z.array(recipeStepSchema),
+  recipeContent: z.string(),
 });
 export type DishDetail = z.infer<typeof dishDetailSchema>;
