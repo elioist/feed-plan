@@ -13,7 +13,21 @@ import {
   TranslationOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Badge, Button, Dropdown, Empty, Input, Layout, List, Modal, Popover, Space, Tag, Tooltip, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  Dropdown,
+  Empty,
+  Input,
+  Layout,
+  List,
+  Modal,
+  Popover,
+  Space,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
 import type { MenuProps } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { AppConfig } from '~/config';
@@ -196,7 +210,11 @@ export function HeaderBar() {
           ) : null}
           {headerConfig.fullscreen.enabled ? (
             <Tooltip title="全屏">
-              <Button type="text" icon={<FullscreenOutlined />} onClick={() => void toggleFullScreen()} />
+              <Button
+                type="text"
+                icon={<FullscreenOutlined />}
+                onClick={() => void toggleFullScreen()}
+              />
             </Tooltip>
           ) : null}
           {headerConfig.language.enabled ? (
@@ -230,7 +248,11 @@ export function HeaderBar() {
             <Popover
               placement="bottomRight"
               title="聊天入口"
-              content={<Typography.Text type="secondary">聊天功能已预留，后续接入家庭点菜实时沟通。</Typography.Text>}
+              content={
+                <Typography.Text type="secondary">
+                  聊天功能已预留，后续接入家庭点菜实时沟通。
+                </Typography.Text>
+              }
               trigger="click"
             >
               <Badge dot color="green">
@@ -240,7 +262,11 @@ export function HeaderBar() {
           ) : null}
           {headerConfig.settings.enabled ? (
             <Badge dot color="green">
-              <Button type="text" icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} />
+              <Button
+                type="text"
+                icon={<SettingOutlined />}
+                onClick={() => setSettingsOpen(true)}
+              />
             </Badge>
           ) : null}
           {headerConfig.themeToggle.enabled ? (

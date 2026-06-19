@@ -1,11 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
-import {
-  categories,
-  dishes,
-  type CategoryRow,
-  type DishRow,
-} from '@feed-plan/db';
+import { categories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
 import type {
   CreateDishInput,
   DishDetail,
@@ -220,16 +215,19 @@ function sanitizeRecipeContent(content: string): string {
   return content
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/\son\w+=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/<(\/?)([a-z0-9]+)([^>]*)>/gi, (_match, closing: string, tagName: string, attrs: string) => {
-      const tag = tagName.toLowerCase();
-      if (!allowedTags.has(tag)) return '';
-      if (closing) return '</' + tag + '>';
-      if (tag !== 'a') return '<' + tag + '>';
+    .replace(
+      /<(\/?)([a-z0-9]+)([^>]*)>/gi,
+      (_match, closing: string, tagName: string, attrs: string) => {
+        const tag = tagName.toLowerCase();
+        if (!allowedTags.has(tag)) return '';
+        if (closing) return '</' + tag + '>';
+        if (tag !== 'a') return '<' + tag + '>';
 
-      const href = attrs.match(/\shref=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
-      const hrefValue = href?.[1] ?? href?.[2] ?? href?.[3] ?? '';
-      if (!/^https?:\/\//i.test(hrefValue)) return '<a>';
-      return '<a href="' + hrefValue + '" target="_blank" rel="noopener noreferrer">';
-    })
+        const href = attrs.match(/\shref=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+        const hrefValue = href?.[1] ?? href?.[2] ?? href?.[3] ?? '';
+        if (!/^https?:\/\//i.test(hrefValue)) return '<a>';
+        return '<a href="' + hrefValue + '" target="_blank" rel="noopener noreferrer">';
+      },
+    )
     .trim();
 }

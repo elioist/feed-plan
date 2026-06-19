@@ -192,7 +192,11 @@ export function WorkTabs() {
           })}
         </ul>
       </div>
-      <Dropdown menu={{ items: getMenuItems(activeRoute.path) }} trigger={['click']} placement="bottomRight">
+      <Dropdown
+        menu={{ items: getMenuItems(activeRoute.path) }}
+        trigger={['click']}
+        placement="bottomRight"
+      >
         <Button className="work-tab-more" icon={<DownOutlined />} />
       </Dropdown>
     </div>

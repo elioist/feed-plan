@@ -20,7 +20,8 @@ export function PageContent({ children, contentRef }: PageContentProps) {
           <div className="admin-notice">
             <NotificationOutlined />
             <span>
-              Feed Plan Pro 已进入后台体验升级阶段，当前正在完善查询表格、用户权限、主题设置与菜品标签能力。
+              Feed Plan Pro
+              已进入后台体验升级阶段，当前正在完善查询表格、用户权限、主题设置与菜品标签能力。
             </span>
           </div>
         </div>

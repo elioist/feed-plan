@@ -12,3 +12,4 @@ CLAUDE.md
 openspec
 pnpm-lock.yaml
 packages/db/drizzle/meta
+apps/admin-web/src/routeTree.gen.ts

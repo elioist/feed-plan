@@ -48,7 +48,11 @@ export function DishForm({ categories, initialValue, loading, onSubmit }: DishFo
       <Form.Item label="描述" name="description">
         <Input.TextArea rows={3} maxLength={1000} />
       </Form.Item>
-      <Form.Item label="菜谱内容" name="recipeContent" rules={[{ required: true, message: '请输入菜谱内容' }]}>
+      <Form.Item
+        label="菜谱内容"
+        name="recipeContent"
+        rules={[{ required: true, message: '请输入菜谱内容' }]}
+      >
         <RichTextEditor />
       </Form.Item>
       <Form.Item label="启用" name="isActive" valuePropName="checked">

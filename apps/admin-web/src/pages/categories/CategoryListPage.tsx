@@ -104,41 +104,41 @@ export function CategoryListPage() {
           </Button>
         }
       >
-      <Table
-        rowKey="id"
-        dataSource={data}
-        pagination={{
-          showQuickJumper: true,
-          showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`,
-        }}
-        columns={[
-          { title: '名称', dataIndex: 'name' },
-          { title: '排序', dataIndex: 'sortOrder', width: 120 },
-          {
-            title: '操作',
-            width: 180,
-            render: (_, category) => (
-              <Space>
-                <Button type="link" onClick={() => openEditModal(category)}>
-                  编辑
-                </Button>
-                <Popconfirm
-                  title="删除分类"
-                  description="删除后不可恢复，确认继续？"
-                  okText="删除"
-                  cancelText="取消"
-                  onConfirm={() => deleteMutation.mutate(category.id)}
-                >
-                  <Button type="link" danger>
-                    删除
+        <Table
+          rowKey="id"
+          dataSource={data}
+          pagination={{
+            showQuickJumper: true,
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 条`,
+          }}
+          columns={[
+            { title: '名称', dataIndex: 'name' },
+            { title: '排序', dataIndex: 'sortOrder', width: 120 },
+            {
+              title: '操作',
+              width: 180,
+              render: (_, category) => (
+                <Space>
+                  <Button type="link" onClick={() => openEditModal(category)}>
+                    编辑
                   </Button>
-                </Popconfirm>
-              </Space>
-            ),
-          },
-        ]}
-      />
+                  <Popconfirm
+                    title="删除分类"
+                    description="删除后不可恢复，确认继续？"
+                    okText="删除"
+                    cancelText="取消"
+                    onConfirm={() => deleteMutation.mutate(category.id)}
+                  >
+                    <Button type="link" danger>
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              ),
+            },
+          ]}
+        />
       </PageScaffold>
       <Modal
         title={editingCategory ? '编辑分类' : '新建分类'}

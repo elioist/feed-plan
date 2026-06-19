@@ -27,10 +27,7 @@ export function toDishSummary(row: DishRow, category: CategoryRow | null): DishS
   };
 }
 
-export function toDishDetail(args: {
-  dish: DishRow;
-  category: CategoryRow | null;
-}): DishDetail {
+export function toDishDetail(args: { dish: DishRow; category: CategoryRow | null }): DishDetail {
   return {
     ...toDishSummary(args.dish, args.category),
     recipeContent: args.dish.recipeContent,
