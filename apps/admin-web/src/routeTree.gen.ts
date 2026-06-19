@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
 import { Route as AuthenticatedDishesRouteImport } from './routes/_authenticated/dishes'
@@ -36,6 +37,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/dishes': typeof AuthenticatedDishesRoute
   '/meals': typeof AuthenticatedMealsRouteWithChildren
   '/roles': typeof AuthenticatedRolesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/dishes': typeof AuthenticatedDishesRoute
   '/meals': typeof AuthenticatedMealsRouteWithChildren
   '/roles': typeof AuthenticatedRolesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/': typeof AuthenticatedIndexRoute
   '/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_authenticated/dishes': typeof AuthenticatedDishesRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRouteWithChildren
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/dishes'
     | '/meals'
     | '/roles'
+    | '/settings'
     | '/users'
     | '/meals/$mealId'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/dishes'
     | '/meals'
     | '/roles'
+    | '/settings'
     | '/users'
     | '/'
     | '/meals/$mealId'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dishes'
     | '/_authenticated/meals'
     | '/_authenticated/roles'
+    | '/_authenticated/settings'
     | '/_authenticated/users'
     | '/_authenticated/'
     | '/_authenticated/meals/$mealId'
@@ -164,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof AuthenticatedUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/roles': {
@@ -220,6 +239,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDishesRoute: typeof AuthenticatedDishesRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRouteWithChildren
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
@@ -229,6 +249,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDishesRoute: AuthenticatedDishesRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRouteWithChildren,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
