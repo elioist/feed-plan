@@ -9,6 +9,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:admin": "turbo run dev --filter=@feed-plan/admin-web",
+    "dev:server": "turbo run dev --filter=@feed-plan/server",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
@@ -20,9 +22,9 @@
     "@feed-plan/eslint-config": "workspace:*",
     "@feed-plan/prettier-config": "workspace:*",
     "@feed-plan/typescript-config": "workspace:*",
-    "eslint": "^9.39.1",
-    "prettier": "^3.6.2",
-    "turbo": "^2.3.3",
-    "typescript": "^5.7.2"
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
   }
 }

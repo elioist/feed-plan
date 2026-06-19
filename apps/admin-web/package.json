@@ -1,0 +1,43 @@
+{
+  "name": "@feed-plan/admin-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host 0.0.0.0",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@feed-plan/shared": "workspace:*",
+    "@ant-design/icons": "catalog:frontend",
+    "@ant-design/pro-components": "catalog:frontend",
+    "@tanstack/react-query": "catalog:frontend",
+    "@tanstack/react-router": "catalog:frontend",
+    "antd": "catalog:frontend",
+    "ofetch": "catalog:frontend",
+    "react": "catalog:frontend",
+    "react-dom": "catalog:frontend",
+    "zustand": "catalog:frontend"
+  },
+  "devDependencies": {
+    "@feed-plan/eslint-config": "workspace:*",
+    "@feed-plan/typescript-config": "workspace:*",
+    "@tailwindcss/vite": "catalog:frontend",
+    "@tanstack/router-plugin": "catalog:frontend",
+    "@testing-library/jest-dom": "catalog:frontend",
+    "@testing-library/react": "catalog:frontend",
+    "@testing-library/user-event": "catalog:frontend",
+    "@types/react": "catalog:frontend",
+    "@types/react-dom": "catalog:frontend",
+    "@vitejs/plugin-react": "catalog:frontend",
+    "jsdom": "catalog:frontend",
+    "tailwindcss": "catalog:frontend",
+    "typescript": "catalog:",
+    "vite": "catalog:frontend",
+    "vitest": "catalog:"
+  }
+}
