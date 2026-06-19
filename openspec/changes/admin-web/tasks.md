@@ -29,7 +29,7 @@
 - [x] 4.4 配置 router context 注入 QueryClient 与 auth 状态，并注册 router 类型
 - [x] 4.5 在列表/详情 route loader 中使用 `queryClient.ensureQueryData` 预取关键数据
 - [x] 4.6 实现 dashboard 首页，提供今日菜单摘要和常用入口
-- [ ] 4.7 验证导航切换不刷新页面，退出后回到登录页
+- [x] 4.7 验证导航切换不刷新页面，退出后回到登录页
 
 ## 5. 分类管理
 

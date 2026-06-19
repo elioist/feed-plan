@@ -18,11 +18,22 @@ const chef: AuthUser = {
 };
 
 describe('auth store', () => {
+  const originalLocation = window.location;
+  const locationAssign = vi.fn();
+
   beforeEach(() => {
     localStorage.clear();
+    locationAssign.mockReset();
     authApiMocks.getCurrentUser.mockReset();
     authApiMocks.login.mockReset();
     useAuthStore.setState({ accessToken: null, user: null });
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...originalLocation,
+        assign: locationAssign,
+      },
+    });
   });
 
   it('saves the token and current user after login succeeds', async () => {
@@ -46,5 +57,17 @@ describe('auth store', () => {
     expect(getAccessToken()).toBeNull();
     expect(useAuthStore.getState().accessToken).toBeNull();
     expect(useAuthStore.getState().user).toBeNull();
+  });
+
+  it('clears the session and returns to login when logging out', () => {
+    localStorage.setItem('feed-plan.admin.access-token', 'test-token');
+    useAuthStore.setState({ accessToken: 'test-token', user: chef });
+
+    useAuthStore.getState().logout();
+
+    expect(getAccessToken()).toBeNull();
+    expect(useAuthStore.getState().accessToken).toBeNull();
+    expect(useAuthStore.getState().user).toBeNull();
+    expect(locationAssign).toHaveBeenCalledWith('/login');
   });
 });
