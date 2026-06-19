@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { SidebarMenu } from './SidebarMenu';
+import { SidebarMenu } from '~/components/core/layouts/menus/sidebar-menu/SidebarMenu';
 
 const routerMocks = vi.hoisted(() => ({
   pathname: '/dishes',

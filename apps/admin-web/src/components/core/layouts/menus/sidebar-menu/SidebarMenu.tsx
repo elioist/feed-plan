@@ -5,7 +5,12 @@ import { AppConfig } from '~/config';
 import { Logo } from '~/components/core/base/logo/Logo';
 import { MenuWidth } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
-import { adminMenus, getOpenMenuKeys, getRouteMeta, type AdminMenuItem } from '../../navigation';
+import {
+  adminMenus,
+  getOpenMenuKeys,
+  getRouteMeta,
+  type AdminMenuItem,
+} from '~/components/core/layouts/navigation';
 
 const { Sider } = Layout;
 

@@ -1,5 +1,5 @@
 import { Card, Col, Row, Statistic } from 'antd';
-import { PageHeader } from '../../shared/components/PageHeader.js';
+import { PageHeader } from '~/shared/components/PageHeader';
 
 export function DashboardPage() {
   return (

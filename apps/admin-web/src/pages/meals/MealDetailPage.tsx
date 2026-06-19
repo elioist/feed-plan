@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { Button, Card, Descriptions, Table, Tag, App as AntdApp } from 'antd';
-import { PageHeader } from '../../shared/components/PageHeader.js';
-import { completeMeal, mealQueries } from '../../features/meals/api.js';
+import { PageHeader } from '~/shared/components/PageHeader';
+import { completeMeal, mealQueries } from '~/features/meals/api';
 
 export function MealDetailPage() {
   const { mealId } = useParams({ from: '/_authenticated/meals/$mealId' });

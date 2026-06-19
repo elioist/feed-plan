@@ -2,7 +2,7 @@ import type { MenuDetail } from '@feed-plan/shared';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MealDetailPage } from './MealDetailPage';
+import { MealDetailPage } from '~/pages/meals/MealDetailPage';
 
 const menuDetail: MenuDetail = {
   meal: {

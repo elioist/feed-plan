@@ -1,5 +1,5 @@
 import type { AuthUser, LoginInput, LoginResponse } from '@feed-plan/shared';
-import { apiClient } from '../../shared/api/client.js';
+import { apiClient } from '~/shared/api/client';
 
 export function login(input: LoginInput) {
   return apiClient<LoginResponse>('/auth/login', {

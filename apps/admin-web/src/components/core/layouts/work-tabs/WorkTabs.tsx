@@ -13,8 +13,8 @@ import { Button, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import { useEffect } from 'react';
 import { useSettingStore } from '~/store/modules/setting';
-import { getRouteMeta, homeRoute, type AdminRoutePath } from '../navigation';
-import { useWorkTabsStore } from './work-tabs-store';
+import { getRouteMeta, homeRoute, type AdminRoutePath } from '~/components/core/layouts/navigation';
+import { useWorkTabsStore } from '~/components/core/layouts/work-tabs/work-tabs-store';
 
 function getNextPath(tabs: { path: AdminRoutePath }[], closingPath: AdminRoutePath) {
   const closingIndex = tabs.findIndex((item) => item.path === closingPath);

@@ -2,10 +2,10 @@ import { Layout } from 'antd';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '~/features/auth/store';
-import { HeaderBar } from '../header-bar/HeaderBar';
-import { SidebarMenu } from '../menus/sidebar-menu/SidebarMenu';
-import { PageContent } from '../page-content/PageContent';
-import { WorkTabs } from '../work-tabs/WorkTabs';
+import { HeaderBar } from '~/components/core/layouts/header-bar/HeaderBar';
+import { SidebarMenu } from '~/components/core/layouts/menus/sidebar-menu/SidebarMenu';
+import { PageContent } from '~/components/core/layouts/page-content/PageContent';
+import { WorkTabs } from '~/components/core/layouts/work-tabs/WorkTabs';
 
 export function AppLayout({ children }: PropsWithChildren) {
   const restoreSession = useAuthStore((state) => state.restoreSession);

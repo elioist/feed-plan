@@ -2,7 +2,7 @@ import type { Category } from '@feed-plan/shared';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DishForm } from './DishForm';
+import { DishForm } from '~/features/dishes/components/DishForm';
 
 const categories: Category[] = [
   {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearAccessToken, getAccessToken, setAccessToken } from '../../features/auth/session.js';
-import { apiClient } from './client.js';
+import { clearAccessToken, getAccessToken, setAccessToken } from '~/features/auth/session';
+import { apiClient } from '~/shared/api/client';
 
 describe('apiClient', () => {
   beforeEach(() => {

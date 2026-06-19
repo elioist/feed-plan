@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AdminRoutePath } from '../navigation';
+import type { AdminRoutePath } from '~/components/core/layouts/navigation';
 
 export interface WorkTabItem {
   path: AdminRoutePath;

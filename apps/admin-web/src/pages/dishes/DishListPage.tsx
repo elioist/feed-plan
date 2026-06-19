@@ -15,10 +15,10 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import type { CreateDishInput, DishDifficulty } from '@feed-plan/shared';
-import { PageScaffold } from '../../shared/components/PageScaffold.js';
-import { categoryQueries } from '../../features/categories/api.js';
-import { createDish, dishQueries, setDishActive, updateDish } from '../../features/dishes/api.js';
-import { DishForm } from '../../features/dishes/components/DishForm.js';
+import { PageScaffold } from '~/shared/components/PageScaffold';
+import { categoryQueries } from '~/features/categories/api';
+import { createDish, dishQueries, setDishActive, updateDish } from '~/features/dishes/api';
+import { DishForm } from '~/features/dishes/components/DishForm';
 
 const difficultyLabels: Record<DishDifficulty, string> = {
   easy: '简单',

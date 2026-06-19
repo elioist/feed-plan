@@ -1,6 +1,6 @@
 import { Navigate } from '@tanstack/react-router';
 import type { PropsWithChildren } from 'react';
-import { useAuthStore } from '../../features/auth/store.js';
+import { useAuthStore } from '~/features/auth/store';
 
 export function ProtectedRoute({ children }: PropsWithChildren) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated());

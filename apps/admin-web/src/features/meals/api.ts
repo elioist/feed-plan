@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { MealQuery, MenuDetail } from '@feed-plan/shared';
-import { apiClient } from '../../shared/api/client.js';
+import { apiClient } from '~/shared/api/client';
 
 export const mealQueries = {
   list: (query: MealQuery = {}) =>

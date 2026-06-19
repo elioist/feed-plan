@@ -7,7 +7,7 @@ import type {
   UpdateDishActiveInput,
   UpdateDishInput,
 } from '@feed-plan/shared';
-import { apiClient } from '../../shared/api/client.js';
+import { apiClient } from '~/shared/api/client';
 
 export const dishQueries = {
   list: (query: DishListQuery = {}) =>

@@ -1,6 +1,6 @@
 import type { AuthUser } from '@feed-plan/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAccessToken } from './session.js';
+import { getAccessToken } from '~/features/auth/session';
 
 const authApiMocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
@@ -9,7 +9,7 @@ const authApiMocks = vi.hoisted(() => ({
 
 vi.mock('./api.js', () => authApiMocks);
 
-import { useAuthStore } from './store.js';
+import { useAuthStore } from '~/features/auth/store';
 
 const chef: AuthUser = {
   id: '11111111-1111-1111-1111-111111111111',

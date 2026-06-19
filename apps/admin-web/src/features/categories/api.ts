@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { Category, CreateCategoryInput, UpdateCategoryInput } from '@feed-plan/shared';
-import { apiClient } from '../../shared/api/client.js';
+import { apiClient } from '~/shared/api/client';
 
 export const categoryQueries = {
   all: () =>

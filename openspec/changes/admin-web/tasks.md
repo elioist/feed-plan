@@ -87,7 +87,7 @@
 - [x] 10.3 修复 TanStack Router 类型注册/生成链路，确保 route、Link、navigate、loader context 通过 TypeScript 检查
 - [x] 10.4 在应用启动或受保护布局挂载时调用 `restoreSession`，刷新页面后恢复右上角当前用户信息
 - [x] 10.5 为 admin-web 接入 Tailwind v4，避免 Preflight 与 Ant Design 冲突，并保留 Ant Design token 作为组件主题主来源
-- [ ] 10.6 逐步将 admin-web 本地导入改为 `~` alias，移除非必要本地 `.js` 导入后缀
+- [x] 10.6 逐步将 admin-web 本地导入改为 `~` alias，移除非必要本地 `.js` 导入后缀
 
 ## 11. Pro 风格布局与组件基座
 

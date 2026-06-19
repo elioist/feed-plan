@@ -1,7 +1,7 @@
 import type { AuthUser, LoginInput } from '@feed-plan/shared';
 import { create } from 'zustand';
-import * as authApi from './api.js';
-import { clearAccessToken, getAccessToken, setAccessToken } from './session.js';
+import * as authApi from '~/features/auth/api';
+import { clearAccessToken, getAccessToken, setAccessToken } from '~/features/auth/session';
 
 interface AuthState {
   accessToken: string | null;

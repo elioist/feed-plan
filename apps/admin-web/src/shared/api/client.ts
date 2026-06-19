@@ -1,7 +1,7 @@
 import { ofetch } from 'ofetch';
-import { env } from '../config/env.js';
-import { ApiError } from './errors.js';
-import { clearAccessToken, getAccessToken } from '../../features/auth/session.js';
+import { env } from '~/shared/config/env';
+import { ApiError } from '~/shared/api/errors';
+import { clearAccessToken, getAccessToken } from '~/features/auth/session';
 
 export const apiClient = ofetch.create({
   baseURL: env.apiBaseUrl,

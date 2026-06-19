@@ -1,5 +1,5 @@
 import { MenuThemeEnum, MenuTypeEnum, SystemThemeEnum } from '~/enums/appEnum';
-import { headerBarConfig } from './modules/headerBar';
+import { headerBarConfig } from '~/config/modules/headerBar';
 
 export const AppConfig = Object.freeze({
   systemInfo: {

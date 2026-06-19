@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Button, Form, Input, App as AntdApp } from 'antd';
 import type { LoginInput } from '@feed-plan/shared';
-import { AuthLayout } from '../../layouts/AuthLayout.js';
-import { useAuthStore } from '../../features/auth/store.js';
+import { AuthLayout } from '~/layouts/AuthLayout';
+import { useAuthStore } from '~/features/auth/store';
 
 export function LoginPage() {
   const navigate = useNavigate();

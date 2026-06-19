@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { Button, Form, Input, Select, Space, Table, Tag } from 'antd';
-import { PageScaffold } from '../../shared/components/PageScaffold.js';
-import { mealQueries } from '../../features/meals/api.js';
+import { PageScaffold } from '~/shared/components/PageScaffold';
+import { mealQueries } from '~/features/meals/api';
 
 export function MealListPage() {
   const search = useSearch({ from: '/_authenticated/meals' });

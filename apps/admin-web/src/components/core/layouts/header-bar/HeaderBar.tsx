@@ -33,9 +33,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { AppConfig } from '~/config';
 import { SystemThemeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
-import { SettingsPanel } from '../settings-panel/SettingsPanel';
-import { adminRoutes, getRouteMeta, type AdminRoutePath } from '../navigation';
-import { UserMenu } from './widget/UserMenu';
+import { SettingsPanel } from '~/components/core/layouts/settings-panel/SettingsPanel';
+import {
+  adminRoutes,
+  getRouteMeta,
+  type AdminRoutePath,
+} from '~/components/core/layouts/navigation';
+import { UserMenu } from '~/components/core/layouts/header-bar/widget/UserMenu';
 
 const { Header } = Layout;
 

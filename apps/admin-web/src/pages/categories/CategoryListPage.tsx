@@ -12,13 +12,13 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import type { Category, CreateCategoryInput } from '@feed-plan/shared';
-import { PageScaffold } from '../../shared/components/PageScaffold.js';
+import { PageScaffold } from '~/shared/components/PageScaffold';
 import {
   categoryQueries,
   createCategory,
   deleteCategory,
   updateCategory,
-} from '../../features/categories/api.js';
+} from '~/features/categories/api';
 
 export function CategoryListPage() {
   const { data } = useSuspenseQuery(categoryQueries.all());

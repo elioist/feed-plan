@@ -1,7 +1,7 @@
 import { InboxOutlined } from '@ant-design/icons';
 import { Image, Upload, App as AntdApp } from 'antd';
 import type { UploadFile, UploadProps } from 'antd';
-import { uploadDishImage } from '../api.js';
+import { uploadDishImage } from '~/features/dishes/api';
 
 interface CoverImageUploadProps {
   value?: string | null;

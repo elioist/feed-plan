@@ -1,8 +1,8 @@
 import type { CreateDishInput, DishDetail } from '@feed-plan/shared';
 import { Button, Form, Input, Select, Switch } from 'antd';
 import type { Category } from '@feed-plan/shared';
-import { CoverImageUpload } from './CoverImageUpload.js';
-import { RichTextEditor } from './RichTextEditor.js';
+import { CoverImageUpload } from '~/features/dishes/components/CoverImageUpload';
+import { RichTextEditor } from '~/features/dishes/components/RichTextEditor';
 
 interface DishFormProps {
   categories: Category[];

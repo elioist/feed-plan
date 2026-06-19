@@ -1,6 +1,6 @@
 import { RouterProvider } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { getRouter } from './router.js';
+import { getRouter } from '~/app/router';
 
 export function App() {
   const router = useMemo(() => getRouter(), []);
