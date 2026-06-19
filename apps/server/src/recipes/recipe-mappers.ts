@@ -21,6 +21,8 @@ export function toDishSummary(row: DishRow, category: CategoryRow | null): DishS
     description: row.description,
     referenceUrl: row.referenceUrl,
     difficulty: row.difficulty,
+    tags: row.tags,
+    dietary: row.dietary,
     isActive: row.isActive,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

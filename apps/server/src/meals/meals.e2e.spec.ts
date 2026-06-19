@@ -60,6 +60,8 @@ const menuDetail: MenuDetail = {
         description: null,
         referenceUrl: null,
         difficulty: 'easy',
+        tags: [],
+        dietary: [],
         isActive: true,
         createdAt: new Date('2026-01-01T00:00:00.000Z'),
         updatedAt: new Date('2026-01-01T00:00:00.000Z'),

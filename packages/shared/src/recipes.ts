@@ -5,6 +5,22 @@ export type DishDifficulty = (typeof DISH_DIFFICULTIES)[number];
 
 export const dishDifficultySchema = z.enum(DISH_DIFFICULTIES);
 
+/** 常见忌口建议项（前端下拉建议，非枚举约束） */
+export const COMMON_DIETARY = [
+  '香菜',
+  '葱',
+  '蒜',
+  '姜',
+  '折耳根',
+  '辣椒',
+  '香菇',
+  '芹菜',
+  '内脏',
+] as const;
+
+/** 标签 / 忌口通用列表：去空白、单项 1-32 字、最多 20 个 */
+const tagListSchema = z.array(z.string().trim().min(1).max(32)).max(20).default([]);
+
 export const idParamSchema = z.object({
   id: z.string().uuid(),
 });
@@ -53,6 +69,8 @@ export const createDishSchema = z.object({
   referenceUrl: optionalUrl,
   recipeContent: z.string().trim().min(1, '菜谱内容不能为空').max(20000),
   difficulty: dishDifficultySchema,
+  tags: tagListSchema,
+  dietary: tagListSchema,
   isActive: z.boolean().default(true),
 });
 export type CreateDishInput = z.infer<typeof createDishSchema>;
@@ -70,6 +88,8 @@ export type UpdateDishActiveInput = z.infer<typeof updateDishActiveSchema>;
 export const dishListQuerySchema = z.object({
   categoryId: z.string().uuid().optional(),
   keyword: z.string().trim().min(1).max(64).optional(),
+  tag: z.string().trim().min(1).max(32).optional(),
+  dietary: z.string().trim().min(1).max(32).optional(),
   isActive: queryBooleanSchema.optional(),
 });
 export type DishListQuery = z.infer<typeof dishListQuerySchema>;
@@ -83,6 +103,8 @@ export const dishSummarySchema = z.object({
   description: z.string().nullable(),
   referenceUrl: z.string().nullable(),
   difficulty: dishDifficultySchema,
+  tags: z.array(z.string()),
+  dietary: z.array(z.string()),
   isActive: z.boolean(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

@@ -36,6 +36,8 @@ const dish: DishRow = {
   referenceUrl: null,
   recipeContent: '<p>番茄和鸡蛋炒熟</p>',
   difficulty: 'easy',
+  tags: [],
+  dietary: [],
   isActive: true,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),

@@ -51,6 +51,8 @@ const dish: DishRow = {
   referenceUrl: null,
   recipeContent: '<h3>食材</h3><p>鸡蛋、番茄</p><h3>做法</h3><p>炒熟</p>',
   difficulty: 'easy',
+  tags: ['快手', '下饭'],
+  dietary: ['葱'],
   isActive: true,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -71,6 +73,8 @@ const detail: DishDetail = {
   referenceUrl: null,
   recipeContent: dish.recipeContent,
   difficulty: 'easy',
+  tags: dish.tags,
+  dietary: dish.dietary,
   isActive: true,
   createdAt: dish.createdAt,
   updatedAt: dish.updatedAt,
@@ -168,5 +172,19 @@ describe('DishesService', () => {
     expect(columns).toContain('name');
     expect(columns).toContain('description');
     expect(columns).toContain('recipe_content');
+  });
+
+  it('支持按标签与忌口筛选（数组包含）', () => {
+    const service = new DishesService({} as never);
+    const where = (
+      service as never as {
+        buildListWhere: (query: DishListQuery, user: JwtPayload) => unknown;
+      }
+    ).buildListWhere({ tag: '快手', dietary: '香菜' }, chef);
+
+    const columns = collectColumns(where);
+
+    expect(columns).toContain('tags');
+    expect(columns).toContain('dietary');
   });
 });

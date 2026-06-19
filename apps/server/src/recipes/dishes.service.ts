@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, eq, ilike, or } from 'drizzle-orm';
+import { and, arrayContains, asc, eq, ilike, or } from 'drizzle-orm';
 import { categories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
 import type {
   CreateDishInput,
@@ -56,6 +56,8 @@ export class DishesService {
         referenceUrl: input.referenceUrl ?? null,
         recipeContent: sanitizeRecipeContent(input.recipeContent),
         difficulty: input.difficulty,
+        tags: input.tags,
+        dietary: input.dietary,
         isActive: input.isActive,
       })
       .returning();
@@ -145,6 +147,12 @@ export class DishesService {
         ),
       );
     }
+    if (query.tag) {
+      conditions.push(arrayContains(dishes.tags, [query.tag]));
+    }
+    if (query.dietary) {
+      conditions.push(arrayContains(dishes.dietary, [query.dietary]));
+    }
     return conditions.length > 0 ? and(...conditions) : undefined;
   }
 
@@ -203,6 +211,8 @@ export class DishesService {
         ? { recipeContent: sanitizeRecipeContent(input.recipeContent) }
         : {}),
       ...(input.difficulty !== undefined ? { difficulty: input.difficulty } : {}),
+      ...(input.tags !== undefined ? { tags: input.tags } : {}),
+      ...(input.dietary !== undefined ? { dietary: input.dietary } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
     };
   }

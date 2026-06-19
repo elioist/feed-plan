@@ -20,6 +20,8 @@ export const dishes = pgTable('dishes', {
   difficulty: varchar('difficulty', { length: 16 })
     .notNull()
     .$type<(typeof DISH_DIFFICULTIES)[number]>(),
+  tags: text('tags').array().notNull().default([]),
+  dietary: text('dietary').array().notNull().default([]),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
