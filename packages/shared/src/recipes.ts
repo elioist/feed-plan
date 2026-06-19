@@ -13,6 +13,17 @@ export type IdParam = z.infer<typeof idParamSchema>;
 const optionalText = z.string().trim().max(1000).optional().nullable();
 const optionalImagePath = z.string().trim().max(255).optional().nullable();
 const optionalUrl = z.string().trim().max(255).optional().nullable();
+const queryBooleanSchema = z.preprocess((value) => {
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  return value;
+}, z.boolean());
 
 export const categorySchema = z.object({
   id: z.string().uuid(),
@@ -59,17 +70,14 @@ export type UpdateDishActiveInput = z.infer<typeof updateDishActiveSchema>;
 export const dishListQuerySchema = z.object({
   categoryId: z.string().uuid().optional(),
   keyword: z.string().trim().min(1).max(64).optional(),
-  isActive: z
-    .enum(['true', 'false'])
-    .transform((value) => value === 'true')
-    .optional(),
+  isActive: queryBooleanSchema.optional(),
 });
 export type DishListQuery = z.infer<typeof dishListQuerySchema>;
 
 export const dishSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  categoryId: z.string().uuid(),
+  categoryId: z.string().uuid().nullable(),
   category: categorySchema.nullable(),
   coverImage: z.string().nullable(),
   description: z.string().nullable(),

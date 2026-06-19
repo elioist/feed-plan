@@ -12,9 +12,7 @@ export const categories = pgTable('categories', {
 export const dishes = pgTable('dishes', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 128 }).notNull(),
-  categoryId: uuid('category_id')
-    .notNull()
-    .references(() => categories.id, { onDelete: 'restrict' }),
+  categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
   coverImage: varchar('cover_image', { length: 255 }),
   description: text('description'),
   referenceUrl: varchar('reference_url', { length: 255 }),

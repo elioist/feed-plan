@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { asc, eq } from 'drizzle-orm';
 import { categories, dishes, type CategoryRow } from '@feed-plan/db';
 import type { Category, CreateCategoryInput, UpdateCategoryInput } from '@feed-plan/shared';
@@ -49,16 +49,11 @@ export class CategoriesService {
 
   async remove(id: string): Promise<void> {
     const category = await this.findRowById(id);
-    const referenced = await this.db
-      .select({ id: dishes.id })
-      .from(dishes)
-      .where(eq(dishes.categoryId, category.id))
-      .limit(1);
 
-    if (referenced[0]) {
-      throw new ConflictException('该分类下仍有菜谱，不能删除');
-    }
-
+    await this.db
+      .update(dishes)
+      .set({ categoryId: null, updatedAt: new Date() })
+      .where(eq(dishes.categoryId, category.id));
     await this.db.delete(categories).where(eq(categories.id, id));
   }
 

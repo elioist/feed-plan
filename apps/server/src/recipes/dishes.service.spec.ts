@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import type { CategoryRow, DishRow } from '@feed-plan/db';
 import type { DishDetail, JwtPayload } from '@feed-plan/shared';
@@ -74,15 +74,39 @@ describe('DishesService', () => {
     });
   });
 
-  it('softDelete 委托 setActive(false)', async () => {
+  it('remove 删除未被引用的菜谱', async () => {
+    const where = vi.fn(async () => undefined);
+    const db = {
+      delete: vi.fn(() => ({ where })),
+    };
     const service = new DishesService({} as never);
-    const setActive = vi
-      .spyOn(service, 'setActive')
-      .mockResolvedValue({ ...detail, isActive: false });
+    Object.assign(service, { db });
+    vi.spyOn(
+      service as never as { assertDishExists: () => Promise<void> },
+      'assertDishExists',
+    ).mockResolvedValue(undefined);
 
-    await service.softDelete(dish.id);
+    await service.remove(dish.id);
 
-    expect(setActive).toHaveBeenCalledWith(dish.id, { isActive: false });
+    expect(db.delete).toHaveBeenCalled();
+    expect(where).toHaveBeenCalled();
+  });
+
+  it('remove 遇到订单引用时返回 409', async () => {
+    const where = vi.fn(async () => {
+      throw { code: '23503' };
+    });
+    const db = {
+      delete: vi.fn(() => ({ where })),
+    };
+    const service = new DishesService({} as never);
+    Object.assign(service, { db });
+    vi.spyOn(
+      service as never as { assertDishExists: () => Promise<void> },
+      'assertDishExists',
+    ).mockResolvedValue(undefined);
+
+    await expect(service.remove(dish.id)).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('更新菜谱时只更新菜谱主表字段', async () => {

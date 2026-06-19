@@ -1,4 +1,3 @@
-import { ConflictException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import type { CategoryRow } from '@feed-plan/db';
 import { CategoriesService } from './categories.service.js';
@@ -72,12 +71,26 @@ describe('CategoriesService', () => {
     );
   });
 
-  it('删除被菜谱引用的分类时返回 409', async () => {
+  it('删除分类前清空菜谱分类引用', async () => {
+    const updateWhere = vi.fn(async () => undefined);
+    const set = vi.fn(() => ({ where: updateWhere }));
+    const deleteWhere = vi.fn(async () => undefined);
     const db = {
-      select: selectQueue([[category], [{ id: 'dish-id' }]]),
+      select: selectQueue([[category]]),
+      update: vi.fn(() => ({ set })),
+      delete: vi.fn(() => ({ where: deleteWhere })),
     };
     const service = new CategoriesService(db as never);
 
-    await expect(service.remove(category.id)).rejects.toBeInstanceOf(ConflictException);
+    await service.remove(category.id);
+
+    expect(db.update).toHaveBeenCalled();
+    expect(set).toHaveBeenCalledWith({
+      categoryId: null,
+      updatedAt: expect.any(Date),
+    });
+    expect(updateWhere).toHaveBeenCalled();
+    expect(db.delete).toHaveBeenCalled();
+    expect(deleteWhere).toHaveBeenCalled();
   });
 });

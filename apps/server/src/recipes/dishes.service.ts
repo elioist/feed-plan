@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { categories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
 import type {
@@ -106,8 +112,17 @@ export class DishesService {
     return toDishDetail(detail);
   }
 
-  softDelete(id: string): Promise<DishDetail> {
-    return this.setActive(id, { isActive: false });
+  async remove(id: string): Promise<void> {
+    await this.assertDishExists(id);
+
+    try {
+      await this.db.delete(dishes).where(eq(dishes.id, id));
+    } catch (error) {
+      if (isForeignKeyViolation(error)) {
+        throw new ConflictException('菜谱已被点餐引用，不能删除，请改为停用');
+      }
+      throw error;
+    }
   }
 
   private buildListWhere(query: DishListQuery, user: JwtPayload) {
@@ -230,4 +245,13 @@ function sanitizeRecipeContent(content: string): string {
       },
     )
     .trim();
+}
+
+function isForeignKeyViolation(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const candidate = error as { code?: unknown; cause?: { code?: unknown } };
+  return candidate.code === '23503' || candidate.cause?.code === '23503';
 }

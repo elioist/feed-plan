@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigModule } from '@nestjs/config';
-import { ConflictException, INestApplication, NotFoundException } from '@nestjs/common';
+import { INestApplication, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -63,7 +63,7 @@ const dishesService = {
   create: vi.fn(),
   update: vi.fn(),
   setActive: vi.fn(),
-  softDelete: vi.fn(),
+  remove: vi.fn(),
 };
 
 describe('Recipes API (e2e)', () => {
@@ -110,7 +110,7 @@ describe('Recipes API (e2e)', () => {
     dishesService.create.mockResolvedValue(dishDetail);
     dishesService.update.mockResolvedValue({ ...dishDetail, name: '新版番茄炒蛋' });
     dishesService.setActive.mockResolvedValue({ ...dishDetail, isActive: false });
-    dishesService.softDelete.mockResolvedValue({ ...dishDetail, isActive: false });
+    dishesService.remove.mockResolvedValue(undefined);
   });
 
   afterAll(async () => {
@@ -162,14 +162,11 @@ describe('Recipes API (e2e)', () => {
     expect(res.status).toBe(200);
   });
 
-  it('DELETE /categories/:id 被引用 → 409', async () => {
-    categoriesService.remove.mockRejectedValueOnce(
-      new ConflictException('该分类下仍有菜谱，不能删除'),
-    );
+  it('DELETE /categories/:id 被引用也删除分类，菜谱保留为未分类', async () => {
     const res = await request(app.getHttpServer())
       .delete(`/categories/${category.id}`)
       .set('Authorization', `Bearer ${chefToken}`);
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(200);
   });
 
   it('GET /dishes query 传给 service，diner 只读', async () => {
@@ -267,11 +264,12 @@ describe('Recipes API (e2e)', () => {
     expect(dishesService.setActive).toHaveBeenCalledWith(dishSummary.id, { isActive: false });
   });
 
-  it('DELETE /dishes/:id chef → soft delete', async () => {
+  it('DELETE /dishes/:id chef → remove', async () => {
     const res = await request(app.getHttpServer())
       .delete(`/dishes/${dishSummary.id}`)
       .set('Authorization', `Bearer ${chefToken}`);
     expect(res.status).toBe(200);
-    expect(dishesService.softDelete).toHaveBeenCalledWith(dishSummary.id);
+    expect(res.body).toEqual({ ok: true });
+    expect(dishesService.remove).toHaveBeenCalledWith(dishSummary.id);
   });
 });

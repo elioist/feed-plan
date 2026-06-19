@@ -80,7 +80,7 @@ export class DishesController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles('chef')
-  softDelete(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
-    return this.dishes.softDelete(params.id);
+  remove(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
+    return this.dishes.remove(params.id).then(() => ({ ok: true }));
   }
 }
