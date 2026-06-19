@@ -5,11 +5,12 @@ import {
   NotificationOutlined,
   ReadOutlined,
   SettingOutlined,
+  TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 
-export type AdminRoutePath = '/' | '/categories' | '/dishes' | '/meals';
+export type AdminRoutePath = '/' | '/categories' | '/dishes' | '/meals' | '/users' | '/roles';
 
 export interface AdminMenuItem {
   key: string;
@@ -33,6 +34,8 @@ export const adminRoutes: AdminRouteMeta[] = [
   { path: '/categories', title: '分类管理', group: '菜谱中心', icon: <AppstoreOutlined /> },
   { path: '/dishes', title: '菜谱管理', group: '菜谱中心', icon: <BookOutlined /> },
   { path: '/meals', title: '点菜菜单', group: '点菜管理', icon: <ReadOutlined /> },
+  { path: '/users', title: '用户管理', group: '系统管理', icon: <UserOutlined /> },
+  { path: '/roles', title: '角色管理', group: '系统管理', icon: <TeamOutlined /> },
 ];
 
 export const homeRoute = adminRoutes[0]!;
@@ -54,8 +57,8 @@ export const adminMenus: AdminMenuItem[] = [
     icon: <UserOutlined />,
     label: '系统管理',
     children: [
-      { key: '/users', icon: <UserOutlined />, label: '用户管理', disabled: true },
-      { key: '/roles', icon: <SettingOutlined />, label: '角色管理', disabled: true },
+      { key: '/users', icon: <UserOutlined />, label: '用户管理', path: '/users' },
+      { key: '/roles', icon: <TeamOutlined />, label: '角色管理', path: '/roles' },
       { key: '/settings', icon: <SettingOutlined />, label: '系统设置', disabled: true },
     ],
   },

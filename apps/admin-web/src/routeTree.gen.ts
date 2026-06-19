@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
 import { Route as AuthenticatedDishesRouteImport } from './routes/_authenticated/dishes'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
@@ -29,6 +31,16 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
@@ -59,6 +71,8 @@ export interface FileRoutesByFullPath {
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dishes': typeof AuthenticatedDishesRoute
   '/meals': typeof AuthenticatedMealsRouteWithChildren
+  '/roles': typeof AuthenticatedRolesRoute
+  '/users': typeof AuthenticatedUsersRoute
   '/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +80,8 @@ export interface FileRoutesByTo {
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dishes': typeof AuthenticatedDishesRoute
   '/meals': typeof AuthenticatedMealsRouteWithChildren
+  '/roles': typeof AuthenticatedRolesRoute
+  '/users': typeof AuthenticatedUsersRoute
   '/': typeof AuthenticatedIndexRoute
   '/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
 }
@@ -76,6 +92,8 @@ export interface FileRoutesById {
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/dishes': typeof AuthenticatedDishesRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRouteWithChildren
+  '/_authenticated/roles': typeof AuthenticatedRolesRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
 }
@@ -87,9 +105,19 @@ export interface FileRouteTypes {
     | '/categories'
     | '/dishes'
     | '/meals'
+    | '/roles'
+    | '/users'
     | '/meals/$mealId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/categories' | '/dishes' | '/meals' | '/' | '/meals/$mealId'
+  to:
+    | '/login'
+    | '/categories'
+    | '/dishes'
+    | '/meals'
+    | '/roles'
+    | '/users'
+    | '/'
+    | '/meals/$mealId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -97,6 +125,8 @@ export interface FileRouteTypes {
     | '/_authenticated/categories'
     | '/_authenticated/dishes'
     | '/_authenticated/meals'
+    | '/_authenticated/roles'
+    | '/_authenticated/users'
     | '/_authenticated/'
     | '/_authenticated/meals/$mealId'
   fileRoutesById: FileRoutesById
@@ -127,6 +157,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/roles': {
+      id: '/_authenticated/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AuthenticatedRolesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/meals': {
@@ -175,6 +219,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedDishesRoute: typeof AuthenticatedDishesRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRouteWithChildren
+  AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -182,6 +228,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedDishesRoute: AuthenticatedDishesRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRouteWithChildren,
+  AuthenticatedRolesRoute: AuthenticatedRolesRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
