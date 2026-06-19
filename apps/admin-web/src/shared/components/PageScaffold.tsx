@@ -1,5 +1,6 @@
-import { Breadcrumb, Card, Space, Tabs, Typography } from 'antd';
 import type { BreadcrumbProps, TabsProps } from 'antd';
+import { Typography } from 'antd';
+import { PageContainer, ProCard } from '@ant-design/pro-components';
 import type { ReactNode } from 'react';
 
 interface PageScaffoldProps {
@@ -22,19 +23,22 @@ export function PageScaffold({
   children,
 }: PageScaffoldProps) {
   return (
-    <div className="page-scaffold">
-      {breadcrumbItems ? <Breadcrumb className="page-breadcrumb" items={breadcrumbItems} /> : null}
-      <Card className="page-card" variant="outlined">
-        <div className="page-header">
-          <div>
-            <Typography.Title level={3}>{title}</Typography.Title>
-            {description ? <Typography.Text type="secondary">{description}</Typography.Text> : null}
-          </div>
-          {actions ? <Space>{actions}</Space> : null}
-        </div>
-        {tabs ? <Tabs activeKey={activeTabKey} items={tabs} className="page-tabs" /> : null}
+    <PageContainer
+      className="page-scaffold"
+      title={
+        <Typography.Title className="page-title" level={3}>
+          {title}
+        </Typography.Title>
+      }
+      subTitle={description}
+      extra={actions}
+      breadcrumb={breadcrumbItems ? { items: breadcrumbItems } : undefined}
+      tabList={tabs}
+      tabActiveKey={activeTabKey}
+    >
+      <ProCard className="page-card" bordered>
         {children}
-      </Card>
-    </div>
+      </ProCard>
+    </PageContainer>
   );
 }

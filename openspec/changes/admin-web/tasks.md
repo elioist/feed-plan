@@ -92,7 +92,7 @@
 ## 11. Pro 风格布局与组件基座
 
 - [x] 11.1 接入 `@ant-design/icons`，为侧边菜单、用户菜单、设置、主题等入口配置图标
-- [ ] 11.2 接入 `@ant-design/pro-components`，建立 PageContainer/ProCard/ProTable 使用边界
+- [x] 11.2 接入 `@ant-design/pro-components`，建立 PageContainer/ProCard/ProTable 使用边界
 - [x] 11.3 将内容区域调整为 Card/PageContainer 布局，增加面包屑和页面页签能力
 - [x] 11.4 增加全局回到顶部按钮，并确保只作用于主内容滚动容器
 - [x] 11.5 增加系统设置和主题切换入口，持久化主题选择
