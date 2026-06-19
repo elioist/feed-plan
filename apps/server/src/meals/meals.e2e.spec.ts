@@ -163,6 +163,18 @@ describe('Meals API (e2e)', () => {
     expect(mealsService.list).toHaveBeenCalledWith({ mealDate: '2026-06-17', mealType: 'dinner' });
   });
 
+  it('GET /meals 支持按日期范围查询', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/meals?mealDateFrom=2026-06-01&mealDateTo=2026-06-19&status=ordering')
+      .set('Authorization', `Bearer ${dinerToken}`);
+    expect(res.status).toBe(200);
+    expect(mealsService.list).toHaveBeenCalledWith({
+      mealDateFrom: '2026-06-01',
+      mealDateTo: '2026-06-19',
+      status: 'ordering',
+    });
+  });
+
   it('GET /meals/today 返回今日菜单列表', async () => {
     const res = await request(app.getHttpServer())
       .get('/meals/today')

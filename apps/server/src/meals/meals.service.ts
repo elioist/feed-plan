@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, gte, lte } from 'drizzle-orm';
 import { categories, dishes, meals, orders, users, type MealRow } from '@feed-plan/db';
 import type {
   AddOrderInput,
@@ -43,6 +43,13 @@ export class MealsService {
     const conditions = [];
     if (query.mealDate) {
       conditions.push(eq(meals.mealDate, query.mealDate));
+    } else {
+      if (query.mealDateFrom) {
+        conditions.push(gte(meals.mealDate, query.mealDateFrom));
+      }
+      if (query.mealDateTo) {
+        conditions.push(lte(meals.mealDate, query.mealDateTo));
+      }
     }
     if (query.mealType) {
       conditions.push(eq(meals.mealType, query.mealType));

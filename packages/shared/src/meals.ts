@@ -33,6 +33,8 @@ export type AddOrderInput = z.infer<typeof addOrderInputSchema>;
 
 export const mealQuerySchema = z.object({
   mealDate: mealDateSchema.optional(),
+  mealDateFrom: mealDateSchema.optional(),
+  mealDateTo: mealDateSchema.optional(),
   mealType: mealTypeSchema.optional(),
   status: mealStatusSchema.optional(),
 });
