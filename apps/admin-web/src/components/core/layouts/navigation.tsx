@@ -2,7 +2,6 @@ import {
   AppstoreOutlined,
   BookOutlined,
   HomeOutlined,
-  NotificationOutlined,
   ReadOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -70,7 +69,6 @@ export const adminMenus: AdminMenuItem[] = [
       { key: '/settings', icon: <SettingOutlined />, label: '系统设置', path: '/settings' },
     ],
   },
-  { key: 'docs', icon: <NotificationOutlined />, label: '官方文档', disabled: true },
 ];
 
 export function getRouteMeta(pathname: string) {

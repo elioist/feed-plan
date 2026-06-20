@@ -1,5 +1,5 @@
 import { BgColorsOutlined, BorderOutlined, FormatPainterOutlined } from '@ant-design/icons';
-import { Radio, Space, Switch, Typography } from 'antd';
+import { Radio, Slider, Space, Switch, Typography } from 'antd';
 import { AppConfig } from '~/config';
 import { ContainerWidthEnum, SystemThemeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
@@ -10,10 +10,14 @@ export function SettingsControls() {
   const systemThemeColor = useSettingStore((state) => state.systemThemeColor);
   const boxBorderMode = useSettingStore((state) => state.boxBorderMode);
   const containerWidth = useSettingStore((state) => state.containerWidth);
+  const customRadius = useSettingStore((state) => state.customRadius);
+  const showWorkTab = useSettingStore((state) => state.showWorkTab);
   const setSystemThemeType = useSettingStore((state) => state.setSystemThemeType);
   const setSystemThemeColor = useSettingStore((state) => state.setSystemThemeColor);
   const setBoxBorderMode = useSettingStore((state) => state.setBoxBorderMode);
   const setContainerWidth = useSettingStore((state) => state.setContainerWidth);
+  const setCustomRadius = useSettingStore((state) => state.setCustomRadius);
+  const setShowWorkTab = useSettingStore((state) => state.setShowWorkTab);
 
   return (
     <>
@@ -66,6 +70,24 @@ export function SettingsControls() {
             }
           />
         </div>
+        <div className="setting-row">
+          <span>显示多标签页</span>
+          <Switch checked={showWorkTab} onChange={setShowWorkTab} />
+        </div>
+      </section>
+
+      <section className="setting-section">
+        <Typography.Title level={5}>
+          <BorderOutlined /> 圆角
+        </Typography.Title>
+        <Slider
+          min={0}
+          max={1}
+          step={0.05}
+          value={customRadius}
+          tooltip={{ formatter: (value) => `${value}rem` }}
+          onChange={setCustomRadius}
+        />
       </section>
     </>
   );

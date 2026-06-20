@@ -30,6 +30,8 @@ export interface SettingState {
   setSystemThemeColor: (color: string) => void;
   setBoxBorderMode: (enabled: boolean) => void;
   setContainerWidth: (width: ContainerWidthEnum) => void;
+  setCustomRadius: (radius: number) => void;
+  setShowWorkTab: (show: boolean) => void;
   resetSettings: () => void;
 }
 
@@ -52,6 +54,8 @@ export const useSettingStore = create<SettingState>()(
       setSystemThemeColor: (systemThemeColor) => set({ systemThemeColor }),
       setBoxBorderMode: (boxBorderMode) => set({ boxBorderMode }),
       setContainerWidth: (containerWidth) => set({ containerWidth }),
+      setCustomRadius: (customRadius) => set({ customRadius }),
+      setShowWorkTab: (showWorkTab) => set({ showWorkTab }),
       resetSettings: () => set({ ...SETTING_DEFAULT_CONFIG }),
     }),
     {
@@ -65,6 +69,7 @@ export const useSettingStore = create<SettingState>()(
         tabStyle: state.tabStyle,
         customRadius: state.customRadius,
         containerWidth: state.containerWidth,
+        showWorkTab: state.showWorkTab,
       }),
     },
   ),
