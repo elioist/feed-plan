@@ -8,9 +8,10 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "db:up": "docker compose up -d db",
+    "dev": "pnpm db:up && turbo run dev",
     "dev:admin": "turbo run dev --filter=@feed-plan/admin-web",
-    "dev:server": "turbo run dev --filter=@feed-plan/server",
+    "dev:server": "pnpm db:up && turbo run dev --filter=@feed-plan/server",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
