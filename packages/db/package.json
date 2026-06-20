@@ -37,6 +37,7 @@
   "devDependencies": {
     "@feed-plan/typescript-config": "workspace:*",
     "@types/pg": "catalog:backend",
+    "dotenv": "catalog:",
     "drizzle-kit": "catalog:backend",
     "typescript": "catalog:"
   }

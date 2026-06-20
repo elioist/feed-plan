@@ -79,6 +79,9 @@ catalogs:
     '@eslint/js':
       specifier: ^9.39.1
       version: 9.39.4
+    dotenv:
+      specifier: ^16.6.1
+      version: 16.6.1
     eslint:
       specifier: ^9.39.1
       version: 9.39.4
@@ -373,6 +376,9 @@ importers:
       '@types/pg':
         specifier: catalog:backend
         version: 8.20.0
+      dotenv:
+        specifier: 'catalog:'
+        version: 16.6.1
       drizzle-kit:
         specifier: catalog:backend
         version: 0.31.10
