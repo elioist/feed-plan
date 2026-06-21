@@ -35,6 +35,7 @@ export function WorkTabs() {
   const closeAllTabs = useWorkTabsStore((state) => state.closeAllTabs);
   const toggleFixedTab = useWorkTabsStore((state) => state.toggleFixedTab);
   const showWorkTab = useSettingStore((state) => state.showWorkTab);
+  const tabStyle = useSettingStore((state) => state.tabStyle);
   const reloadPage = useSettingStore((state) => state.reload);
 
   useEffect(() => {
@@ -150,7 +151,7 @@ export function WorkTabs() {
   }
 
   return (
-    <div className="work-tabs">
+    <div className={`work-tabs ${tabStyle}`}>
       <div className="work-tabs-scroll">
         <ul className="work-tabs-list">
           {opened.map((item, index) => {

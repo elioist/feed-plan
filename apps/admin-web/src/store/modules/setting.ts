@@ -32,6 +32,14 @@ export interface SettingState {
   setContainerWidth: (width: ContainerWidthEnum) => void;
   setCustomRadius: (radius: number) => void;
   setShowWorkTab: (show: boolean) => void;
+  setMenuType: (type: MenuTypeEnum) => void;
+  setMenuThemeType: (theme: MenuThemeEnum) => void;
+  setShowMenuButton: (show: boolean) => void;
+  setShowRefreshButton: (show: boolean) => void;
+  setShowFastEnter: (show: boolean) => void;
+  setShowCrumbs: (show: boolean) => void;
+  setShowLanguage: (show: boolean) => void;
+  setTabStyle: (style: string) => void;
   resetSettings: () => void;
 }
 
@@ -56,11 +64,20 @@ export const useSettingStore = create<SettingState>()(
       setContainerWidth: (containerWidth) => set({ containerWidth }),
       setCustomRadius: (customRadius) => set({ customRadius }),
       setShowWorkTab: (showWorkTab) => set({ showWorkTab }),
+      setMenuType: (menuType) => set({ menuType }),
+      setMenuThemeType: (menuThemeType) => set({ menuThemeType }),
+      setShowMenuButton: (showMenuButton) => set({ showMenuButton }),
+      setShowRefreshButton: (showRefreshButton) => set({ showRefreshButton }),
+      setShowFastEnter: (showFastEnter) => set({ showFastEnter }),
+      setShowCrumbs: (showCrumbs) => set({ showCrumbs }),
+      setShowLanguage: (showLanguage) => set({ showLanguage }),
+      setTabStyle: (tabStyle) => set({ tabStyle }),
       resetSettings: () => set({ ...SETTING_DEFAULT_CONFIG }),
     }),
     {
       name: 'feed-plan.admin.setting',
       partialize: (state) => ({
+        menuType: state.menuType,
         menuOpen: state.menuOpen,
         systemThemeType: state.systemThemeType,
         systemThemeColor: state.systemThemeColor,
@@ -70,6 +87,11 @@ export const useSettingStore = create<SettingState>()(
         customRadius: state.customRadius,
         containerWidth: state.containerWidth,
         showWorkTab: state.showWorkTab,
+        showMenuButton: state.showMenuButton,
+        showRefreshButton: state.showRefreshButton,
+        showFastEnter: state.showFastEnter,
+        showCrumbs: state.showCrumbs,
+        showLanguage: state.showLanguage,
       }),
     },
   ),

@@ -53,6 +53,11 @@ export function HeaderBar() {
   const reloadPage = useSettingStore((state) => state.reload);
   const systemThemeType = useSettingStore((state) => state.systemThemeType);
   const toggleTheme = useSettingStore((state) => state.toggleTheme);
+  const showMenuButton = useSettingStore((state) => state.showMenuButton);
+  const showRefreshButton = useSettingStore((state) => state.showRefreshButton);
+  const showFastEnter = useSettingStore((state) => state.showFastEnter);
+  const showCrumbs = useSettingStore((state) => state.showCrumbs);
+  const showLanguage = useSettingStore((state) => state.showLanguage);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -145,17 +150,17 @@ export function HeaderBar() {
     <Header className="header-bar">
       <div className="header-main">
         <div className="header-left">
-          {headerConfig.menuButton.enabled ? (
+          {headerConfig.menuButton.enabled && showMenuButton ? (
             <Button
               type="text"
               icon={menuOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
               onClick={toggleMenuOpen}
             />
           ) : null}
-          {headerConfig.refreshButton.enabled ? (
+          {headerConfig.refreshButton.enabled && showRefreshButton ? (
             <Button type="text" icon={<ReloadOutlined />} onClick={reload} />
           ) : null}
-          {headerConfig.fastEnter.enabled ? (
+          {headerConfig.fastEnter.enabled && showFastEnter ? (
             <Popover
               placement="bottomLeft"
               trigger="hover"
@@ -198,7 +203,7 @@ export function HeaderBar() {
               <Button type="text" icon={<AppstoreOutlined />} />
             </Popover>
           ) : null}
-          {headerConfig.breadcrumb.enabled ? (
+          {headerConfig.breadcrumb.enabled && showCrumbs ? (
             <Typography.Text className="admin-breadcrumb">
               {activeRoute.group} <span>/</span> {activeRoute.title}
             </Typography.Text>
@@ -225,7 +230,7 @@ export function HeaderBar() {
               />
             </Tooltip>
           ) : null}
-          {headerConfig.language.enabled ? (
+          {headerConfig.language.enabled && showLanguage ? (
             <Dropdown menu={{ items: languageItems }} trigger={['click']} placement="bottomRight">
               <Button type="text" icon={<TranslationOutlined />} />
             </Dropdown>

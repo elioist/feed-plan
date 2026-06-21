@@ -1,34 +1,36 @@
-import { Link, useRouterState } from '@tanstack/react-router';
+import { useRouterState } from '@tanstack/react-router';
 import { Layout, Menu } from 'antd';
-import type { ItemType } from 'antd/es/menu/interface';
 import { AppConfig } from '~/config';
 import { Logo } from '~/components/core/base/logo/Logo';
-import { MenuWidth } from '~/enums/appEnum';
+import { MenuThemeEnum, MenuWidth } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
 import {
   adminMenus,
+  getActiveTopKey,
   getOpenMenuKeys,
   getRouteMeta,
   type AdminMenuItem,
 } from '~/components/core/layouts/navigation';
+import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
 
 const { Sider } = Layout;
 
-function toMenuItem(item: AdminMenuItem): ItemType {
-  return {
-    key: item.key,
-    icon: item.icon,
-    disabled: item.disabled,
-    label: item.path ? <Link to={item.path}>{item.label}</Link> : item.label,
-    children: item.children?.map(toMenuItem),
-  };
+interface SidebarMenuProps {
+  /** 显式指定渲染的菜单项（混合/双列布局传二级菜单）；默认渲染整棵导航树 */
+  items?: AdminMenuItem[];
+  /** 是否显示顶部 Logo（双列布局的二级栏不显示） */
+  showLogo?: boolean;
 }
 
-export function SidebarMenu() {
+export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const activeRoute = getRouteMeta(pathname);
   const menuOpen = useSettingStore((state) => state.menuOpen);
   const menuOpenWidth = useSettingStore((state) => state.menuOpenWidth);
+  const menuThemeType = useSettingStore((state) => state.menuThemeType);
+  const isDark = menuThemeType === MenuThemeEnum.DARK;
+
+  const menus = items ?? adminMenus;
 
   return (
     <Sider
@@ -37,20 +39,23 @@ export function SidebarMenu() {
       collapsed={!menuOpen}
       collapsible
       trigger={null}
-      theme="light"
+      theme={isDark ? 'dark' : 'light'}
       className={menuOpen ? 'layout-sidebar' : 'layout-sidebar is-collapsed'}
     >
-      <div className="menu-left menu-left-design">
-        <div className="header">
-          <Logo />
-          <p>{AppConfig.systemInfo.name}</p>
-        </div>
+      <div className={`menu-left menu-left-${menuThemeType}`}>
+        {showLogo ? (
+          <div className="header">
+            <Logo />
+            <p>{AppConfig.systemInfo.name}</p>
+          </div>
+        ) : null}
         <Menu
           mode="inline"
+          theme={isDark ? 'dark' : 'light'}
           inlineCollapsed={!menuOpen}
           defaultOpenKeys={getOpenMenuKeys(pathname)}
-          selectedKeys={[activeRoute.path]}
-          items={adminMenus.map(toMenuItem)}
+          selectedKeys={[activeRoute.path, getActiveTopKey(pathname)]}
+          items={toMenuItems(menus)}
         />
       </div>
     </Sider>

@@ -86,3 +86,29 @@ export function getOpenMenuKeys(pathname: string) {
 
   return ['system'];
 }
+
+function pathMatches(pathname: string, path: AdminRoutePath) {
+  return path === '/' ? pathname === '/' : pathname.startsWith(path);
+}
+
+/** 当前路径所属的一级菜单 key（用于混合/双列布局确定激活分组） */
+export function getActiveTopKey(pathname: string): string {
+  for (const item of adminMenus) {
+    if (item.path && pathMatches(pathname, item.path)) {
+      return item.key;
+    }
+    if (item.children?.some((child) => child.path && pathMatches(pathname, child.path))) {
+      return item.key;
+    }
+  }
+  return adminMenus[0]!.key;
+}
+
+/** 指定一级菜单的子项（无子项则返回自身，供二级菜单渲染） */
+export function getSubMenus(topKey: string): AdminMenuItem[] {
+  const top = adminMenus.find((item) => item.key === topKey);
+  if (!top) {
+    return [];
+  }
+  return top.children ?? [top];
+}

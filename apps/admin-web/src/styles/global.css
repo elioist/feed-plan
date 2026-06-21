@@ -134,6 +134,98 @@ html.dark ::-webkit-scrollbar-thumb {
   border-bottom: 1px solid var(--card-border);
 }
 
+/* ── 菜单布局：顶部 / 混合 / 双列 ── */
+.layout-top,
+.layout-mixed {
+  flex-direction: column;
+}
+
+.layout-mixed-body,
+.layout-dual {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: row;
+}
+
+.top-nav-bar {
+  display: flex;
+  height: 56px;
+  flex: 0 0 56px;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--default-box-color);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.top-nav-bar .top-menu {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border-bottom: none;
+}
+
+/* 双列布局一级图标栏 */
+.icon-rail {
+  display: flex;
+  width: 64px;
+  height: 100vh;
+  flex: 0 0 64px;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  background: var(--default-box-color);
+  border-right: 1px solid var(--card-border);
+}
+
+.icon-rail-logo {
+  margin-bottom: 16px;
+}
+
+.icon-rail-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.icon-rail-item {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--gray-600);
+  font-size: 18px;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.icon-rail-item:hover:not(:disabled) {
+  background: var(--hover-color);
+}
+
+.icon-rail-item.active {
+  color: var(--theme-color);
+  background: var(--tab-active-bg);
+}
+
+.icon-rail-item:disabled {
+  color: var(--gray-300);
+  cursor: not-allowed;
+}
+
+.icon-rail-name {
+  margin-top: 8px;
+  color: var(--gray-400);
+  font-weight: 600;
+}
+
 .layout-sidebar {
   height: 100vh;
   user-select: none;
@@ -455,6 +547,47 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   flex: 0 0 auto;
   margin-top: -3px;
   border-radius: 10px;
+}
+
+/* 标签风格：卡片（方正描边） */
+.work-tabs.tab-card .work-tab {
+  height: 30px;
+  margin-right: 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: var(--default-box-color);
+}
+.work-tabs.tab-card .work-tab::before,
+.work-tabs.tab-card .work-tab::after,
+.work-tabs.tab-simple .work-tab::before,
+.work-tabs.tab-simple .work-tab::after {
+  display: none;
+}
+.work-tabs.tab-card .work-tab:hover:not(.active) {
+  border-bottom: 1px solid var(--card-border);
+  border-radius: 6px;
+}
+.work-tabs.tab-card .work-tab.active {
+  border-color: var(--theme-color);
+  border-radius: 6px;
+  background: var(--tab-active-bg);
+}
+
+/* 标签风格：简约（底部下划线） */
+.work-tabs.tab-simple .work-tab {
+  margin-right: 4px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+}
+.work-tabs.tab-simple .work-tab:hover:not(.active) {
+  background: transparent;
+  border-bottom: 2px solid var(--card-border);
+  border-radius: 0;
+}
+.work-tabs.tab-simple .work-tab.active {
+  background: transparent;
+  border-bottom: 2px solid var(--theme-color);
+  border-radius: 0;
 }
 
 .main-content,

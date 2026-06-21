@@ -1,7 +1,8 @@
 import { CloseOutlined, NotificationOutlined } from '@ant-design/icons';
-import { Button, FloatButton, Layout } from 'antd';
+import { Button, Layout } from 'antd';
 import type { PropsWithChildren, RefObject } from 'react';
 import { useState } from 'react';
+import { BackToTop } from '~/components/core/base/back-to-top';
 import { useSettingStore } from '~/store/modules/setting';
 
 const { Content } = Layout;
@@ -49,9 +50,7 @@ export function PageContent({ children, contentRef }: PageContentProps) {
           {children}
         </div>
       </div>
-      <FloatButton.BackTop
-        target={() => document.getElementById('app-main') ?? contentRef.current ?? document.body}
-      />
+      <BackToTop targetId="app-main" />
     </Content>
   );
 }
