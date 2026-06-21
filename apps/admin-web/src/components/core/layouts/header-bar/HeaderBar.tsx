@@ -305,13 +305,7 @@ export function HeaderBar() {
             </Popover>
           ) : null}
           {headerConfig.settings.enabled ? (
-            <Badge dot color="green">
-              <Button
-                type="text"
-                icon={<SettingOutlined />}
-                onClick={() => setSettingsOpen(true)}
-              />
-            </Badge>
+            <Button type="text" icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} />
           ) : null}
           {headerConfig.themeToggle.enabled ? (
             <Tooltip title={systemThemeType === SystemThemeEnum.DARK ? '浅色模式' : '暗色模式'}>
