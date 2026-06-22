@@ -1,18 +1,3 @@
-import {
-  AppstoreOutlined,
-  BellOutlined,
-  CloseOutlined,
-  FullscreenOutlined,
-  MessageOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  MoonOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  SettingOutlined,
-  SunOutlined,
-  TranslationOutlined,
-} from '@ant-design/icons';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import {
   Badge,
@@ -35,6 +20,7 @@ import { AppConfig } from '~/config';
 import { SystemThemeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
 import { SettingsPanel } from '~/components/core/layouts/settings-panel/SettingsPanel';
+import { SvgIcon } from '~/components/core/base/svg-icon/SvgIcon';
 import {
   adminRoutes,
   getRouteMeta,
@@ -153,12 +139,18 @@ export function HeaderBar() {
           {headerConfig.menuButton.enabled && showMenuButton ? (
             <Button
               type="text"
-              icon={menuOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+              icon={
+                menuOpen ? (
+                  <SvgIcon icon="ri:menu-fold-line" />
+                ) : (
+                  <SvgIcon icon="ri:menu-unfold-line" />
+                )
+              }
               onClick={toggleMenuOpen}
             />
           ) : null}
           {headerConfig.refreshButton.enabled && showRefreshButton ? (
-            <Button type="text" icon={<ReloadOutlined />} onClick={reload} />
+            <Button type="text" icon={<SvgIcon icon="ri:refresh-line" />} onClick={reload} />
           ) : null}
           {headerConfig.fastEnter.enabled && showFastEnter ? (
             <Popover
@@ -200,7 +192,7 @@ export function HeaderBar() {
                 </div>
               }
             >
-              <Button type="text" icon={<AppstoreOutlined />} />
+              <Button type="text" icon={<SvgIcon icon="ri:function-line" />} />
             </Popover>
           ) : null}
           {headerConfig.breadcrumb.enabled && showCrumbs ? (
@@ -214,7 +206,7 @@ export function HeaderBar() {
           {headerConfig.globalSearch.enabled ? (
             <Input
               className="admin-search"
-              prefix={<SearchOutlined />}
+              prefix={<SvgIcon icon="ri:search-line" />}
               placeholder="搜索"
               suffix={<span className="admin-search-kbd">⌘ K</span>}
               readOnly
@@ -225,14 +217,14 @@ export function HeaderBar() {
             <Tooltip title="全屏">
               <Button
                 type="text"
-                icon={<FullscreenOutlined />}
+                icon={<SvgIcon icon="ri:fullscreen-line" />}
                 onClick={() => void toggleFullScreen()}
               />
             </Tooltip>
           ) : null}
           {headerConfig.language.enabled && showLanguage ? (
             <Dropdown menu={{ items: languageItems }} trigger={['click']} placement="bottomRight">
-              <Button type="text" icon={<TranslationOutlined />} />
+              <Button type="text" icon={<SvgIcon icon="ri:translate-2" />} />
             </Dropdown>
           ) : null}
           {headerConfig.notification.enabled ? (
@@ -244,7 +236,7 @@ export function HeaderBar() {
                   <span>通知</span>
                   <Button
                     aria-label="关闭通知"
-                    icon={<CloseOutlined />}
+                    icon={<SvgIcon icon="ri:close-line" />}
                     size="small"
                     type="text"
                     onClick={() => setNotificationOpen(false)}
@@ -284,7 +276,7 @@ export function HeaderBar() {
               onOpenChange={setNotificationOpen}
             >
               <Badge dot={!notificationsRead}>
-                <Button type="text" icon={<BellOutlined />} />
+                <Button type="text" icon={<SvgIcon icon="ri:notification-2-line" />} />
               </Badge>
             </Popover>
           ) : null}
@@ -300,18 +292,28 @@ export function HeaderBar() {
               trigger="click"
             >
               <Badge dot color="green">
-                <Button type="text" icon={<MessageOutlined />} />
+                <Button type="text" icon={<SvgIcon icon="ri:message-3-line" />} />
               </Badge>
             </Popover>
           ) : null}
           {headerConfig.settings.enabled ? (
-            <Button type="text" icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} />
+            <Button
+              type="text"
+              icon={<SvgIcon icon="ri:settings-line" />}
+              onClick={() => setSettingsOpen(true)}
+            />
           ) : null}
           {headerConfig.themeToggle.enabled ? (
             <Tooltip title={systemThemeType === SystemThemeEnum.DARK ? '浅色模式' : '暗色模式'}>
               <Button
                 type="text"
-                icon={systemThemeType === SystemThemeEnum.DARK ? <SunOutlined /> : <MoonOutlined />}
+                icon={
+                  systemThemeType === SystemThemeEnum.DARK ? (
+                    <SvgIcon icon="ri:sun-line" />
+                  ) : (
+                    <SvgIcon icon="ri:moon-line" />
+                  )
+                }
                 onClick={toggleTheme}
               />
             </Tooltip>
@@ -333,7 +335,7 @@ export function HeaderBar() {
       >
         <Input
           autoFocus
-          prefix={<SearchOutlined />}
+          prefix={<SvgIcon icon="ri:search-line" />}
           placeholder="搜索页面或功能"
           value={searchKeyword}
           onChange={(event) => setSearchKeyword(event.target.value)}

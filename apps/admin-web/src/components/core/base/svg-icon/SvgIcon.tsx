@@ -1,4 +1,5 @@
 import { Icon, type IconProps } from '@iconify/react';
+import { cn } from '~/lib/utils';
 
 export interface SvgIconProps extends Omit<IconProps, 'icon'> {
   /** Iconify 图标名，如 "ri:arrow-up-wide-line" */
@@ -14,7 +15,5 @@ export function SvgIcon({ icon, className, ...rest }: SvgIconProps) {
     return null;
   }
 
-  return (
-    <Icon className={['art-svg-icon inline', className].filter(Boolean).join(' ')} icon={icon} {...rest} />
-  );
+  return <Icon className={cn('art-svg-icon inline', className)} icon={icon} {...rest} />;
 }

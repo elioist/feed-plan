@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button, Dropdown } from 'antd';
+import { cn } from '~/lib/utils';
 import type { MenuProps } from 'antd';
 import { useEffect } from 'react';
 import { useSettingStore } from '~/store/modules/setting';
@@ -151,7 +152,7 @@ export function WorkTabs() {
   }
 
   return (
-    <div className={`work-tabs ${tabStyle}`}>
+    <div className={cn('work-tabs', tabStyle)}>
       <div className="work-tabs-scroll">
         <ul className="work-tabs-list">
           {opened.map((item, index) => {
@@ -167,7 +168,7 @@ export function WorkTabs() {
               >
                 <li
                   id={'scroll-li-' + index}
-                  className={active ? 'work-tab activ-tab active' : 'work-tab'}
+                  className={cn('work-tab', active && 'activ-tab active')}
                 >
                   <span className="work-tab-line" />
                   <Link className="work-tab-link" to={item.path}>

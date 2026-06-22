@@ -10,6 +10,7 @@ import {
   type AdminRoutePath,
 } from '~/components/core/layouts/navigation';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
+import { cn } from '~/lib/utils';
 
 /** 取菜单项可跳转的首个路径（自身或第一个有 path 的子项） */
 function firstPath(item: AdminMenuItem): AdminRoutePath | undefined {
@@ -79,7 +80,7 @@ export function IconRail() {
             <Tooltip key={item.key} title={item.label} placement="right">
               <button
                 type="button"
-                className={item.key === activeTop ? 'icon-rail-item active' : 'icon-rail-item'}
+                className={cn('icon-rail-item', item.key === activeTop && 'active')}
                 disabled={item.disabled || !path}
                 onClick={() => path && void navigate({ to: path })}
               >

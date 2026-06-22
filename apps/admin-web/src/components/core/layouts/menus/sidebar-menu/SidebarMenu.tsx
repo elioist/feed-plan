@@ -12,6 +12,7 @@ import {
   type AdminMenuItem,
 } from '~/components/core/layouts/navigation';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
+import { cn } from '~/lib/utils';
 
 const { Sider } = Layout;
 
@@ -40,9 +41,9 @@ export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
       collapsible
       trigger={null}
       theme={isDark ? 'dark' : 'light'}
-      className={menuOpen ? 'layout-sidebar' : 'layout-sidebar is-collapsed'}
+      className={cn('layout-sidebar', !menuOpen && 'is-collapsed')}
     >
-      <div className={`menu-left menu-left-${menuThemeType}`}>
+      <div className={cn('menu-left', `menu-left-${menuThemeType}`)}>
         {showLogo ? (
           <div className="header">
             <Logo />
