@@ -1,11 +1,15 @@
+import logoUrl from '~/assets/images/logo.png';
+
 interface LogoProps {
   size?: number;
 }
 
 export function Logo({ size = 36 }: LogoProps) {
   return (
-    <div className="brand-logo" style={{ width: size, height: size }}>
-      F
-    </div>
+    <img
+      src={logoUrl}
+      alt="Feed Plan"
+      style={{ width: size, height: size, borderRadius: 'var(--custom-radius)' }}
+    />
   );
 }
