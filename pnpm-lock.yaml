@@ -113,6 +113,9 @@ catalogs:
     '@ant-design/pro-components':
       specifier: ^2.8.10
       version: 2.8.10
+    '@iconify/react':
+      specifier: ^6.0.2
+      version: 6.0.2
     '@tailwindcss/vite':
       specifier: ^4.3.1
       version: 4.3.1
@@ -146,6 +149,9 @@ catalogs:
     antd:
       specifier: ^6.4.4
       version: 6.4.4
+    clsx:
+      specifier: ^2.1.1
+      version: 2.1.1
     jsdom:
       specifier: ^27.3.0
       version: 27.4.0
@@ -158,6 +164,9 @@ catalogs:
     react-dom:
       specifier: ^19.2.7
       version: 19.2.7
+    tailwind-merge:
+      specifier: ^3.3.1
+      version: 3.6.0
     tailwindcss:
       specifier: ^4.3.1
       version: 4.3.1
@@ -205,6 +214,9 @@ importers:
       '@feed-plan/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@iconify/react':
+        specifier: catalog:frontend
+        version: 6.0.2(react@19.2.7)
       '@tanstack/react-query':
         specifier: catalog:frontend
         version: 5.101.0(react@19.2.7)
@@ -214,6 +226,9 @@ importers:
       antd:
         specifier: catalog:frontend
         version: 6.4.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      clsx:
+        specifier: catalog:frontend
+        version: 2.1.1
       dayjs:
         specifier: ^1.11.21
         version: 1.11.21
@@ -226,6 +241,9 @@ importers:
       react-dom:
         specifier: catalog:frontend
         version: 19.2.7(react@19.2.7)
+      tailwind-merge:
+        specifier: catalog:frontend
+        version: 3.6.0
       zustand:
         specifier: catalog:frontend
         version: 5.0.14(@types/react@19.2.17)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
@@ -323,7 +341,7 @@ importers:
         version: 11.0.23(@swc/core@1.15.41)(@types/node@25.9.3)(esbuild@0.28.1)(prettier@3.8.4)
       '@nestjs/testing':
         specifier: catalog:backend
-        version: 11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26)(@nestjs/platform-express@11.1.26)
+        version: 11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26))
       '@swc/core':
         specifier: catalog:backend
         version: 1.15.41
@@ -1291,6 +1309,14 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@iconify/react@6.0.2':
+    resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
+    peerDependencies:
+      react: '>=16'
+
+  '@iconify/types@2.0.0':
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
@@ -4237,6 +4263,9 @@ packages:
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
 
+  tailwind-merge@3.6.0:
+    resolution: {integrity: sha512-uxL7qAVQriqRQPAyK3pj66VqskWqoZ37PW94jwOTwNfq/z9oyu1V+eqrZqtR2+fCiXdYOZe/Modt8GtvqNzu+w==}
+
   tailwindcss@4.3.1:
     resolution: {integrity: sha512-hk+TB1m+K8CYNrP6rjQaq/Y+4Zylwpa87mLYBKCunwnnQ9p+fHb7kmSfGqyEJoxF/O6CDyABWVFEafNSYKll+Q==}
 
@@ -5497,6 +5526,13 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
+  '@iconify/react@6.0.2(react@19.2.7)':
+    dependencies:
+      '@iconify/types': 2.0.0
+      react: 19.2.7
+
+  '@iconify/types@2.0.0': {}
+
   '@inquirer/ansi@1.0.2': {}
 
   '@inquirer/checkbox@4.3.2(@types/node@25.9.3)':
@@ -5772,7 +5808,7 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@nestjs/testing@11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26)(@nestjs/platform-express@11.1.26)':
+  '@nestjs/testing@11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.26))':
     dependencies:
       '@nestjs/common': 11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.26(@nestjs/common@11.1.26(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.26)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8507,6 +8543,8 @@ snapshots:
   symbol-observable@4.0.0: {}
 
   symbol-tree@3.2.4: {}
+
+  tailwind-merge@3.6.0: {}
 
   tailwindcss@4.3.1: {}
 

@@ -351,7 +351,7 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   flex-shrink: 0;
 }
 
-/* 顶部操作按钮：图标尺寸 + hover 动效（参考 art-design-pro） */
+/* 顶部操作按钮：图标尺寸（参考 art-design-pro） */
 .header-bar .art-svg-icon {
   font-size: 19px;
 }
@@ -367,20 +367,13 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   border-radius: 9px;
   transition:
     color 0.25s ease,
-    background-color 0.25s ease,
-    transform 0.2s ease;
+    background-color 0.25s ease;
 }
 
 .header-left .ant-btn-text:hover,
 .header-actions .ant-btn-text:hover {
   color: var(--theme-color);
   background: var(--hover-color);
-  transform: translateY(-2px);
-}
-
-.header-left .ant-btn-text:active,
-.header-actions .ant-btn-text:active {
-  transform: translateY(0);
 }
 
 .admin-breadcrumb {
@@ -406,12 +399,11 @@ html.dark .layout-sidebar .ant-menu-item-selected {
 
 .user-menu-trigger {
   display: inline-flex;
-  height: 42px;
+  height: 34px;
   align-items: center;
-  gap: 9px;
-  padding: 0 10px 0 6px;
+  padding: 0;
   border: 0;
-  border-radius: 10px;
+  border-radius: 50%;
   background: transparent;
   cursor: pointer;
   transition: background-color 0.25s ease;
@@ -419,24 +411,6 @@ html.dark .layout-sidebar .ant-menu-item-selected {
 
 .user-menu-trigger:hover {
   background: var(--hover-color);
-}
-
-.user-name {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.25;
-}
-
-.user-name-main {
-  color: var(--gray-800);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.user-name-role {
-  color: var(--gray-500);
-  font-size: 12px;
 }
 
 .work-tabs,
@@ -773,97 +747,17 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   border-radius: calc(var(--custom-radius) / 2 + 4px);
 }
 
-/* 用户菜单面板（参考 art-design-pro） */
-.user-menu-panel {
-  width: 230px;
-  padding: 4px 6px 8px;
-}
-
 .user-menu-head {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 8px 12px;
-  border-bottom: 1px solid var(--card-border);
+  padding: 4px 0;
 }
 
 .user-menu-head-info {
   display: flex;
   min-width: 0;
   flex-direction: column;
-}
-
-.user-menu-head-info strong {
-  overflow: hidden;
-  color: var(--gray-800);
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-menu-head-info span {
-  color: var(--gray-500);
-  font-size: 12px;
-}
-
-.user-menu-list {
-  padding: 8px 0;
-  margin: 0;
-  list-style: none;
-  border-bottom: 1px solid var(--card-border);
-}
-
-.user-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  color: var(--gray-700);
-  font-size: 13px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.user-menu-item .art-svg-icon {
-  font-size: 17px;
-  color: var(--gray-500);
-}
-
-.user-menu-item:hover {
-  color: var(--theme-color);
-  background: var(--hover-color);
-}
-
-.user-menu-item:hover .art-svg-icon {
-  color: var(--theme-color);
-}
-
-.user-menu-item.is-disabled {
-  color: var(--gray-400);
-}
-
-.user-menu-logout {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
-  margin-top: 8px;
-  color: var(--error-color, #ff4d4f);
-  font-size: 13px;
-  background: transparent;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.user-menu-logout:hover {
-  background: color-mix(in srgb, #ff4d4f 12%, transparent);
 }
 
 .fast-entry-popover .ant-popover-inner {
@@ -1136,3 +1030,47 @@ html.dark .layout-sidebar .ant-menu-item-selected {
   border-radius: calc(var(--custom-radius) / 2 + 2px);
   padding: 16px;
 }
+
+/* ── 呼吸灯动画 ── */
+@keyframes breathing {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}
+
+.breathing-dot {
+  animation: breathing 1.5s ease-in-out infinite;
+}
+
+/* ── Header 图标按钮 hover 动效（参考 art-design-pro） ── */
+@keyframes rotate180 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(180deg); }
+}
+
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes moveUp {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes expand {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.refresh-btn:hover .art-svg-icon { animation: rotate180 0.5s; }
+.setting-btn:hover .art-svg-icon { animation: rotate180 0.5s; }
+.language-btn:hover .art-svg-icon { animation: moveUp 0.4s; }
+.full-screen-btn:hover .art-svg-icon { animation: expand 0.6s forwards; }
+.notice-button:hover .art-svg-icon { animation: shake 0.5s ease-in-out; }
+.chat-button:hover .art-svg-icon { animation: shake 0.5s ease-in-out; }

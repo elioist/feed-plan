@@ -1,6 +1,5 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import {
-  Badge,
   Button,
   Dropdown,
   Empty,
@@ -150,7 +149,7 @@ export function HeaderBar() {
             />
           ) : null}
           {headerConfig.refreshButton.enabled && showRefreshButton ? (
-            <Button type="text" icon={<SvgIcon icon="ri:refresh-line" />} onClick={reload} />
+            <Button type="text" className="refresh-btn" icon={<SvgIcon icon="ri:refresh-line" />} onClick={reload} />
           ) : null}
           {headerConfig.fastEnter.enabled && showFastEnter ? (
             <Popover
@@ -217,6 +216,7 @@ export function HeaderBar() {
             <Tooltip title="全屏">
               <Button
                 type="text"
+                className="full-screen-btn"
                 icon={<SvgIcon icon="ri:fullscreen-line" />}
                 onClick={() => void toggleFullScreen()}
               />
@@ -224,7 +224,7 @@ export function HeaderBar() {
           ) : null}
           {headerConfig.language.enabled && showLanguage ? (
             <Dropdown menu={{ items: languageItems }} trigger={['click']} placement="bottomRight">
-              <Button type="text" icon={<SvgIcon icon="ri:translate-2" />} />
+              <Button type="text" className="language-btn" icon={<SvgIcon icon="ri:translate-2" />} />
             </Dropdown>
           ) : null}
           {headerConfig.notification.enabled ? (
@@ -275,9 +275,11 @@ export function HeaderBar() {
               trigger="click"
               onOpenChange={setNotificationOpen}
             >
-              <Badge dot={!notificationsRead}>
-                <Button type="text" icon={<SvgIcon icon="ri:notification-2-line" />} />
-              </Badge>
+              <Button type="text" className="notice-button relative" icon={<SvgIcon icon="ri:notification-2-line" />}>
+                {!notificationsRead && (
+                  <span className="absolute top-2 right-2 size-1.5 bg-red-500 rounded-full" />
+                )}
+              </Button>
             </Popover>
           ) : null}
           {headerConfig.chat.enabled ? (
@@ -291,14 +293,15 @@ export function HeaderBar() {
               }
               trigger="click"
             >
-              <Badge dot color="green">
-                <Button type="text" icon={<SvgIcon icon="ri:message-3-line" />} />
-              </Badge>
+              <Button type="text" className="chat-button relative" icon={<SvgIcon icon="ri:message-3-line" />}>
+                <span className="breathing-dot absolute top-2 right-2 size-1.5 bg-green-500 rounded-full" />
+              </Button>
             </Popover>
           ) : null}
           {headerConfig.settings.enabled ? (
             <Button
               type="text"
+              className="setting-btn"
               icon={<SvgIcon icon="ri:settings-line" />}
               onClick={() => setSettingsOpen(true)}
             />
