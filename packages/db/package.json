@@ -20,8 +20,8 @@
     "drizzle"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "tsc -w -p tsconfig.json",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -39,6 +39,7 @@
     "@types/pg": "catalog:backend",
     "dotenv": "catalog:",
     "drizzle-kit": "catalog:backend",
+    "tsdown": "catalog:",
     "typescript": "catalog:"
   }
 }

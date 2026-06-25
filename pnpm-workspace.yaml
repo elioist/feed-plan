@@ -9,7 +9,8 @@ catalog:
   globals: ^16.5.0
   prettier: ^3.6.2
   turbo: ^2.3.3
-  typescript: ^5.7.2
+  tsdown: ^0.22.3
+  typescript: ~6.0.3
   typescript-eslint: ^8.48.0
   vitest: ^4.1.8
   zod: ^3.25.76

@@ -36,7 +36,7 @@
     "@feed-plan/eslint-config": "workspace:*",
     "@feed-plan/typescript-config": "workspace:*",
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "catalog:"
   },
   "scripts": {
     "start": "expo start",
