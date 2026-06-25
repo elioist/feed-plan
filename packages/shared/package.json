@@ -21,6 +21,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "clsx": "catalog:frontend",
+    "tailwind-merge": "catalog:frontend",
     "zod": "catalog:"
   },
   "devDependencies": {
