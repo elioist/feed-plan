@@ -14,11 +14,13 @@
 - `src/app`：路由入口、页面布局和页面级组织。
 - `src/providers`：全局 Provider，如 QueryClient、认证恢复、错误边界。
 - `src/hooks`：端侧可复用 hooks。
-- `src/models`：移动端视图模型、表单模型、类型适配。
-- `src/store`：客户端状态，服务端状态优先交给 TanStack Query。
+- `src/models`：移动端视图模型、表单模型、类型适配；没有对应目录时先确认是否确有必要新增。
+- `src/stores`：客户端状态，服务端状态优先交给 TanStack Query。
 - `src/constants`：移动端常量；跨端常量放到 workspace 公共包。
-- `src/utils`：纯函数工具，不放请求封装和业务状态。
+- `src/lib`：端侧基础设施适配，如 storage、平台能力、导航工具；不放业务请求 resource。
+- `src/utils`：纯函数工具；没有对应目录时先确认是否应放入 `src/lib` 或公共包。
 - `src/components`：可复用展示组件，避免承载接口调用细节。
+- `src/screens`：页面级移动端界面，保持路由和业务流程清晰。
 
 ## API 与数据
 
@@ -26,6 +28,12 @@
 - 所有后端请求统一从 `@feed-plan/api-client` 引入，新增接口也先落到该包。
 - DTO、请求参数、响应类型优先从 `@feed-plan/api-client` 或 `@feed-plan/shared` 引入，不在页面里重复声明。
 - 移动端只做端侧适配：认证 token 存储、Query hooks、页面模型转换。
+
+## 组件放置
+
+- 新组件先查 `src/components` 是否已有可复用实现。
+- 只服务单个页面的组件优先放在对应 screen 附近；被多个页面复用后再提升到 `src/components`。
+- 真正跨端复用的协议和类型放公共包；React Native 组件不直接抽到 web 侧公共组件。
 
 ## 状态与缓存
 

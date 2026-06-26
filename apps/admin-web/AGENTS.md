@@ -31,6 +31,13 @@
 - DTO、请求参数、响应类型优先从 `@feed-plan/api-client` 或 `@feed-plan/shared` 引入，不在页面里重复声明。
 - 页面组件只消费 query / mutation 和视图模型，不直接处理 token、baseURL、HTTP 错误解析。
 
+## 组件放置
+
+- 新组件先查 `src/components/core` 和 `src/components/biz` 是否已有实现。
+- 通用基础组件放 `src/components/core`，业务语义组件放 `src/components/biz`。
+- 只服务单个页面的组件优先放在对应 `src/pages/<module>` 内；多个页面复用后再提升到 `src/components`。
+- 只有跨端共享的类型、常量、DTO 和纯函数进入公共包；admin 的 Ant Design 组件不抽到跨端 package。
+
 ## 状态与缓存
 
 - 服务器状态使用 `@tanstack/react-query`，query key 与 `src/queries` 中的封装保持稳定命名。
