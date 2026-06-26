@@ -1,3 +1,5 @@
 {
-  "extends": "@feed-plan/typescript-config/base.json"
+  "extends": "@feed-plan/typescript-config/base.json",
+  "files": [],
+  "include": []
 }

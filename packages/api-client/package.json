@@ -1,5 +1,5 @@
 {
-  "name": "@feed-plan/shared",
+  "name": "@feed-plan/api-client",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,19 +17,16 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
   "dependencies": {
-    "clsx": "catalog:frontend",
-    "tailwind-merge": "catalog:frontend",
-    "zod": "catalog:"
+    "@feed-plan/shared": "workspace:*",
+    "ofetch": "catalog:frontend"
   },
   "devDependencies": {
     "@feed-plan/typescript-config": "workspace:*",
     "tsdown": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "catalog:"
   }
 }

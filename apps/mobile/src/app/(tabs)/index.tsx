@@ -4,8 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
-import { getDishes } from '~/lib/api/dishes';
-import { getImageUrl } from '~/lib/api-client';
+import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { useAuthStore } from '~/stores/auth-store';
 import type { DishSummary } from '@feed-plan/shared';
@@ -29,7 +28,7 @@ export default function HomeScreen() {
 
   const { data: dishes = [] } = useQuery<DishSummary[]>({
     queryKey: ['dishes'],
-    queryFn: () => getDishes({ isActive: true }),
+    queryFn: () => api.dishes.list({ isActive: true }),
   });
 
   const getGreeting = () => {

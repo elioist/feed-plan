@@ -5,9 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
-import { getDishes } from '~/lib/api/dishes';
-import { getCategories } from '~/lib/api/categories';
-import { getImageUrl } from '~/lib/api-client';
+import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import type { DishSummary, Category } from '@feed-plan/shared';
 
@@ -25,12 +23,12 @@ export default function MenuScreen() {
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['categories'],
-    queryFn: getCategories,
+    queryFn: api.categories.list,
   });
 
   const { data: dishes = [], isLoading } = useQuery<DishSummary[]>({
     queryKey: ['dishes'],
-    queryFn: () => getDishes({ isActive: true }),
+    queryFn: () => api.dishes.list({ isActive: true }),
   });
 
   // Filter dishes by category and search

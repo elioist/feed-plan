@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { Button, Card, Descriptions, Popconfirm, Space, Table, Tag, Typography, App as AntdApp } from 'antd';
-import { completeMeal } from '~/api/meals';
 import { mealQueries } from '~/queries/meals';
+import { api } from '~/lib/api-client';
 
 const { Title } = Typography;
 
@@ -13,7 +13,7 @@ export function MealDetailPage() {
   const { message } = AntdApp.useApp();
 
   const completeMutation = useMutation({
-    mutationFn: completeMeal,
+    mutationFn: api.meals.complete,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['meals'] });
       message.success('本次点餐已完成');

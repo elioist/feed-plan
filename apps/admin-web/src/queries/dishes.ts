@@ -1,16 +1,16 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { DishListQuery } from '@feed-plan/shared';
-import { getDish, listDishes } from '~/api/dishes';
+import { api } from '~/lib/api-client';
 
 export const dishQueries = {
   list: (query: DishListQuery = {}) =>
     queryOptions({
       queryKey: ['dishes', query],
-      queryFn: () => listDishes(query),
+      queryFn: () => api.dishes.list(query),
     }),
   detail: (id: string) =>
     queryOptions({
       queryKey: ['dishes', id],
-      queryFn: () => getDish(id),
+      queryFn: () => api.dishes.get(id),
     }),
 };

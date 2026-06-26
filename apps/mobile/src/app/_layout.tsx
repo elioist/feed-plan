@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '~/stores/auth-store';
-
-const queryClient = new QueryClient();
+import { AppProviders } from '~/providers';
 
 const PUBLIC_ROUTES = ['login'];
 
@@ -35,10 +33,9 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <RootLayoutNav />
-      </QueryClientProvider>
-    </SafeAreaProvider>
+    <AppProviders>
+      <StatusBar style="auto" />
+      <RootLayoutNav />
+    </AppProviders>
   );
 }

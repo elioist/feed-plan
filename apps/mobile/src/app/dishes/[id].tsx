@@ -4,8 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getDishDetail } from '~/lib/api/dishes';
-import { getImageUrl } from '~/lib/api-client';
+import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { BrandIcon } from '~/components/brand-icon';
 import { openUrl } from '~/lib/utils';
@@ -48,7 +47,7 @@ export default function DishDetailScreen() {
 
   const { data: dish, isLoading } = useQuery<DishDetail>({
     queryKey: ['dish', id],
-    queryFn: () => getDishDetail(id!),
+    queryFn: () => api.dishes.get(id!),
     enabled: !!id,
   });
 

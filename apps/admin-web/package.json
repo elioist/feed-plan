@@ -14,6 +14,7 @@
   "dependencies": {
     "@ant-design/icons": "catalog:frontend",
     "@ant-design/pro-components": "catalog:frontend",
+    "@feed-plan/api-client": "workspace:*",
     "@feed-plan/shared": "workspace:*",
     "@iconify/react": "catalog:frontend",
     "@tanstack/react-query": "catalog:frontend",

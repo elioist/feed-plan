@@ -4,8 +4,8 @@ import { Button, Card, Form, Popconfirm, Space, Tag, App as AntdApp } from 'antd
 import dayjs from 'dayjs';
 import type { MealQuery, MenuDetail } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
-import { completeMeal } from '~/api/meals';
 import { mealQueries } from '~/queries/meals';
+import { api } from '~/lib/api-client';
 import { MealSearchBar, type MealSearchFormValues } from './components/MealSearchBar';
 
 const toSearchFormValues = (search: MealQuery): MealSearchFormValues => {
@@ -51,7 +51,7 @@ export function MealListPage() {
   const [filterForm] = Form.useForm<MealSearchFormValues>();
 
   const completeMutation = useMutation({
-    mutationFn: completeMeal,
+    mutationFn: api.meals.complete,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['meals'] });
       message.success('本次点餐已完成');

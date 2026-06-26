@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button, SegmentedButtons } from 'react-native-paper';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { createMeal } from '~/lib/api/meals';
+import { api } from '~/lib/api-client';
 import type { MealType } from '@feed-plan/shared';
 
 export default function CreateMealScreen() {
@@ -12,7 +12,16 @@ export default function CreateMealScreen() {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: () => createMeal({ mealType }),
+    mutationFn: async () => {
+      const now = new Date();
+      const mealDate = `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, '0')}-${`${now.getDate()}`.padStart(2, '0')}`;
+      const detail = await api.meals.getOrCreateCurrent({
+        mealDate,
+        mealType,
+        type: 'daily',
+      });
+      return detail.meal;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       router.back();

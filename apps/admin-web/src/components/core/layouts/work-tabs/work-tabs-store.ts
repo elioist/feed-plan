@@ -1,3 +1,4 @@
+import { adminStorageNS } from '@feed-plan/shared';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AdminRoutePath } from '~/components/core/layouts/navigation';
@@ -95,7 +96,7 @@ export const useWorkTabsStore = create<WorkTabsState>()(
       },
     }),
     {
-      name: 'feed-plan.admin.work-tabs',
+      name: adminStorageNS('work-tabs'),
       partialize: (state) => ({ opened: state.opened }),
     },
   ),

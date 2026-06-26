@@ -2,7 +2,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Card, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getMealDetail, completeMeal } from '~/lib/api/meals';
+import { api } from '~/lib/api-client';
 import { useAuthStore } from '~/stores/auth-store';
 import type { Meal } from '@feed-plan/shared';
 
@@ -20,12 +20,18 @@ export default function MealDetailScreen() {
 
   const { data: meal, isLoading } = useQuery<Meal>({
     queryKey: ['meal', id],
-    queryFn: () => getMealDetail(id!),
+    queryFn: async () => {
+      const detail = await api.meals.get(id!);
+      return detail.meal;
+    },
     enabled: !!id,
   });
 
   const completeMutation = useMutation({
-    mutationFn: () => completeMeal(id!),
+    mutationFn: async () => {
+      const detail = await api.meals.complete(id!);
+      return detail.meal;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       queryClient.invalidateQueries({ queryKey: ['meal', id] });

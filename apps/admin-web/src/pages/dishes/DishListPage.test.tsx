@@ -82,11 +82,15 @@ vi.mock('@tanstack/react-router', () => ({
   useSearch: () => routerMocks.search,
 }));
 
-vi.mock('~/api/dishes', () => ({
-  createDish: dishApiMocks.createDish,
-  deleteDish: dishApiMocks.deleteDish,
-  setDishActive: dishApiMocks.setDishActive,
-  updateDish: dishApiMocks.updateDish,
+vi.mock('~/lib/api-client', () => ({
+  api: {
+    dishes: {
+      create: dishApiMocks.createDish,
+      delete: dishApiMocks.deleteDish,
+      setActive: dishApiMocks.setDishActive,
+      update: dishApiMocks.updateDish,
+    },
+  },
 }));
 vi.mock('~/queries/dishes', () => ({ dishQueries: dishApiMocks.dishQueries }));
 vi.mock('~/queries/categories', () => categoryApiMocks);

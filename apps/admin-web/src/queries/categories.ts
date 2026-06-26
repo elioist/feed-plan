@@ -1,10 +1,10 @@
 import { queryOptions } from '@tanstack/react-query';
-import { listCategories } from '~/api/categories';
+import { api } from '~/lib/api-client';
 
 export const categoryQueries = {
   all: () =>
     queryOptions({
       queryKey: ['categories'],
-      queryFn: () => listCategories(),
+      queryFn: api.categories.list,
     }),
 };

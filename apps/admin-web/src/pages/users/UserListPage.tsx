@@ -15,9 +15,9 @@ import { useState } from 'react';
 import type { AdminUser, CreateUserInput, Role } from '@feed-plan/shared';
 import { ROLES } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
-import { createUser, deleteUser, updateUserRole } from '~/api/users';
 import { userQueries } from '~/queries/users';
 import { useAuthStore } from '~/store/modules/auth';
+import { api } from '~/lib/api-client';
 
 const roleLabels: Record<Role, string> = {
   chef: '主厨',
@@ -39,7 +39,7 @@ export function UserListPage() {
   };
 
   const createMutation = useMutation({
-    mutationFn: createUser,
+    mutationFn: api.users.create,
     onSuccess: async () => {
       await invalidateUsers();
       message.success('用户已创建');
@@ -51,7 +51,7 @@ export function UserListPage() {
   });
 
   const roleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: Role }) => updateUserRole(id, role),
+    mutationFn: ({ id, role }: { id: string; role: Role }) => api.users.updateRole(id, role),
     onSuccess: async () => {
       await invalidateUsers();
       message.success('角色已更新');
@@ -62,7 +62,7 @@ export function UserListPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteUser,
+    mutationFn: api.users.delete,
     onSuccess: async () => {
       await invalidateUsers();
       message.success('用户已删除');

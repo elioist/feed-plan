@@ -1,7 +1,7 @@
 import type { AuthUser, LoginInput } from '@feed-plan/shared';
 import { create } from 'zustand';
-import * as authApi from '~/api/auth';
-import { clearAccessToken, getAccessToken, setAccessToken } from '~/utils/storage';
+import { api } from '~/lib/api-client';
+import { clearAccessToken, getAccessToken, setAccessToken } from '~/lib/storage';
 
 interface AuthState {
   accessToken: string | null;
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   isAuthenticated: () => Boolean(get().accessToken),
   login: async (input) => {
-    const response = await authApi.login(input);
+    const response = await api.auth.login(input);
     setAccessToken(response.accessToken);
     set({ accessToken: response.accessToken, user: response.user });
   },
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    const user = await authApi.getCurrentUser();
+    const user = await api.auth.me();
     set({ user });
   },
 }));

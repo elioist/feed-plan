@@ -1,7 +1,7 @@
 import { InboxOutlined } from '@ant-design/icons';
 import { Image, Upload, App as AntdApp } from 'antd';
 import type { UploadFile, UploadProps } from 'antd';
-import { uploadDishImage } from '~/api/dishes';
+import { api } from '~/lib/api-client';
 
 interface CoverImageUploadProps {
   value?: string | null;
@@ -27,7 +27,7 @@ export function CoverImageUpload({ value, onChange }: CoverImageUploadProps) {
   const upload = async (options: UploadRequest) => {
     try {
       const file = options.file as File;
-      const result = await uploadDishImage(file);
+      const result = await api.dishes.uploadImage(file);
       onChange?.(result.path);
       options.onProgress?.({ percent: 100 });
       options.onSuccess?.(result);

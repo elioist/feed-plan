@@ -51,10 +51,14 @@ vi.mock('@tanstack/react-query', () => ({
   useSuspenseQuery: reactQueryMocks.useSuspenseQuery,
 }));
 
-vi.mock('~/api/categories', () => ({
-  createCategory: categoryApiMocks.createCategory,
-  deleteCategory: categoryApiMocks.deleteCategory,
-  updateCategory: categoryApiMocks.updateCategory,
+vi.mock('~/lib/api-client', () => ({
+  api: {
+    categories: {
+      create: categoryApiMocks.createCategory,
+      delete: categoryApiMocks.deleteCategory,
+      update: categoryApiMocks.updateCategory,
+    },
+  },
 }));
 vi.mock('~/queries/categories', () => ({
   categoryQueries: categoryApiMocks.categoryQueries,

@@ -91,7 +91,13 @@ vi.mock('@tanstack/react-router', () => ({
   useSearch: () => routerMocks.search,
 }));
 
-vi.mock('~/api/meals', () => ({ completeMeal: mealApiMocks.completeMeal }));
+vi.mock('~/lib/api-client', () => ({
+  api: {
+    meals: {
+      complete: mealApiMocks.completeMeal,
+    },
+  },
+}));
 vi.mock('~/queries/meals', () => ({ mealQueries: mealApiMocks.mealQueries }));
 
 vi.mock('antd', async (importOriginal) => {

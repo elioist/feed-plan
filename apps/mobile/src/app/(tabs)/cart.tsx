@@ -5,8 +5,7 @@ import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeScreen } from '~/components/safe-screen';
 import { useCartStore } from '~/stores/cart-store';
-import { createMeal } from '~/lib/api/meals';
-import { createOrder } from '~/lib/api/orders';
+import { api } from '~/lib/api-client';
 import type { MealType } from '@feed-plan/shared';
 
 const MEAL_OPTIONS: { value: MealType; label: string; icon: string }[] = [
@@ -22,18 +21,23 @@ export default function CartScreen() {
 
   const orderMutation = useMutation({
     mutationFn: async () => {
-      const meal = await createMeal({ mealType });
+      const now = new Date();
+      const mealDate = `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, '0')}-${`${now.getDate()}`.padStart(2, '0')}`;
+      const detail = await api.meals.getOrCreateCurrent({
+        mealDate,
+        mealType,
+        type: 'daily',
+      });
 
       for (const item of items) {
-        await createOrder({
-          mealId: meal.id,
+        await api.meals.addOrder(detail.meal.id, {
           dishId: item.dishId,
           quantity: item.quantity,
           note: note || undefined,
         });
       }
 
-      return meal;
+      return detail.meal;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] });

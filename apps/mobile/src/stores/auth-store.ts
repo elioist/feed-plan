@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { AuthUser } from '@feed-plan/shared';
+import { api } from '~/lib/api-client';
 import storage from '~/lib/storage';
-import { login as apiLogin, getCurrentUser } from '~/lib/api/auth';
 
 interface AuthState {
   user: AuthUser | null;
@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
   login: async (username: string, password: string) => {
-    const response = await apiLogin({ username, password });
+    const response = await api.auth.login({ username, password });
     await storage.setItem('access_token', response.accessToken);
     set({ user: response.user, isAuthenticated: true });
   },
@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         return;
       }
 
-      const user = await getCurrentUser();
+      const user = await api.auth.me();
       set({ user, isAuthenticated: true, isLoading: false });
     } catch {
       await storage.deleteItem('access_token');

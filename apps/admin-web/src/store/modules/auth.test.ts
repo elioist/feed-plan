@@ -1,13 +1,20 @@
-import type { AuthUser } from '@feed-plan/shared';
+import { adminStorageNS, type AuthUser } from '@feed-plan/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAccessToken } from '~/utils/storage';
+import { getAccessToken } from '~/lib/storage';
 
 const authApiMocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   login: vi.fn(),
 }));
 
-vi.mock('~/api/auth', () => authApiMocks);
+vi.mock('~/lib/api-client', () => ({
+  api: {
+    auth: {
+      login: authApiMocks.login,
+      me: authApiMocks.getCurrentUser,
+    },
+  },
+}));
 
 import { useAuthStore } from '~/store/modules/auth';
 
@@ -60,7 +67,7 @@ describe('auth store', () => {
   });
 
   it('clears the session and returns to login when logging out', () => {
-    localStorage.setItem('feed-plan.admin.access-token', 'test-token');
+    localStorage.setItem(adminStorageNS('access-token'), 'test-token');
     useAuthStore.setState({ accessToken: 'test-token', user: chef });
 
     useAuthStore.getState().logout();

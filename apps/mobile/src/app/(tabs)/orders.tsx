@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
-import { getMeals } from '~/lib/api/meals';
+import { api } from '~/lib/api-client';
 import type { Meal, MealType } from '@feed-plan/shared';
 
 const MEAL_LABELS: Record<MealType, { label: string; color: string; bg: string }> = {
@@ -18,7 +18,10 @@ export default function OrdersScreen() {
 
   const { data: meals = [], isLoading } = useQuery<Meal[]>({
     queryKey: ['meals'],
-    queryFn: () => getMeals({ status: 'ordering' }),
+    queryFn: async () => {
+      const details = await api.meals.list({ status: 'ordering' });
+      return details.map((detail) => detail.meal);
+    },
   });
 
   const renderMeal = ({ item }: { item: Meal }) => {

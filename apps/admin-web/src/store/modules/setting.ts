@@ -1,3 +1,4 @@
+import { adminStorageNS } from '@feed-plan/shared';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SETTING_DEFAULT_CONFIG } from '~/config/setting';
@@ -75,7 +76,7 @@ export const useSettingStore = create<SettingState>()(
       resetSettings: () => set({ ...SETTING_DEFAULT_CONFIG }),
     }),
     {
-      name: 'feed-plan.admin.setting',
+      name: adminStorageNS('setting'),
       partialize: (state) => ({
         menuType: state.menuType,
         menuOpen: state.menuOpen,

@@ -20,9 +20,9 @@ import type {
   DishSummary,
 } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
-import { createDish, deleteDish, setDishActive, updateDish } from '~/api/dishes';
 import { categoryQueries } from '~/queries/categories';
 import { dishQueries } from '~/queries/dishes';
+import { api } from '~/lib/api-client';
 import { DishForm } from './components/DishForm';
 import { DishSearchBar } from './components/DishSearchBar';
 
@@ -81,7 +81,7 @@ export function DishListPage() {
   };
 
   const createMutation = useMutation({
-    mutationFn: createDish,
+    mutationFn: api.dishes.create,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['dishes'] });
       message.success('菜谱已创建');
@@ -90,7 +90,7 @@ export function DishListPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (input: CreateDishInput) => updateDish(editingDishId ?? '', input),
+    mutationFn: (input: CreateDishInput) => api.dishes.update(editingDishId ?? '', input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['dishes'] });
       message.success('菜谱已更新');
@@ -100,7 +100,7 @@ export function DishListPage() {
 
   const activeMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      setDishActive(id, { isActive }),
+      api.dishes.setActive(id, { isActive }),
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['dishes'] });
       message.success(variables.isActive ? '菜谱已启用' : '菜谱状态已更新');
@@ -111,7 +111,7 @@ export function DishListPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteDish,
+    mutationFn: api.dishes.delete,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['dishes'] });
       message.success('菜谱已删除');

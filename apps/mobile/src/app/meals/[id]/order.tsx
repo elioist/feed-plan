@@ -3,8 +3,7 @@ import { View, FlatList, StyleSheet, Alert } from 'react-native';
 import { Text, Card, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getDishes } from '~/lib/api/dishes';
-import { createOrder } from '~/lib/api/orders';
+import { api } from '~/lib/api-client';
 import type { DishSummary } from '@feed-plan/shared';
 
 export default function OrderScreen() {
@@ -15,12 +14,12 @@ export default function OrderScreen() {
 
   const { data: dishes = [], isLoading } = useQuery<DishSummary[]>({
     queryKey: ['dishes'],
-    queryFn: () => getDishes({ isActive: true }),
+    queryFn: () => api.dishes.list({ isActive: true }),
   });
 
   const orderMutation = useMutation({
     mutationFn: (data: { dishId: string; quantity: number }) =>
-      createOrder({ mealId: mealId!, ...data }),
+      api.meals.addOrder(mealId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meal', mealId] });
       Alert.alert('成功', '已下单', [{ text: '确定', onPress: () => router.back() }]);

@@ -3,8 +3,8 @@ import { Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Space, App a
 import { useState } from 'react';
 import type { Category, CreateCategoryInput } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
-import { createCategory, deleteCategory, updateCategory } from '~/api/categories';
 import { categoryQueries } from '~/queries/categories';
+import { api } from '~/lib/api-client';
 
 export function CategoryListPage() {
   const { data, refetch } = useSuspenseQuery(categoryQueries.all());
@@ -19,7 +19,7 @@ export function CategoryListPage() {
   };
 
   const createMutation = useMutation({
-    mutationFn: createCategory,
+    mutationFn: api.categories.create,
     onSuccess: async () => {
       await invalidateCategories();
       message.success('分类已创建');
@@ -29,7 +29,7 @@ export function CategoryListPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: CreateCategoryInput }) =>
-      updateCategory(id, input),
+      api.categories.update(id, input),
     onSuccess: async () => {
       await invalidateCategories();
       message.success('分类已更新');
@@ -38,7 +38,7 @@ export function CategoryListPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteCategory,
+    mutationFn: api.categories.delete,
     onSuccess: async () => {
       await invalidateCategories();
       message.success('分类已删除');

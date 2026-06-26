@@ -1,3 +1,5 @@
+import { adminStorageNS } from '@feed-plan/shared';
+
 /**
  * 本地存储工具
  *
@@ -7,11 +9,9 @@
  * ponytail: 无版本迁移；将来需要多版本数据隔离时再补 key 版本前缀。
  */
 
-const PREFIX = 'feed-plan.admin.';
-
 export const storage = {
   get<T>(key: string, fallback: T): T {
-    const raw = localStorage.getItem(PREFIX + key);
+    const raw = localStorage.getItem(adminStorageNS(key));
     if (raw === null) {
       return fallback;
     }
@@ -24,11 +24,11 @@ export const storage = {
   },
 
   set(key: string, value: unknown): void {
-    localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    localStorage.setItem(adminStorageNS(key), JSON.stringify(value));
   },
 
   remove(key: string): void {
-    localStorage.removeItem(PREFIX + key);
+    localStorage.removeItem(adminStorageNS(key));
   },
 };
 
