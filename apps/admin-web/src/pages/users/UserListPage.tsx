@@ -17,6 +17,7 @@ import {
   type AdminUser,
   type CreateUserInput,
   type ResetUserPasswordInput,
+  type UpdateUserRolesInput,
   type UserListQuery,
 } from '@feed-plan/shared';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
@@ -44,8 +45,10 @@ export function UserListPage() {
   const [searchForm] = Form.useForm<UserListQuery>();
   const [createForm] = Form.useForm<CreateUserInput>();
   const [passwordForm] = Form.useForm<ResetUserPasswordInput>();
+  const [roleForm] = Form.useForm<UpdateUserRolesInput>();
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [passwordUser, setPasswordUser] = useState<AdminUser | null>(null);
+  const [roleUser, setRoleUser] = useState<AdminUser | null>(null);
   const roleOptions = roles.map((role) => ({ label: role.name, value: role.id }));
 
   const invalidateUsers = async () => {
@@ -79,6 +82,7 @@ export function UserListPage() {
     onSuccess: async () => {
       await invalidateUsers();
       message.success('角色已更新');
+      closeRoleDrawer();
     },
     onError: (error) => {
       message.error(getApiErrorMessage(error));
@@ -129,6 +133,16 @@ export function UserListPage() {
     passwordForm.resetFields();
   };
 
+  const openRoleDrawer = (user: AdminUser) => {
+    setRoleUser(user);
+    roleForm.setFieldsValue({ roleIds: user.roles.map((role) => role.id) });
+  };
+
+  const closeRoleDrawer = () => {
+    setRoleUser(null);
+    roleForm.resetFields();
+  };
+
   const submitCreate = async () => {
     createMutation.mutate(await createForm.validateFields());
   };
@@ -138,6 +152,14 @@ export function UserListPage() {
     resetPasswordMutation.mutate({
       id: passwordUser.id,
       input: await passwordForm.validateFields(),
+    });
+  };
+
+  const submitRoles = async () => {
+    if (!roleUser) return;
+    roleMutation.mutate({
+      id: roleUser.id,
+      roleIds: (await roleForm.validateFields()).roleIds,
     });
   };
 
@@ -172,9 +194,9 @@ export function UserListPage() {
         <TableHeader
           left={
             canCreate ? (
-            <Button type="primary" onClick={openCreateDrawer}>
-              新建用户
-            </Button>
+              <Button type="primary" onClick={openCreateDrawer}>
+                新建用户
+              </Button>
             ) : null
           }
           loading={createMutation.isPending}
@@ -196,14 +218,6 @@ export function UserListPage() {
                 const isSelf = user.id === currentUserId;
                 return (
                   <Space wrap>
-                    <Select
-                      mode="multiple"
-                      value={user.roles.map((role) => role.id)}
-                      options={roleOptions}
-                      style={{ minWidth: 220 }}
-                      disabled={isSelf || !canEditRoles || roleMutation.isPending}
-                      onChange={(roleIds) => roleMutation.mutate({ id: user.id, roleIds })}
-                    />
                     {user.roles.map((role) => (
                       <Tag key={role.id}>{role.name}</Tag>
                     ))}
@@ -219,30 +233,35 @@ export function UserListPage() {
             },
             {
               title: '操作',
-              width: 180,
+              width: 260,
               render: (_, user) =>
-                user.id === currentUserId || (!canResetPassword && !canDelete) ? (
+                user.id === currentUserId || (!canEditRoles && !canResetPassword && !canDelete) ? (
                   '-'
                 ) : (
                   <Space>
+                    {canEditRoles ? (
+                      <Button type="link" onClick={() => openRoleDrawer(user)}>
+                        分配角色
+                      </Button>
+                    ) : null}
                     {canResetPassword ? (
-                    <Button type="link" onClick={() => openPasswordDrawer(user)}>
-                      重置密码
-                    </Button>
+                      <Button type="link" onClick={() => openPasswordDrawer(user)}>
+                        重置密码
+                      </Button>
                     ) : null}
                     {canDelete ? (
-                    <Popconfirm
-                      title="删除用户"
-                      description="删除后不可恢复，确认继续？"
-                      okText="删除"
-                      okButtonProps={{ danger: true }}
-                      cancelText="取消"
-                      onConfirm={() => deleteMutation.mutate(user.id)}
-                    >
-                      <Button type="link" danger loading={deleteMutation.isPending}>
-                        删除
-                      </Button>
-                    </Popconfirm>
+                      <Popconfirm
+                        title="删除用户"
+                        description="删除后不可恢复，确认继续？"
+                        okText="删除"
+                        okButtonProps={{ danger: true }}
+                        cancelText="取消"
+                        onConfirm={() => deleteMutation.mutate(user.id)}
+                      >
+                        <Button type="link" danger loading={deleteMutation.isPending}>
+                          删除
+                        </Button>
+                      </Popconfirm>
                     ) : null}
                   </Space>
                 ),
@@ -259,7 +278,11 @@ export function UserListPage() {
         destroyOnHidden
       >
         <Form form={createForm} layout="vertical">
-          <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>
+          <Form.Item
+            label="用户名"
+            name="username"
+            rules={[{ required: true, message: '请输入用户名' }]}
+          >
             <Input maxLength={64} />
           </Form.Item>
           <Form.Item
@@ -272,14 +295,52 @@ export function UserListPage() {
           >
             <Input.Password maxLength={128} />
           </Form.Item>
-          <Form.Item label="角色" name="roleIds" rules={[{ required: true, message: '请选择至少一个角色' }]}>
+          <Form.Item
+            label="角色"
+            name="roleIds"
+            rules={[{ required: true, message: '请选择至少一个角色' }]}
+          >
             <Select mode="multiple" options={roleOptions} />
           </Form.Item>
           <Space>
-            <Button type="primary" disabled={!canCreate} loading={createMutation.isPending} onClick={submitCreate}>
+            <Button
+              type="primary"
+              disabled={!canCreate}
+              loading={createMutation.isPending}
+              onClick={submitCreate}
+            >
               保存
             </Button>
             <Button onClick={closeCreateDrawer}>取消</Button>
+          </Space>
+        </Form>
+      </Drawer>
+
+      <Drawer
+        title={roleUser ? `分配 ${roleUser.username} 的角色` : '分配角色'}
+        open={Boolean(roleUser)}
+        onClose={closeRoleDrawer}
+        size={520}
+        destroyOnHidden
+      >
+        <Form form={roleForm} layout="vertical">
+          <Form.Item
+            label="角色"
+            name="roleIds"
+            rules={[{ required: true, message: '请选择至少一个角色' }]}
+          >
+            <Select mode="multiple" options={roleOptions} />
+          </Form.Item>
+          <Space>
+            <Button
+              type="primary"
+              disabled={!canEditRoles}
+              loading={roleMutation.isPending}
+              onClick={submitRoles}
+            >
+              保存
+            </Button>
+            <Button onClick={closeRoleDrawer}>取消</Button>
           </Space>
         </Form>
       </Drawer>

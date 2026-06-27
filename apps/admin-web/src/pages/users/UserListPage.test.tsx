@@ -8,7 +8,9 @@ import { useAuthStore } from '~/store/modules/auth';
 const currentUser: AuthUser = {
   id: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
-  roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
+  roles: [
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null },
+  ],
   permissions: [],
   actions: ['users.manage'],
   menuKeys: [],
@@ -148,8 +150,20 @@ describe('UserListPage', () => {
       if (options.queryKey[0] === 'roles') {
         return {
           data: [
-            { ...currentUser.roles[0], permissions: [], isSystem: true, createdAt: new Date(), updatedAt: new Date() },
-            { ...dinerRole, permissions: [], isSystem: true, createdAt: new Date(), updatedAt: new Date() },
+            {
+              ...currentUser.roles[0],
+              permissions: [],
+              isSystem: true,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            {
+              ...dinerRole,
+              permissions: [],
+              isSystem: true,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
           ],
           refetch: vi.fn(),
         };
@@ -206,5 +220,14 @@ describe('UserListPage', () => {
     });
     expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['users'] });
     expect(antdAppMocks.message.success).toHaveBeenCalledWith('密码已重置');
+  });
+
+  it('opens a dedicated drawer for assigning roles', async () => {
+    const user = userEvent.setup();
+    render(<UserListPage />);
+
+    await user.click(screen.getByRole('button', { name: '分配角色' }));
+
+    expect(await screen.findByRole('dialog', { name: '分配 diner 的角色' })).toBeInTheDocument();
   });
 });
