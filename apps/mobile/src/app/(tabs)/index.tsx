@@ -15,16 +15,18 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string 
   hard: { label: '困难', bg: '#fae8df', fg: '#c45a32' },
 };
 
-const ROLE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  chef: { label: '主厨', color: '#c45a32', bg: '#fae8df' },
-  diner: { label: '食客', color: '#8b5fa8', bg: '#f0e8f5' },
-};
-
 export default function HomeScreen() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const addItem = useCartStore((s) => s.addItem);
-  const role = user ? ROLE_LABELS[user.role] : null;
+  const role = user?.roles[0]
+    ? {
+        label: user.roles[0].name,
+        shortLabel: user.roles[0].name.slice(0, 1),
+        color: '#c45a32',
+        backgroundColor: '#fae8df',
+      }
+    : null;
 
   const { data: dishes = [] } = useQuery<DishSummary[]>({
     queryKey: ['dishes'],
@@ -134,14 +136,14 @@ export default function HomeScreen() {
         {/* Role Badge */}
         {role && (
           <View style={{ paddingHorizontal: 18, paddingBottom: 4 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: role.bg, alignSelf: 'flex-start' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: role.backgroundColor, alignSelf: 'flex-start' }}>
               <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: role.color, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
-                  {user?.role === 'chef' ? '厨' : '客'}
+                  {role.shortLabel}
                 </Text>
               </View>
               <Text style={{ fontSize: 13, fontWeight: '700', color: role.color }}>
-                {role.label} · {user?.role === 'chef' ? '你在掌勺' : '随时点菜'}
+                {role.label} · 随时点菜
               </Text>
             </View>
           </View>

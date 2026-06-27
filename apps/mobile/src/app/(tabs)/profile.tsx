@@ -5,11 +5,6 @@ import { useAuthStore } from '~/stores/auth-store';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
 
-const ROLE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  chef: { label: '主厨', color: '#c45a32', bg: '#fae8df' },
-  diner: { label: '食客', color: '#8b5fa8', bg: '#f0e8f5' },
-};
-
 const menuItems = [
   { icon: 'account-edit-outline', label: '编辑资料', disabled: true },
   { icon: 'bell-outline', label: '通知设置', disabled: true },
@@ -20,7 +15,14 @@ const menuItems = [
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
-  const role = user ? ROLE_LABELS[user.role] : null;
+  const role = user?.roles[0]
+    ? {
+        label: user.roles[0].name,
+        shortLabel: user.roles[0].name.slice(0, 1),
+        color: '#c45a32',
+        backgroundColor: '#fae8df',
+      }
+    : null;
 
   const handleLogout = async () => {
     await logout();
@@ -47,7 +49,7 @@ export default function ProfileScreen() {
             width: 88,
             height: 88,
             borderRadius: 44,
-            backgroundColor: role?.bg ?? '#fae8df',
+            backgroundColor: role?.backgroundColor ?? '#fae8df',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 16,
@@ -94,7 +96,7 @@ export default function ProfileScreen() {
               paddingHorizontal: 12,
               paddingVertical: 5,
               borderRadius: 999,
-              backgroundColor: role.bg,
+              backgroundColor: role.backgroundColor,
               marginTop: 10,
             }}
           >
@@ -109,7 +111,7 @@ export default function ProfileScreen() {
               }}
             >
               <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
-                {user?.role === 'chef' ? '厨' : '客'}
+                {role.shortLabel}
               </Text>
             </View>
             <Text style={{ fontSize: 13, fontWeight: '700', color: role.color }}>

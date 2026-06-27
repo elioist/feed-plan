@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
 import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
+import { FloatingCart } from '~/components/floating-cart';
 import type { DishSummary, Category } from '@feed-plan/shared';
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string }> = {
@@ -20,6 +21,13 @@ export default function MenuScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const removeItem = useCartStore((s) => s.removeItem);
+  const items = useCartStore((s) => s.items);
+
+  const getItemQuantity = (dishId: string) => {
+    return items.find((i) => i.dishId === dishId)?.quantity ?? 0;
+  };
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['categories'],
@@ -78,15 +86,66 @@ export default function MenuScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
-          onPress={(e) => {
-            e.stopPropagation?.();
-            addItem({ dishId: item.id, name: item.name, coverImage: item.coverImage });
-          }}
-          style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#c45a32', alignItems: 'center', justifyContent: 'center', marginLeft: 4 }}
-        >
-          <MaterialCommunityIcons name="plus" size={18} color="#ffffff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 4 }}>
+          {getItemQuantity(item.id) > 0 ? (
+            <>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  updateQuantity(item.id, getItemQuantity(item.id) - 1);
+                }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: '#e8ddd0',
+                  backgroundColor: '#fffcf8',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MaterialCommunityIcons name="minus" size={14} color="#2d1f14" />
+              </TouchableOpacity>
+              <Text style={{ minWidth: 20, textAlign: 'center', fontSize: 14, fontWeight: '800', fontFamily: '"Baloo 2"', color: '#2d1f14' }}>
+                {getItemQuantity(item.id)}
+              </Text>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  addItem({ dishId: item.id, name: item.name, coverImage: item.coverImage });
+                }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
+                  backgroundColor: '#c45a32',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MaterialCommunityIcons name="plus" size={14} color="#ffffff" />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation?.();
+                addItem({ dishId: item.id, name: item.name, coverImage: item.coverImage });
+              }}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#c45a32',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MaterialCommunityIcons name="plus" size={18} color="#ffffff" />
+            </TouchableOpacity>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -177,6 +236,8 @@ export default function MenuScreen() {
           )}
         </View>
       </View>
+
+      <FloatingCart />
     </SafeScreen>
   );
 }

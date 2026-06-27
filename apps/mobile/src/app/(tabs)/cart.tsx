@@ -1,12 +1,14 @@
-import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { Text, TextInput } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeScreen } from '~/components/safe-screen';
 import { useCartStore } from '~/stores/cart-store';
-import { api } from '~/lib/api-client';
+import { api, getImageUrl } from '~/lib/api-client';
 import type { MealType } from '@feed-plan/shared';
+import { getOrderErrorFeedback } from '~/lib/order-errors';
+import { useAuthStore } from '~/stores/auth-store';
 
 const MEAL_OPTIONS: { value: MealType; label: string; icon: string }[] = [
   { value: 'breakfast', label: '早餐', icon: 'weather-sunny' },
@@ -18,6 +20,7 @@ export default function CartScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { items, mealType, note, setMealType, setNote, updateQuantity, totalItems } = useCartStore();
+  const logout = useAuthStore((state) => state.logout);
 
   const orderMutation = useMutation({
     mutationFn: async () => {
@@ -44,8 +47,19 @@ export default function CartScreen() {
       useCartStore.getState().clearCart();
       Alert.alert('成功', '已开单！', [{ text: '确定', onPress: () => router.navigate('/(tabs)/meals') }]);
     },
-    onError: () => {
-      Alert.alert('错误', '开单失败，请重试');
+    onError: (error) => {
+      const feedback = getOrderErrorFeedback(error);
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
+      Alert.alert(feedback.title, feedback.message, [
+        {
+          text: '确定',
+          onPress: () => {
+            if (feedback.shouldLogin) {
+              void logout().then(() => router.replace('/login'));
+            }
+          },
+        },
+      ]);
     },
   });
 
@@ -166,9 +180,18 @@ export default function CartScreen() {
                     backgroundColor: '#fae8df',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    overflow: 'hidden',
                   }}
                 >
-                  <MaterialCommunityIcons name="food" size={24} color="#c45a32" />
+                  {getImageUrl(item.coverImage) ? (
+                    <Image
+                      source={{ uri: getImageUrl(item.coverImage)! }}
+                      style={{ width: 48, height: 48 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <MaterialCommunityIcons name="food" size={24} color="#c45a32" />
+                  )}
                 </View>
 
                 <View style={{ flex: 1 }}>
