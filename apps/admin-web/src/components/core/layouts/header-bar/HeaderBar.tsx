@@ -21,11 +21,12 @@ import { useSettingStore } from '~/store/modules/setting';
 import { SettingsPanel } from '~/components/core/layouts/settings-panel/SettingsPanel';
 import { SvgIcon } from '~/components/core/base/svg-icon/SvgIcon';
 import {
-  adminRoutes,
+  getAuthorizedRoutes,
   getRouteMeta,
   type AdminRoutePath,
 } from '~/components/core/layouts/navigation';
 import { UserMenu } from '~/components/core/layouts/header-bar/widget/UserMenu';
+import { useAuthStore } from '~/store/modules/auth';
 
 const { Header } = Layout;
 
@@ -33,6 +34,7 @@ export function HeaderBar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
   const activeRoute = getRouteMeta(pathname);
+  const user = useAuthStore((state) => state.user);
   const menuOpen = useSettingStore((state) => state.menuOpen);
   const toggleMenuOpen = useSettingStore((state) => state.toggleMenuOpen);
   const reloadPage = useSettingStore((state) => state.reload);
@@ -67,22 +69,27 @@ export function HeaderBar() {
     setSearchKeyword('');
   };
 
+  const authorizedRoutes = useMemo(
+    () => getAuthorizedRoutes({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] }),
+    [user?.actions, user?.menuKeys],
+  );
+
   const filteredRoutes = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase();
     if (!keyword) {
-      return adminRoutes;
+      return authorizedRoutes;
     }
 
-    return adminRoutes.filter((route) => {
+    return authorizedRoutes.filter((route) => {
       return (
         route.title.toLowerCase().includes(keyword) ||
         route.group.toLowerCase().includes(keyword) ||
         route.path.toLowerCase().includes(keyword)
       );
     });
-  }, [searchKeyword]);
+  }, [authorizedRoutes, searchKeyword]);
 
-  const quickApplications = adminRoutes.map((route) => ({
+  const quickApplications = authorizedRoutes.map((route) => ({
     ...route,
     description: route.path === '/' ? '查看后台概览' : '进入' + route.group,
   }));

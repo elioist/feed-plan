@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SidebarMenu } from '~/components/core/layouts/menus/sidebar-menu/SidebarMenu';
+import { useAuthStore } from '~/store/modules/auth';
 
 const routerMocks = vi.hoisted(() => ({
   pathname: '/dishes',
@@ -18,6 +19,18 @@ vi.mock('@tanstack/react-router', () => ({
 
 describe('SidebarMenu', () => {
   it('renders primary navigation entries with router links', async () => {
+    useAuthStore.setState({
+      user: {
+        id: '11111111-1111-4111-8111-111111111111',
+        username: 'chef',
+        roles: [],
+        permissions: [],
+        actions: ['recipes.manage', 'meals.complete'],
+        menuKeys: ['dashboard', 'recipes', 'recipes.categories', 'recipes.dishes', 'meals'],
+        buttonKeys: [],
+      },
+    });
+
     render(<SidebarMenu />);
 
     expect(screen.getByRole('link', { name: '仪表盘' })).toHaveAttribute(

@@ -164,7 +164,7 @@ export function SearchBar({
             </Col>
           ))}
           {/* 按钮列始终在第一行最右侧 */}
-          <Col xs={24} sm={24} md={actionSpan} lg={actionSpan}>
+          <Col className="art-search-bar-action-col" xs={24} sm={24} md={actionSpan} lg={actionSpan}>
             <div className="art-search-bar-actions">
               <div className="form-buttons">
                 <Button onClick={handleReset}>{resetButtonText}</Button>

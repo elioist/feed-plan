@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MealListPage } from '~/pages/meals/MealListPage';
+import { useAuthStore } from '~/store/modules/auth';
 
 const menuDetails: MenuDetail[] = [
   {
@@ -190,6 +191,18 @@ vi.mock('antd', async (importOriginal) => {
 
 describe('MealListPage', () => {
   beforeEach(() => {
+    useAuthStore.setState({
+      accessToken: 'test-token',
+      user: {
+        id: '11111111-1111-4111-8111-111111111111',
+        username: 'test-admin',
+        roles: [],
+        permissions: [],
+        actions: [],
+        menuKeys: [],
+        buttonKeys: ['meals.complete'],
+      },
+    });
     reactQueryMocks.invalidateQueries.mockReset();
     reactQueryMocks.useMutation.mockImplementation((options) => ({
       isPending: false,

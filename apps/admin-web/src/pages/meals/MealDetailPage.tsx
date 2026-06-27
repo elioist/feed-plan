@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { Button, Card, Descriptions, Popconfirm, Space, Table, Tag, Typography, App as AntdApp } from 'antd';
+import { useCanButton } from '~/hooks/use-button-access';
 import { mealQueries } from '~/queries/meals';
 import { api } from '~/lib/api-client';
 
@@ -8,6 +9,8 @@ const { Title } = Typography;
 
 export function MealDetailPage() {
   const { mealId } = useParams({ from: '/_authenticated/meals/$mealId' });
+  const canButton = useCanButton();
+  const canComplete = canButton('meals', 'complete');
   const { data } = useSuspenseQuery(mealQueries.detail(mealId));
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
@@ -29,22 +32,24 @@ export function MealDetailPage() {
         <Title level={3} style={{ margin: 0 }}>
           菜单详情
         </Title>
-        <Popconfirm
-          title="完成点餐"
-          description="完成后本场点餐会锁定，确认继续？"
-          disabled={data.meal.status === 'completed'}
-          okText="完成"
-          cancelText="取消"
-          onConfirm={() => completeMutation.mutate(data.meal.id)}
-        >
-          <Button
-            type="primary"
+        {canComplete ? (
+          <Popconfirm
+            title="完成点餐"
+            description="完成后本场点餐会锁定，确认继续？"
             disabled={data.meal.status === 'completed'}
-            loading={completeMutation.isPending}
+            okText="完成"
+            cancelText="取消"
+            onConfirm={() => completeMutation.mutate(data.meal.id)}
           >
-            完成本次点餐
-          </Button>
-        </Popconfirm>
+            <Button
+              type="primary"
+              disabled={data.meal.status === 'completed'}
+              loading={completeMutation.isPending}
+            >
+              完成本次点餐
+            </Button>
+          </Popconfirm>
+        ) : null}
       </Space>
       <Card>
         <Descriptions column={3}>

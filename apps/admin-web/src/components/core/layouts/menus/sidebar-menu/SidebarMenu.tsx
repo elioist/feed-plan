@@ -5,14 +5,15 @@ import { Logo } from '~/components/core/base/logo/Logo';
 import { MenuThemeEnum, MenuWidth } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
 import {
-  adminMenus,
   getActiveTopKey,
+  getAuthorizedMenus,
   getOpenMenuKeys,
   getRouteMeta,
   type AdminMenuItem,
 } from '~/components/core/layouts/navigation';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
 import { cn } from '~/lib/utils';
+import { useAuthStore } from '~/store/modules/auth';
 
 const { Sider } = Layout;
 
@@ -26,12 +27,13 @@ interface SidebarMenuProps {
 export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const activeRoute = getRouteMeta(pathname);
+  const user = useAuthStore((state) => state.user);
   const menuOpen = useSettingStore((state) => state.menuOpen);
   const menuOpenWidth = useSettingStore((state) => state.menuOpenWidth);
   const menuThemeType = useSettingStore((state) => state.menuThemeType);
   const isDark = menuThemeType === MenuThemeEnum.DARK;
 
-  const menus = items ?? adminMenus;
+  const menus = items ?? getAuthorizedMenus({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] });
 
   return (
     <Sider
@@ -55,7 +57,7 @@ export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
           theme={isDark ? 'dark' : 'light'}
           inlineCollapsed={!menuOpen}
           defaultOpenKeys={getOpenMenuKeys(pathname)}
-          selectedKeys={[activeRoute.path, getActiveTopKey(pathname)]}
+          selectedKeys={[activeRoute.path, getActiveTopKey(pathname, menus)]}
           items={toMenuItems(menus)}
         />
       </div>

@@ -21,7 +21,11 @@ import { useAuthStore } from '~/store/modules/auth';
 const chef: AuthUser = {
   id: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
-  role: 'chef',
+  roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
+  permissions: [],
+  actions: ['users.manage'],
+  menuKeys: [],
+  buttonKeys: [],
 };
 
 describe('auth store', () => {

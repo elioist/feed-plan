@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DishListPage } from '~/pages/dishes/DishListPage';
+import { useAuthStore } from '~/store/modules/auth';
 
 const categories: Category[] = [
   {
@@ -127,6 +128,23 @@ vi.mock('antd', async (importOriginal) => {
 
 describe('DishListPage', () => {
   beforeEach(() => {
+    useAuthStore.setState({
+      accessToken: 'test-token',
+      user: {
+        id: '11111111-1111-4111-8111-111111111111',
+        username: 'test-admin',
+        roles: [],
+        permissions: [],
+        actions: [],
+        menuKeys: [],
+        buttonKeys: [
+          'recipes.dishes.create',
+          'recipes.dishes.edit',
+          'recipes.dishes.toggle-active',
+          'recipes.dishes.delete',
+        ],
+      },
+    });
     routerMocks.navigate.mockReset();
     routerMocks.search = {};
     reactQueryMocks.invalidateQueries.mockReset();

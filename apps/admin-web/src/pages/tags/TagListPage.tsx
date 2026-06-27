@@ -1,80 +1,78 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { App as AntdApp, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Space } from 'antd';
+import { App as AntdApp, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Space, Tag as AntTag } from 'antd';
 import { useState } from 'react';
-import type { Category, CategoryListQuery, CreateCategoryInput } from '@feed-plan/shared';
+import type { CreateTagInput, Tag, TagListQuery } from '@feed-plan/shared';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
 import { DataTable, TableHeader } from '~/components/core/tables';
 import { useCanButton } from '~/hooks/use-button-access';
 import { api } from '~/lib/api-client';
 import { getApiErrorMessage } from '~/lib/error-parser';
-import { categoryQueries } from '~/queries/categories';
+import { tagQueries } from '~/queries/tags';
 
-type CategoryFormValues = CreateCategoryInput;
+type TagFormValues = CreateTagInput;
 
-export function CategoryListPage() {
-  const search = useSearch({ from: '/_authenticated/categories' });
+export function TagListPage() {
+  const search = useSearch({ from: '/_authenticated/tags' });
   const navigate = useNavigate();
   const canButton = useCanButton();
-  const canCreate = canButton('recipes.categories', 'create');
-  const canEdit = canButton('recipes.categories', 'edit');
-  const canDelete = canButton('recipes.categories', 'delete');
-  const { data: categories, refetch } = useSuspenseQuery(categoryQueries.all(search));
+  const canCreate = canButton('recipes.tags', 'create');
+  const canEdit = canButton('recipes.tags', 'edit');
+  const canDelete = canButton('recipes.tags', 'delete');
+  const { data: tags, refetch } = useSuspenseQuery(tagQueries.list(search));
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
-  const [searchForm] = Form.useForm<CategoryListQuery>();
-  const [form] = Form.useForm<CategoryFormValues>();
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [searchForm] = Form.useForm<TagListQuery>();
+  const [form] = Form.useForm<TagFormValues>();
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const invalidateCategories = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['categories'] });
+  const invalidateTags = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['tags'] });
   };
 
   const saveMutation = useMutation({
-    mutationFn: (input: CategoryFormValues) =>
-      editingCategory ? api.categories.update(editingCategory.id, input) : api.categories.create(input),
+    mutationFn: (input: TagFormValues) =>
+      editingTag ? api.tags.update(editingTag.id, input) : api.tags.create(input),
     onSuccess: async () => {
-      await invalidateCategories();
-      message.success(editingCategory ? '分类已更新' : '分类已创建');
+      await invalidateTags();
+      message.success(editingTag ? '标签已更新' : '标签已创建');
       closeDrawer();
     },
     onError: (error) => message.error(getApiErrorMessage(error)),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: api.categories.delete,
+    mutationFn: api.tags.delete,
     onSuccess: async () => {
-      await invalidateCategories();
-      message.success('分类已删除');
+      await invalidateTags();
+      message.success('标签已删除');
     },
     onError: (error) => message.error(getApiErrorMessage(error)),
   });
 
-  const updateSearch = async (values: CategoryListQuery) => {
-    await navigate({ to: '/categories', search: values });
+  const updateSearch = async (values: TagListQuery) => {
+    await navigate({ to: '/tags', search: values });
   };
 
   const resetSearch = async () => {
     searchForm.resetFields();
-    await navigate({ to: '/categories', search: {} });
+    await navigate({ to: '/tags', search: {} });
   };
 
-  const openDrawer = (category?: Category) => {
-    setEditingCategory(category ?? null);
+  const openDrawer = (tag?: Tag) => {
+    setEditingTag(tag ?? null);
     setDrawerOpen(true);
-    form.setFieldsValue(
-      category ? { name: category.name, sortOrder: category.sortOrder } : { name: '', sortOrder: 0 },
-    );
+    form.setFieldsValue(tag ? { name: tag.name, sortOrder: tag.sortOrder } : { name: '', sortOrder: 0 });
   };
 
   const closeDrawer = () => {
     setDrawerOpen(false);
-    setEditingCategory(null);
+    setEditingTag(null);
     form.resetFields();
   };
 
-  const saveCategory = async () => {
+  const saveTag = async () => {
     saveMutation.mutate(await form.validateFields());
   };
 
@@ -82,8 +80,8 @@ export function CategoryListPage() {
     {
       type: 'input',
       name: 'keyword',
-      label: '分类',
-      placeholder: '搜索分类名称',
+      label: '标签',
+      placeholder: '搜索标签名称',
       maxLength: 64,
     },
   ];
@@ -95,7 +93,7 @@ export function CategoryListPage() {
         items={searchItems}
         initialValues={search}
         showExpand={false}
-        onSearch={(values) => updateSearch(values as CategoryListQuery)}
+        onSearch={(values) => updateSearch(values as TagListQuery)}
         onReset={resetSearch}
       />
 
@@ -104,43 +102,52 @@ export function CategoryListPage() {
           left={
             canCreate ? (
             <Button type="primary" onClick={() => openDrawer()}>
-              新建分类
+              新建标签
             </Button>
             ) : null
           }
           loading={saveMutation.isPending}
           onRefresh={() => refetch()}
         />
-        <DataTable<Category>
+        <DataTable<Tag>
           rowKey="id"
-          dataSource={categories}
+          dataSource={tags}
           pagination={{
             showQuickJumper: true,
             showSizeChanger: true,
             showTotal: (total) => `共 ${total} 条`,
           }}
           columns={[
-            { title: '分类名称', dataIndex: 'name' },
+            {
+              title: '标签名称',
+              dataIndex: 'name',
+              render: (_, item) => <AntTag color="blue">{item.name}</AntTag>,
+            },
             { title: '排序', dataIndex: 'sortOrder', width: 120 },
+            {
+              title: '类型',
+              width: 120,
+              render: (_, item) => (item.isSystem ? <AntTag>系统</AntTag> : <AntTag color="green">自定义</AntTag>),
+            },
             {
               title: '操作',
               width: 180,
-              render: (_, category) =>
+              render: (_, item) =>
                 canEdit || canDelete ? (
                 <Space>
                   {canEdit ? (
-                  <Button type="link" onClick={() => openDrawer(category)}>
+                  <Button type="link" onClick={() => openDrawer(item)}>
                     编辑
                   </Button>
                   ) : null}
                   {canDelete ? (
                   <Popconfirm
-                    title="删除分类"
-                    description="删除后不可恢复，确认继续？"
+                    title="删除标签"
+                    description="删除后不会清理已写入菜谱的文本标签，确认继续？"
                     okText="删除"
                     okButtonProps={{ danger: true }}
                     cancelText="取消"
-                    onConfirm={() => deleteMutation.mutate(category.id)}
+                    onConfirm={() => deleteMutation.mutate(item.id)}
                   >
                     <Button type="link" danger loading={deleteMutation.isPending}>
                       删除
@@ -157,7 +164,7 @@ export function CategoryListPage() {
       </Card>
 
       <Drawer
-        title={editingCategory ? '编辑分类' : '新建分类'}
+        title={editingTag ? '编辑标签' : '新建标签'}
         open={drawerOpen}
         onClose={closeDrawer}
         size={520}
@@ -167,9 +174,9 @@ export function CategoryListPage() {
             <Button onClick={closeDrawer}>取消</Button>
             <Button
               type="primary"
-              disabled={editingCategory ? !canEdit : !canCreate}
+              disabled={editingTag ? !canEdit : !canCreate}
               loading={saveMutation.isPending}
-              onClick={saveCategory}
+              onClick={saveTag}
             >
               保存
             </Button>
@@ -177,8 +184,8 @@ export function CategoryListPage() {
         }
       >
         <Form form={form} layout="vertical" initialValues={{ sortOrder: 0 }}>
-          <Form.Item label="分类名称" name="name" rules={[{ required: true, message: '请输入分类名称' }]}>
-            <Input maxLength={64} placeholder="例如 家常菜" />
+          <Form.Item label="标签名称" name="name" rules={[{ required: true, message: '请输入标签名称' }]}>
+            <Input maxLength={32} placeholder="例如 快手菜" />
           </Form.Item>
           <Form.Item label="排序值" name="sortOrder" rules={[{ required: true, message: '请输入排序值' }]}>
             <InputNumber min={0} precision={0} style={{ width: '100%' }} />

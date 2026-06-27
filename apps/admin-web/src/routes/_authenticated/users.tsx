@@ -1,17 +1,17 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { userListQuerySchema } from '@feed-plan/shared';
 import { UserListPage } from '~/pages/users/UserListPage';
+import { accessQueries } from '~/queries/access';
 import { userQueries } from '~/queries/users';
-import { useAuthStore } from '~/store/modules/auth';
 
 export const Route = createFileRoute('/_authenticated/users')({
-  beforeLoad: async () => {
-    await useAuthStore.getState().restoreSession();
-    if (useAuthStore.getState().user?.role !== 'chef') {
-      throw redirect({ to: '/' });
-    }
-  },
-  loader: async ({ context: { queryClient } }) => {
-    await queryClient.ensureQueryData(userQueries.all());
+  validateSearch: (search) => userListQuerySchema.partial().parse(search),
+  loaderDeps: ({ search }) => search,
+  loader: async ({ context: { queryClient }, deps }) => {
+    await Promise.all([
+      queryClient.ensureQueryData(userQueries.list(deps)),
+      queryClient.ensureQueryData(accessQueries.roles()),
+    ]);
   },
   component: UserListPage,
 });

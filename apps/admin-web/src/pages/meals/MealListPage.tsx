@@ -4,6 +4,7 @@ import { Button, Card, Form, Popconfirm, Space, Tag, App as AntdApp } from 'antd
 import dayjs from 'dayjs';
 import type { MealQuery, MenuDetail } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
+import { useCanButton } from '~/hooks/use-button-access';
 import { mealQueries } from '~/queries/meals';
 import { api } from '~/lib/api-client';
 import { MealSearchBar, type MealSearchFormValues } from './components/MealSearchBar';
@@ -45,6 +46,8 @@ const toUrlSearch = (values: MealSearchFormValues): MealQuery => {
 export function MealListPage() {
   const search = useSearch({ from: '/_authenticated/meals' });
   const navigate = useNavigate();
+  const canButton = useCanButton();
+  const canComplete = canButton('meals', 'complete');
   const { data, refetch } = useSuspenseQuery(mealQueries.list(search));
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
@@ -106,7 +109,7 @@ export function MealListPage() {
                   <Link to="/meals/$mealId" params={{ mealId: item.meal.id }}>
                     查看
                   </Link>
-                  {item.meal.status === 'ordering' ? (
+                  {item.meal.status === 'ordering' && canComplete ? (
                     <Popconfirm
                       title="完成点餐"
                       description="完成后本场点餐会锁定，确认继续？"
@@ -118,11 +121,11 @@ export function MealListPage() {
                         完成
                       </Button>
                     </Popconfirm>
-                  ) : (
+                  ) : item.meal.status === 'completed' ? (
                     <Button type="link" disabled>
                       已完成
                     </Button>
-                  )}
+                  ) : null}
                 </Space>
               ),
             },

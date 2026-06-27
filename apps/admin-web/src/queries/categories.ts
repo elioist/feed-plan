@@ -1,10 +1,11 @@
 import { queryOptions } from '@tanstack/react-query';
+import type { CategoryListQuery } from '@feed-plan/shared';
 import { api } from '~/lib/api-client';
 
 export const categoryQueries = {
-  all: () =>
+  all: (query: CategoryListQuery = {}) =>
     queryOptions({
-      queryKey: ['categories'],
-      queryFn: api.categories.list,
+      queryKey: ['categories', query],
+      queryFn: () => api.categories.list(query),
     }),
 };

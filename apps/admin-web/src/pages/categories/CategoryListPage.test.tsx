@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CategoryListPage } from '~/pages/categories/CategoryListPage';
+import { useAuthStore } from '~/store/modules/auth';
 
 const categories: Category[] = [
   {
@@ -43,12 +44,22 @@ const antdAppMocks = vi.hoisted(() => ({
   },
 }));
 
+const routerMocks = vi.hoisted(() => ({
+  navigate: vi.fn(),
+  search: {},
+}));
+
 vi.mock('@tanstack/react-query', () => ({
   useMutation: reactQueryMocks.useMutation,
   useQueryClient: () => ({
     invalidateQueries: reactQueryMocks.invalidateQueries,
   }),
   useSuspenseQuery: reactQueryMocks.useSuspenseQuery,
+}));
+
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => routerMocks.navigate,
+  useSearch: () => routerMocks.search,
 }));
 
 vi.mock('~/lib/api-client', () => ({
@@ -72,27 +83,28 @@ vi.mock('antd', async (importOriginal) => {
       ...actual.App,
       useApp: () => ({ message: antdAppMocks.message }),
     },
-    Modal: ({
+    Drawer: ({
       children,
-      onCancel,
-      onOk,
+      extra,
+      onClose,
       open,
       title,
     }: {
       children: React.ReactNode;
-      onCancel: () => void;
-      onOk: () => void;
+      extra?: React.ReactNode;
+      onClose: () => void;
       open: boolean;
       title: React.ReactNode;
     }) =>
       open ? (
         <section aria-label={String(title)} role="dialog">
+          {extra}
           {children}
-          <button type="button" onClick={onCancel}>
+          <button type="button" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" onClick={onOk}>
-            OK
+          <button type="button" onClick={onClose}>
+            Close
           </button>
         </section>
       ) : null,
@@ -109,7 +121,24 @@ vi.mock('antd', async (importOriginal) => {
 
 describe('CategoryListPage', () => {
   beforeEach(() => {
+    useAuthStore.setState({
+      accessToken: 'test-token',
+      user: {
+        id: '11111111-1111-4111-8111-111111111111',
+        username: 'test-admin',
+        roles: [],
+        permissions: [],
+        actions: [],
+        menuKeys: [],
+        buttonKeys: [
+          'recipes.categories.create',
+          'recipes.categories.edit',
+          'recipes.categories.delete',
+        ],
+      },
+    });
     reactQueryMocks.invalidateQueries.mockReset();
+    routerMocks.navigate.mockReset();
     reactQueryMocks.useSuspenseQuery.mockReturnValue({ data: categories });
     reactQueryMocks.useMutation.mockImplementation((options) => ({
       isPending: false,
@@ -158,7 +187,7 @@ describe('CategoryListPage', () => {
     await user.type(within(dialog).getByLabelText('分类名称'), '新分类');
     await user.clear(within(dialog).getByLabelText('排序值'));
     await user.type(within(dialog).getByLabelText('排序值'), '3');
-    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+    await user.click(within(dialog).getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() => {
       expect(categoryApiMocks.createCategory).toHaveBeenCalledWith({
@@ -195,6 +224,6 @@ describe('CategoryListPage', () => {
     await waitFor(() => {
       expect(categoryApiMocks.deleteCategory).toHaveBeenCalledWith(categories[0]!.id);
     });
-    expect(antdAppMocks.message.error).toHaveBeenCalledWith('删除失败，可能仍有菜谱引用该分类');
+    expect(antdAppMocks.message.error).toHaveBeenCalledWith('category in use');
   });
 });

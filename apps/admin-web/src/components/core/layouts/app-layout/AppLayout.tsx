@@ -10,10 +10,12 @@ import { IconRail, TopMenu } from '~/components/core/layouts/menus/top-nav';
 import { PageContent } from '~/components/core/layouts/page-content/PageContent';
 import { WorkTabs } from '~/components/core/layouts/work-tabs/WorkTabs';
 import { useRouterState } from '@tanstack/react-router';
-import { getActiveTopKey, getSubMenus } from '~/components/core/layouts/navigation';
+import { getActiveTopKey, getAuthorizedMenus, getSubMenus } from '~/components/core/layouts/navigation';
 
 export function AppLayout({ children }: PropsWithChildren) {
   const restoreSession = useAuthStore((state) => state.restoreSession);
+  const user = useAuthStore((state) => state.user);
+  const access = { actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] };
   const menuType = useSettingStore((state) => state.menuType);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const contentRef = useRef<HTMLDivElement>(null);
@@ -32,7 +34,8 @@ export function AppLayout({ children }: PropsWithChildren) {
     </Layout>
   );
 
-  const subMenus = getSubMenus(getActiveTopKey(pathname));
+  const authorizedMenus = getAuthorizedMenus(access);
+  const subMenus = getSubMenus(getActiveTopKey(pathname, authorizedMenus), authorizedMenus);
 
   let body: ReactNode;
   if (menuType === MenuTypeEnum.TOP) {

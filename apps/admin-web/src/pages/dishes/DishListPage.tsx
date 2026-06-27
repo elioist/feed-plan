@@ -13,13 +13,14 @@ import {
   App as AntdApp,
 } from 'antd';
 import { useState } from 'react';
-import type {
-  CreateDishInput,
-  DishDifficulty,
-  DishListQuery,
-  DishSummary,
+import {
+  type CreateDishInput,
+  type DishDifficulty,
+  type DishListQuery,
+  type DishSummary,
 } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
+import { useCanButton } from '~/hooks/use-button-access';
 import { categoryQueries } from '~/queries/categories';
 import { dishQueries } from '~/queries/dishes';
 import { api } from '~/lib/api-client';
@@ -47,6 +48,11 @@ const toUrlSearch = (values: DishListQuery): DishListQuery => {
 export function DishListPage() {
   const search = useSearch({ from: '/_authenticated/dishes' });
   const navigate = useNavigate();
+  const canButton = useCanButton();
+  const canCreate = canButton('recipes.dishes', 'create');
+  const canEdit = canButton('recipes.dishes', 'edit');
+  const canToggleActive = canButton('recipes.dishes', 'toggle-active');
+  const canDelete = canButton('recipes.dishes', 'delete');
   const listSearch = { ...search, isActive: search.isActive ?? true };
   const { data: dishes, refetch } = useSuspenseQuery(dishQueries.list(listSearch));
   const { data: categories } = useSuspenseQuery(categoryQueries.all());
@@ -164,9 +170,11 @@ export function DishListPage() {
       <Card className="art-table-card">
         <TableHeader
           left={
+            canCreate ? (
             <Button type="primary" onClick={openCreateDrawer}>
               新建菜谱
             </Button>
+            ) : null
           }
           loading={isLoading}
           onRefresh={() => refetch()}
@@ -226,7 +234,8 @@ export function DishListPage() {
               title: '状态',
               width: 140,
               render: (_, dish) =>
-                dish.isActive ? (
+                canToggleActive ? (
+                  dish.isActive ? (
                   <Popconfirm
                     title="停用菜谱"
                     description="停用后食客将无法继续看到这道菜，确认继续？"
@@ -252,16 +261,25 @@ export function DishListPage() {
                       activeMutation.mutate({ id: dish.id, isActive: checked })
                     }
                   />
+                  )
+                ) : dish.isActive ? (
+                  <Tag color="green">启用</Tag>
+                ) : (
+                  <Tag>停用</Tag>
                 ),
             },
             {
               title: '操作',
               width: 180,
-              render: (_, dish) => (
+              render: (_, dish) =>
+                canEdit || canDelete ? (
                 <Space>
+                  {canEdit ? (
                   <Button type="link" onClick={() => openEditDrawer(dish.id)}>
                     编辑
                   </Button>
+                  ) : null}
+                  {canDelete ? (
                   <Popconfirm
                     title="删除菜谱"
                     description="删除后不可恢复，确认继续？"
@@ -273,8 +291,11 @@ export function DishListPage() {
                       删除
                     </Button>
                   </Popconfirm>
+                  ) : null}
                 </Space>
-              ),
+                ) : (
+                  '-'
+                ),
             },
           ]}
         />
@@ -293,7 +314,11 @@ export function DishListPage() {
             categories={categories}
             initialValue={editingDish}
             loading={drawerLoading || editingDishQuery.isFetching}
-            onSubmit={submitDish}
+            onSubmit={(input) => {
+              if (drawerMode === 'edit' && !canEdit) return;
+              if (drawerMode === 'create' && !canCreate) return;
+              submitDish(input);
+            }}
           />
         ) : null}
       </Drawer>

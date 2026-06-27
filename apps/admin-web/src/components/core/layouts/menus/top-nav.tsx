@@ -3,14 +3,15 @@ import { Menu, Tooltip } from 'antd';
 import { Logo } from '~/components/core/base/logo/Logo';
 import { AppConfig } from '~/config';
 import {
-  adminMenus,
   getActiveTopKey,
+  getAuthorizedMenus,
   getRouteMeta,
   type AdminMenuItem,
   type AdminRoutePath,
 } from '~/components/core/layouts/navigation';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
 import { cn } from '~/lib/utils';
+import { useAuthStore } from '~/store/modules/auth';
 
 /** 取菜单项可跳转的首个路径（自身或第一个有 path 的子项） */
 function firstPath(item: AdminMenuItem): AdminRoutePath | undefined {
@@ -27,19 +28,21 @@ export function TopMenu({ variant }: TopMenuProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
   const activeRoute = getRouteMeta(pathname);
+  const user = useAuthStore((state) => state.user);
+  const menus = getAuthorizedMenus({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] });
 
   if (variant === 'full') {
     return (
       <Menu
         mode="horizontal"
         selectedKeys={[activeRoute.path]}
-        items={toMenuItems(adminMenus)}
+        items={toMenuItems(menus)}
         className="top-menu"
       />
     );
   }
 
-  const groupItems = adminMenus.map((item) => ({
+  const groupItems = menus.map((item) => ({
     key: item.key,
     icon: item.icon,
     label: item.label,
@@ -48,11 +51,11 @@ export function TopMenu({ variant }: TopMenuProps) {
   return (
     <Menu
       mode="horizontal"
-      selectedKeys={[getActiveTopKey(pathname)]}
+      selectedKeys={[getActiveTopKey(pathname, menus)]}
       items={groupItems}
       className="top-menu"
       onClick={({ key }) => {
-        const top = adminMenus.find((item) => item.key === key);
+        const top = menus.find((item) => item.key === key);
         const path = top && firstPath(top);
         if (path) {
           void navigate({ to: path });
@@ -66,7 +69,9 @@ export function TopMenu({ variant }: TopMenuProps) {
 export function IconRail() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
-  const activeTop = getActiveTopKey(pathname);
+  const user = useAuthStore((state) => state.user);
+  const menus = getAuthorizedMenus({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] });
+  const activeTop = getActiveTopKey(pathname, menus);
 
   return (
     <div className="icon-rail">
@@ -74,7 +79,7 @@ export function IconRail() {
         <Logo />
       </div>
       <div className="icon-rail-list">
-        {adminMenus.map((item) => {
+        {menus.map((item) => {
           const path = firstPath(item);
           return (
             <Tooltip key={item.key} title={item.label} placement="right">

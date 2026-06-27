@@ -13,8 +13,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedTagsRouteImport } from './routes/_authenticated/tags'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
+import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
+import { Route as AuthenticatedMenusRouteImport } from './routes/_authenticated/menus'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
 import { Route as AuthenticatedDishesRouteImport } from './routes/_authenticated/dishes'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
@@ -39,6 +42,11 @@ const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedTagsRoute = AuthenticatedTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -47,6 +55,17 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPermissionsRoute =
+  AuthenticatedPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMenusRoute = AuthenticatedMenusRouteImport.update({
+  id: '/menus',
+  path: '/menus',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
@@ -77,8 +96,11 @@ export interface FileRoutesByFullPath {
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dishes': typeof AuthenticatedDishesRoute
   '/meals': typeof AuthenticatedMealsRouteWithChildren
+  '/menus': typeof AuthenticatedMenusRoute
+  '/permissions': typeof AuthenticatedPermissionsRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/tags': typeof AuthenticatedTagsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
 }
@@ -87,8 +109,11 @@ export interface FileRoutesByTo {
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dishes': typeof AuthenticatedDishesRoute
   '/meals': typeof AuthenticatedMealsRouteWithChildren
+  '/menus': typeof AuthenticatedMenusRoute
+  '/permissions': typeof AuthenticatedPermissionsRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/tags': typeof AuthenticatedTagsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/': typeof AuthenticatedIndexRoute
   '/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
@@ -100,8 +125,11 @@ export interface FileRoutesById {
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/dishes': typeof AuthenticatedDishesRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRouteWithChildren
+  '/_authenticated/menus': typeof AuthenticatedMenusRoute
+  '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/tags': typeof AuthenticatedTagsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/meals/$mealId': typeof AuthenticatedMealsMealIdRoute
@@ -114,8 +142,11 @@ export interface FileRouteTypes {
     | '/categories'
     | '/dishes'
     | '/meals'
+    | '/menus'
+    | '/permissions'
     | '/roles'
     | '/settings'
+    | '/tags'
     | '/users'
     | '/meals/$mealId'
   fileRoutesByTo: FileRoutesByTo
@@ -124,8 +155,11 @@ export interface FileRouteTypes {
     | '/categories'
     | '/dishes'
     | '/meals'
+    | '/menus'
+    | '/permissions'
     | '/roles'
     | '/settings'
+    | '/tags'
     | '/users'
     | '/'
     | '/meals/$mealId'
@@ -136,8 +170,11 @@ export interface FileRouteTypes {
     | '/_authenticated/categories'
     | '/_authenticated/dishes'
     | '/_authenticated/meals'
+    | '/_authenticated/menus'
+    | '/_authenticated/permissions'
     | '/_authenticated/roles'
     | '/_authenticated/settings'
+    | '/_authenticated/tags'
     | '/_authenticated/users'
     | '/_authenticated/'
     | '/_authenticated/meals/$mealId'
@@ -178,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/tags': {
+      id: '/_authenticated/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof AuthenticatedTagsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -190,6 +234,20 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/roles'
       preLoaderRoute: typeof AuthenticatedRolesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/permissions': {
+      id: '/_authenticated/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof AuthenticatedPermissionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/menus': {
+      id: '/_authenticated/menus'
+      path: '/menus'
+      fullPath: '/menus'
+      preLoaderRoute: typeof AuthenticatedMenusRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/meals': {
@@ -238,8 +296,11 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedDishesRoute: typeof AuthenticatedDishesRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRouteWithChildren
+  AuthenticatedMenusRoute: typeof AuthenticatedMenusRoute
+  AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTagsRoute: typeof AuthenticatedTagsRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
@@ -248,8 +309,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedDishesRoute: AuthenticatedDishesRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRouteWithChildren,
+  AuthenticatedMenusRoute: AuthenticatedMenusRoute,
+  AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTagsRoute: AuthenticatedTagsRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
