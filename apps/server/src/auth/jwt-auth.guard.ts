@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
-import type { JwtPayload } from '@feed-plan/shared';
+import { jwtPayloadSchema, type JwtPayload } from '@feed-plan/shared';
 
 /** 校验 Bearer JWT，通过后将负载挂到 req.user */
 @Injectable()
@@ -20,10 +20,14 @@ export class JwtAuthGuard implements CanActivate {
     }
     const token = header.slice('Bearer '.length);
     try {
-      const payload = await this.jwt.verifyAsync<JwtPayload>(token, {
+      const rawPayload = await this.jwt.verifyAsync<Record<string, unknown>>(token, {
         secret: this.config.getOrThrow<string>('JWT_SECRET'),
       });
-      (req as Request & { user: JwtPayload }).user = payload;
+      const payload = jwtPayloadSchema.safeParse(rawPayload);
+      if (!payload.success) {
+        throw new UnauthorizedException('访问令牌无效或已过期');
+      }
+      (req as Request & { user: JwtPayload }).user = payload.data;
       return true;
     } catch {
       throw new UnauthorizedException('访问令牌无效或已过期');

@@ -1,23 +1,25 @@
-import { afterAll, beforeAll, describe, it, expect } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, it, expect, vi } from 'vitest';
 import { Controller, Get, Module, INestApplication, UseGuards } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { UserRow } from '@feed-plan/db';
+import { DRIZZLE } from '../drizzle/drizzle.constants.js';
 import { validateEnv } from '../config/env.schema.js';
 import { AuthModule } from './auth.module.js';
 import { UsersService } from './users.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
-import { RolesGuard } from './roles.guard.js';
-import { Roles } from './roles.decorator.js';
+import { AccessGuard } from './access.guard.js';
+import { ACCESS_ACTIONS } from './access-actions.js';
+import { RequireAccess } from './access.decorator.js';
 
-// 仅供测试的受保护路由，验证 RolesGuard 的 403 路径
+// 仅供测试的受保护路由，验证 AccessGuard 的 403 路径
 @Controller('test')
 class TestProtectedController {
-  @Get('chef-only')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('chef')
-  chefOnly() {
+  @Get('users-manage')
+  @UseGuards(JwtAuthGuard, AccessGuard)
+  @RequireAccess(ACCESS_ACTIONS.usersManage)
+  usersManage() {
     return { ok: true };
   }
 }
@@ -29,19 +31,43 @@ const chefRow: UserRow = {
   id: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   passwordHash: 'x',
-  role: 'chef',
   createdAt: new Date(),
 };
 const dinerRow: UserRow = {
   ...chefRow,
   id: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
-  role: 'diner',
 };
 
 const fakeUsers = {
+  changePassword: vi.fn(),
   findByUsername: (username: string): Promise<UserRow | null> =>
     Promise.resolve(username === 'chef' ? chefRow : username === 'diner' ? dinerRow : null),
+  getAuthUser: (id: string) =>
+    Promise.resolve({
+      id,
+      username: id === chefRow.id ? 'chef' : 'diner',
+      roles: [
+        id === chefRow.id
+          ? { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }
+          : { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', key: 'diner', name: '食客', description: null },
+      ],
+      permissions:
+        id === chefRow.id
+          ? [
+              {
+                id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+                key: 'users.manage',
+                name: '用户管理',
+                description: null,
+              },
+            ]
+          : [],
+      actions: id === chefRow.id ? [ACCESS_ACTIONS.usersManage] : [],
+      menuKeys: [],
+      buttonKeys: [],
+    }),
+  resetPassword: vi.fn(),
   verifyPassword: (plain: string): Promise<boolean> => Promise.resolve(plain === 'good'),
 };
 
@@ -62,10 +88,25 @@ describe('Auth (e2e)', () => {
     })
       .overrideProvider(UsersService)
       .useValue(fakeUsers)
+      .overrideProvider(DRIZZLE)
+      .useValue({
+        select: () => ({
+          from: () => ({
+            where: async () => [{ action: ACCESS_ACTIONS.usersManage }],
+          }),
+        }),
+      })
       .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
+  });
+
+  beforeEach(() => {
+    fakeUsers.changePassword.mockClear();
+    fakeUsers.resetPassword.mockClear();
+    fakeUsers.changePassword.mockResolvedValue(undefined);
+    fakeUsers.resetPassword.mockResolvedValue(undefined);
   });
 
   afterAll(async () => {
@@ -83,7 +124,7 @@ describe('Auth (e2e)', () => {
       .send({ username: 'chef', password: 'good' });
     expect(res.status).toBe(200);
     expect(res.body.accessToken).toBeTruthy();
-    expect(res.body.user).toEqual({ id: chefRow.id, username: 'chef', role: 'chef' });
+    expect(res.body.user).toMatchObject({ id: chefRow.id, username: 'chef', roles: expect.any(Array) });
   });
 
   it('POST /auth/login 密码错误 → 401', async () => {
@@ -111,7 +152,7 @@ describe('Auth (e2e)', () => {
       .get('/auth/me')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ id: chefRow.id, username: 'chef', role: 'chef' });
+    expect(res.body).toMatchObject({ id: chefRow.id, username: 'chef', roles: expect.any(Array) });
     expect(res.body.passwordHash).toBeUndefined();
   });
 
@@ -120,18 +161,66 @@ describe('Auth (e2e)', () => {
     expect(res.status).toBe(401);
   });
 
-  it('GET /test/chef-only 主厨 → 200', async () => {
+  it('PATCH /auth/password 当前用户修改密码 → 200', async () => {
+    const token = await loginToken('diner', 'good');
+    const res = await request(app.getHttpServer())
+      .patch('/auth/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'good', newPassword: 'new-secret' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+    expect(fakeUsers.changePassword).toHaveBeenCalledWith(dinerRow.id, {
+      currentPassword: 'good',
+      newPassword: 'new-secret',
+    });
+  });
+
+  it('PATCH /auth/password 新密码太短 → 400', async () => {
+    const token = await loginToken('diner', 'good');
+    const res = await request(app.getHttpServer())
+      .patch('/auth/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'good', newPassword: 'short' });
+
+    expect(res.status).toBe(400);
+    expect(fakeUsers.changePassword).not.toHaveBeenCalled();
+  });
+
+  it('PATCH /users/:id/password 主厨重置他人密码 → 200', async () => {
     const token = await loginToken('chef', 'good');
     const res = await request(app.getHttpServer())
-      .get('/test/chef-only')
+      .patch(`/users/${dinerRow.id}/password`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ password: 'new-secret' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+    expect(fakeUsers.resetPassword).toHaveBeenCalledWith(dinerRow.id, 'new-secret', chefRow.id);
+  });
+
+  it('PATCH /users/:id/password 食客 → 403', async () => {
+    const token = await loginToken('diner', 'good');
+    const res = await request(app.getHttpServer())
+      .patch(`/users/${chefRow.id}/password`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ password: 'new-secret' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('GET /test/users-manage 有权限用户 → 200', async () => {
+    const token = await loginToken('chef', 'good');
+    const res = await request(app.getHttpServer())
+      .get('/test/users-manage')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
   });
 
-  it('GET /test/chef-only 食客 → 403', async () => {
+  it('GET /test/users-manage 无权限用户 → 403', async () => {
     const token = await loginToken('diner', 'good');
     const res = await request(app.getHttpServer())
-      .get('/test/chef-only')
+      .get('/test/users-manage')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(403);
   });

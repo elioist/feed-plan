@@ -10,6 +10,26 @@ function makeService(opts: { user: UserRow | null; passwordOk: boolean }) {
   const users = {
     findByUsername: vi.fn().mockResolvedValue(opts.user),
     verifyPassword: vi.fn().mockResolvedValue(opts.passwordOk),
+    getAuthUser: vi.fn().mockResolvedValue(
+      opts.user
+        ? {
+            id: opts.user.id,
+            username: opts.user.username,
+            roles: [
+              {
+                id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                key: 'chef',
+                name: '主厨',
+                description: null,
+              },
+            ],
+            permissions: [],
+            actions: [],
+            menuKeys: [],
+            buttonKeys: [],
+          }
+        : null,
+    ),
   } as unknown as UsersService;
   const jwt = {
     signAsync: vi.fn().mockResolvedValue('signed.jwt.token'),
@@ -25,7 +45,6 @@ const chefRow: UserRow = {
   id: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   passwordHash: '$2b$10$hashhashhashhashhashhash',
-  role: 'chef',
   createdAt: new Date(),
 };
 
@@ -34,7 +53,7 @@ describe('AuthService.login', () => {
     const { service } = makeService({ user: chefRow, passwordOk: true });
     const res = await service.login({ username: 'chef', password: 'good' });
     expect(res.accessToken).toBe('signed.jwt.token');
-    expect(res.user).toEqual({ id: chefRow.id, username: 'chef', role: 'chef' });
+    expect(res.user).toMatchObject({ id: chefRow.id, username: 'chef', roles: expect.any(Array) });
   });
 
   it('密码错误时抛 401', async () => {
@@ -51,11 +70,16 @@ describe('AuthService.login', () => {
     );
   });
 
-  it('JWT 负载包含 sub、username、role', async () => {
+  it('JWT 负载包含 sub、username、roles、permissions', async () => {
     const { service, jwt } = makeService({ user: chefRow, passwordOk: true });
     await service.login({ username: 'chef', password: 'good' });
     expect(jwt.signAsync).toHaveBeenCalledWith(
-      { sub: chefRow.id, username: 'chef', role: 'chef' },
+      expect.objectContaining({
+        sub: chefRow.id,
+        username: 'chef',
+        roles: expect.any(Array),
+        permissions: expect.any(Array),
+      }),
       expect.objectContaining({ secret: expect.any(String) }),
     );
   });

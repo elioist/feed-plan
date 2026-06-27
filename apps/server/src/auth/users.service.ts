@@ -1,27 +1,41 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { asc, eq } from 'drizzle-orm';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { and, asc, eq, ilike, inArray } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
-import { users, type UserRow } from '@feed-plan/db';
-import type { AdminUser, CreateUserInput, Role } from '@feed-plan/shared';
+import { userRoles, users, type UserRow } from '@feed-plan/db';
+import type {
+  AdminUser,
+  AuthUser,
+  ChangePasswordInput,
+  CreateUserInput,
+  UpdateUserRolesInput,
+  UserListQuery,
+} from '@feed-plan/shared';
 import { DRIZZLE, type DrizzleDb } from '../drizzle/drizzle.constants.js';
 import { isForeignKeyViolation, isUniqueViolation } from '../common/db-errors.js';
-
-function toAdminUser(row: UserRow): AdminUser {
-  return {
-    id: row.id,
-    username: row.username,
-    role: row.role,
-    createdAt: row.createdAt,
-  };
-}
+import { AccessService } from './access.service.js';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDb,
+    private readonly access: AccessService,
+  ) {}
 
   /** 按用户名查询用户，不存在返回 null */
   async findByUsername(username: string): Promise<UserRow | null> {
     const rows = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
+    return rows[0] ?? null;
+  }
+
+  /** 按 id 查询用户，不存在返回 null */
+  async findById(id: string): Promise<UserRow | null> {
+    const rows = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
     return rows[0] ?? null;
   }
 
@@ -30,24 +44,49 @@ export class UsersService {
     return bcrypt.compare(plain, hash);
   }
 
+  async getAuthUser(id: string): Promise<AuthUser | null> {
+    const row = await this.findById(id);
+    if (!row) return null;
+    return this.toAuthUser(row);
+  }
+
   /** 用户列表（管理后台，不含密码哈希） */
-  async list(): Promise<AdminUser[]> {
-    const rows = await this.db.select().from(users).orderBy(asc(users.createdAt));
-    return rows.map(toAdminUser);
+  async list(query: UserListQuery = {}): Promise<AdminUser[]> {
+    const conditions = [];
+    if (query.keyword) {
+      conditions.push(ilike(users.username, `%${query.keyword}%`));
+    }
+    if (query.roleId) {
+      const rows = await this.db
+        .select({ user: users })
+        .from(users)
+        .innerJoin(userRoles, eq(users.id, userRoles.userId))
+        .where(and(...conditions, eq(userRoles.roleId, query.roleId)))
+        .orderBy(asc(users.createdAt));
+      return Promise.all(rows.map((row) => this.toAdminUser(row.user)));
+    }
+    const rows = await this.db
+      .select()
+      .from(users)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(asc(users.createdAt));
+    return Promise.all(rows.map((row) => this.toAdminUser(row)));
   }
 
   /** 创建用户 */
   async create(input: CreateUserInput): Promise<AdminUser> {
-    const passwordHash = await bcrypt.hash(input.password, 10);
+    await this.access.assertRolesExist(input.roleIds);
+    const passwordHash = await this.hashPassword(input.password);
     try {
       const [row] = await this.db
         .insert(users)
-        .values({ username: input.username, passwordHash, role: input.role })
+        .values({ username: input.username, passwordHash })
         .returning();
       if (!row) {
         throw new ConflictException('用户创建失败');
       }
-      return toAdminUser(row);
+      await this.replaceUserRoles(row.id, input.roleIds);
+      return this.toAdminUser(row);
     } catch (error) {
       if (isUniqueViolation(error)) {
         throw new ConflictException('用户名已存在');
@@ -56,16 +95,45 @@ export class UsersService {
     }
   }
 
-  /** 修改用户角色。operatorId 为当前操作者，禁止修改自己的角色。 */
-  async updateRole(id: string, role: Role, operatorId: string): Promise<AdminUser> {
-    if (id === operatorId) {
-      throw new ConflictException('不能修改自己的角色');
+  /** 修改用户角色集合。 */
+  async updateRoles(
+    id: string,
+    input: UpdateUserRolesInput,
+    operatorId: string,
+  ): Promise<AdminUser> {
+    await this.assertUserExists(id);
+    await this.access.assertRolesExist(input.roleIds);
+    if (id === operatorId && !(await this.access.roleIdsKeepManagementAccess(input.roleIds))) {
+      throw new ConflictException('不能移除自己的最后管理权限');
     }
-    const [row] = await this.db.update(users).set({ role }).where(eq(users.id, id)).returning();
-    if (!row) {
+    await this.replaceUserRoles(id, input.roleIds);
+    const user = await this.findById(id);
+    if (!user) throw new NotFoundException('用户不存在');
+    return this.toAdminUser(user);
+  }
+
+  /** 当前用户修改自己的密码，需要校验旧密码。 */
+  async changePassword(id: string, input: ChangePasswordInput): Promise<void> {
+    const user = await this.findById(id);
+    if (!user) {
       throw new NotFoundException('用户不存在');
     }
-    return toAdminUser(row);
+
+    const ok = await this.verifyPassword(input.currentPassword, user.passwordHash);
+    if (!ok) {
+      throw new UnauthorizedException('当前密码错误');
+    }
+
+    await this.updatePasswordHash(id, input.newPassword);
+  }
+
+  /** 主厨重置其他用户密码，禁止通过该路径重置自己。 */
+  async resetPassword(id: string, password: string, operatorId: string): Promise<void> {
+    if (id === operatorId) {
+      throw new ConflictException('请使用修改自己密码流程');
+    }
+    await this.assertUserExists(id);
+    await this.updatePasswordHash(id, password);
   }
 
   /** 删除用户。禁止删除自己；被 meal 引用时返回 409。 */
@@ -93,5 +161,47 @@ export class UsersService {
     if (!rows[0]) {
       throw new NotFoundException('用户不存在');
     }
+  }
+
+  private hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
+  }
+
+  private async updatePasswordHash(id: string, password: string): Promise<void> {
+    const [row] = await this.db
+      .update(users)
+      .set({ passwordHash: await this.hashPassword(password) })
+      .where(eq(users.id, id))
+      .returning();
+    if (!row) {
+      throw new NotFoundException('用户不存在');
+    }
+  }
+
+  private async replaceUserRoles(userId: string, roleIds: string[]): Promise<void> {
+    const uniqueRoleIds = [...new Set(roleIds)];
+    await this.db.delete(userRoles).where(eq(userRoles.userId, userId));
+    if (uniqueRoleIds.length > 0) {
+      await this.db.insert(userRoles).values(uniqueRoleIds.map((roleId) => ({ userId, roleId })));
+    }
+  }
+
+  private async toAuthUser(row: UserRow): Promise<AuthUser> {
+    return {
+      id: row.id,
+      username: row.username,
+      roles: await this.access.getUserRoles(row.id),
+      permissions: await this.access.getUserPermissions(row.id),
+      actions: await this.access.getUserActions(row.id),
+      menuKeys: await this.access.getUserMenuKeys(row.id),
+      buttonKeys: await this.access.getUserButtonKeys(row.id),
+    };
+  }
+
+  private async toAdminUser(row: UserRow): Promise<AdminUser> {
+    return {
+      ...(await this.toAuthUser(row)),
+      createdAt: row.createdAt,
+    };
   }
 }

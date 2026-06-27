@@ -50,6 +50,13 @@ export const categorySchema = z.object({
 });
 export type Category = z.infer<typeof categorySchema>;
 
+export const categoryListQuerySchema = z
+  .object({
+    keyword: z.string().trim().max(64).optional(),
+  })
+  .strip();
+export type CategoryListQuery = z.infer<typeof categoryListQuerySchema>;
+
 export const createCategorySchema = z.object({
   name: z.string().trim().min(1, '分类名称不能为空').max(64),
   sortOrder: z.number().int().min(0).default(0),
@@ -60,6 +67,34 @@ export const updateCategorySchema = createCategorySchema.partial().refine((value
   return value.name !== undefined || value.sortOrder !== undefined;
 }, '至少提供一个要更新的字段');
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
+
+export const tagSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  sortOrder: z.number().int(),
+  isSystem: z.boolean(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+export type Tag = z.infer<typeof tagSchema>;
+
+export const tagListQuerySchema = z
+  .object({
+    keyword: z.string().trim().max(64).optional(),
+  })
+  .strip();
+export type TagListQuery = z.infer<typeof tagListQuerySchema>;
+
+export const createTagSchema = z.object({
+  name: z.string().trim().min(1, '标签名称不能为空').max(32),
+  sortOrder: z.number().int().min(0).default(0),
+});
+export type CreateTagInput = z.infer<typeof createTagSchema>;
+
+export const updateTagSchema = createTagSchema.partial().refine((value) => {
+  return value.name !== undefined || value.sortOrder !== undefined;
+}, '至少提供一个要更新的字段');
+export type UpdateTagInput = z.infer<typeof updateTagSchema>;
 
 export const createDishSchema = z.object({
   name: z.string().trim().min(1, '菜谱名称不能为空').max(128),

@@ -24,8 +24,9 @@ import {
 } from '@feed-plan/shared';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { Roles } from '../auth/roles.decorator.js';
-import { RolesGuard } from '../auth/roles.guard.js';
+import { AccessGuard } from '../auth/access.guard.js';
+import { ACCESS_ACTIONS } from '../auth/access-actions.js';
+import { RequireAccess } from '../auth/access.decorator.js';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
 import { DishesService } from './dishes.service.js';
 
@@ -51,15 +52,15 @@ export class DishesController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles('chef')
+  @UseGuards(AccessGuard)
+  @RequireAccess(ACCESS_ACTIONS.recipesManage)
   create(@Body(new ZodValidationPipe(createDishSchema)) body: CreateDishInput) {
     return this.dishes.create(body);
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
-  @Roles('chef')
+  @UseGuards(AccessGuard)
+  @RequireAccess(ACCESS_ACTIONS.recipesManage)
   update(
     @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
     @Body(new ZodValidationPipe(updateDishSchema)) body: UpdateDishInput,
@@ -68,8 +69,8 @@ export class DishesController {
   }
 
   @Patch(':id/active')
-  @UseGuards(RolesGuard)
-  @Roles('chef')
+  @UseGuards(AccessGuard)
+  @RequireAccess(ACCESS_ACTIONS.recipesManage)
   setActive(
     @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
     @Body(new ZodValidationPipe(updateDishActiveSchema)) body: UpdateDishActiveInput,
@@ -78,8 +79,8 @@ export class DishesController {
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
-  @Roles('chef')
+  @UseGuards(AccessGuard)
+  @RequireAccess(ACCESS_ACTIONS.recipesManage)
   remove(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
     return this.dishes.remove(params.id).then(() => ({ ok: true }));
   }

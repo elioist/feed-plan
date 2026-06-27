@@ -1,4 +1,4 @@
-import type { AuthUser, LoginInput, LoginResponse } from '@feed-plan/shared';
+import type { AuthUser, ChangePasswordInput, LoginInput, LoginResponse } from '@feed-plan/shared';
 
 import type { ApiRequest } from '../types.js';
 
@@ -12,6 +12,12 @@ export function createAuthResource(request: ApiRequest) {
     },
     me() {
       return request<AuthUser>('/auth/me');
+    },
+    changePassword(input: ChangePasswordInput) {
+      return request<{ ok: true }>('/auth/password', {
+        method: 'PATCH',
+        body: input,
+      });
     },
   };
 }

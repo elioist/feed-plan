@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, ilike } from 'drizzle-orm';
 import { categories, dishes, type CategoryRow } from '@feed-plan/db';
-import type { Category, CreateCategoryInput, UpdateCategoryInput } from '@feed-plan/shared';
+import type { Category, CategoryListQuery, CreateCategoryInput, UpdateCategoryInput } from '@feed-plan/shared';
 import { DRIZZLE, type DrizzleDb } from '../drizzle/drizzle.constants.js';
 import { toCategory } from './recipe-mappers.js';
 
@@ -9,10 +9,11 @@ import { toCategory } from './recipe-mappers.js';
 export class CategoriesService {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
-  async list(): Promise<Category[]> {
+  async list(query: CategoryListQuery = {}): Promise<Category[]> {
     const rows = await this.db
       .select()
       .from(categories)
+      .where(query.keyword ? ilike(categories.name, `%${query.keyword}%`) : undefined)
       .orderBy(asc(categories.sortOrder), asc(categories.createdAt));
     return rows.map(toCategory);
   }

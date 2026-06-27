@@ -15,6 +15,7 @@ function selectQueue(results: unknown[][]) {
     from: vi.fn(() => ({
       orderBy: vi.fn(async () => results.shift()),
       where: vi.fn(() => ({
+        orderBy: vi.fn(async () => results.shift()),
         limit: vi.fn(async () => results.shift()),
       })),
     })),

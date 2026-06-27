@@ -27,13 +27,19 @@ function collectColumns(node: unknown, columns = new Set<string>()): Set<string>
 const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
-  role: 'chef',
+  roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
+  permissions: [{ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', key: 'recipes.manage', name: '菜谱管理', description: null }],
+  actions: ['recipes.manage'],
+  menuKeys: [],
+  buttonKeys: [],
 };
 const diner: JwtPayload = {
   ...chef,
   sub: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
-  role: 'diner',
+  roles: [{ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', key: 'diner', name: '食客', description: null }],
+  permissions: [],
+  actions: [],
 };
 const category: CategoryRow = {
   id: '33333333-3333-3333-3333-333333333333',
@@ -90,6 +96,10 @@ describe('DishesService', () => {
       dish: { ...dish, isActive: false },
       category,
     });
+    vi.spyOn(
+      service as never as { userCanManageRecipes: (user: JwtPayload) => Promise<boolean> },
+      'userCanManageRecipes',
+    ).mockImplementation(async (user) => user.sub === chef.sub);
 
     await expect(service.getById(dish.id, diner)).rejects.toBeInstanceOf(NotFoundException);
     await expect(service.getById(dish.id, chef)).resolves.toMatchObject({
@@ -163,9 +173,9 @@ describe('DishesService', () => {
     const service = new DishesService({} as never);
     const where = (
       service as never as {
-        buildListWhere: (query: DishListQuery, user: JwtPayload) => unknown;
+        buildListWhere: (query: DishListQuery, canManageRecipes: boolean) => unknown;
       }
-    ).buildListWhere({ keyword: '番茄' }, chef);
+    ).buildListWhere({ keyword: '番茄' }, true);
 
     const columns = collectColumns(where);
 
@@ -178,9 +188,9 @@ describe('DishesService', () => {
     const service = new DishesService({} as never);
     const where = (
       service as never as {
-        buildListWhere: (query: DishListQuery, user: JwtPayload) => unknown;
+        buildListWhere: (query: DishListQuery, canManageRecipes: boolean) => unknown;
       }
-    ).buildListWhere({ tag: '快手', dietary: '香菜' }, chef);
+    ).buildListWhere({ tag: '快手', dietary: '香菜' }, true);
 
     const columns = collectColumns(where);
 

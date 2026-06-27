@@ -43,6 +43,20 @@
       "when": 1781891585771,
       "tag": "0005_smooth_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782485541725,
+      "tag": "0006_silky_pretty_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782522000000,
+      "tag": "0007_admin_menu_tags",
+      "breakpoints": true
     }
   ]
 }

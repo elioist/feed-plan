@@ -23,10 +23,19 @@ export class AuthService {
       throw new UnauthorizedException('用户名或密码错误');
     }
 
+    const authUser = await this.users.getAuthUser(user.id);
+    if (!authUser) {
+      throw new UnauthorizedException('用户名或密码错误');
+    }
+
     const payload: JwtPayload = {
       sub: user.id,
       username: user.username,
-      role: user.role,
+      roles: authUser.roles,
+      permissions: authUser.permissions,
+      actions: authUser.actions,
+      menuKeys: authUser.menuKeys,
+      buttonKeys: authUser.buttonKeys,
     };
     const signOptions: JwtSignOptions = {
       secret: this.config.getOrThrow<string>('JWT_SECRET'),
@@ -37,7 +46,7 @@ export class AuthService {
 
     return {
       accessToken,
-      user: { id: user.id, username: user.username, role: user.role },
+      user: authUser,
     };
   }
 }

@@ -8,18 +8,27 @@ import type { JwtPayload, MenuDetail } from '@feed-plan/shared';
 import { AuthModule } from '../auth/auth.module.js';
 import { UsersService } from '../auth/users.service.js';
 import { validateEnv } from '../config/env.schema.js';
+import { DRIZZLE } from '../drizzle/drizzle.constants.js';
 import { MealsModule } from './meals.module.js';
 import { MealsService } from './meals.service.js';
 
 const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
-  role: 'chef',
+  roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
+  permissions: [{ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', key: 'meals.complete', name: '结单管理', description: null }],
+  actions: ['meals.complete'],
+  menuKeys: [],
+  buttonKeys: [],
 };
 const diner: JwtPayload = {
   sub: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
-  role: 'diner',
+  roles: [{ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', key: 'diner', name: '食客', description: null }],
+  permissions: [],
+  actions: [],
+  menuKeys: [],
+  buttonKeys: [],
 };
 const mealId = '33333333-3333-3333-3333-333333333333';
 const dishId = '44444444-4444-4444-4444-444444444444';
@@ -106,6 +115,14 @@ describe('Meals API (e2e)', () => {
       .useValue(fakeUsers)
       .overrideProvider(MealsService)
       .useValue(mealsService)
+      .overrideProvider(DRIZZLE)
+      .useValue({
+        select: () => ({
+          from: () => ({
+            where: async () => [{ action: 'meals.complete' }],
+          }),
+        }),
+      })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -145,7 +162,7 @@ describe('Meals API (e2e)', () => {
     expect(res.status).toBe(201);
     expect(mealsService.getOrCreateCurrent).toHaveBeenCalledWith(
       { mealDate: '2026-06-17', mealType: 'dinner', type: 'daily' },
-      expect.objectContaining({ role: 'chef' }),
+      expect.objectContaining({ roles: expect.arrayContaining([expect.objectContaining({ key: 'chef' })]) }),
     );
   });
 
@@ -211,7 +228,7 @@ describe('Meals API (e2e)', () => {
     expect(mealsService.addOrder).toHaveBeenCalledWith(
       mealId,
       { dishId, quantity: 2 },
-      expect.objectContaining({ role: 'diner' }),
+      expect.objectContaining({ roles: expect.arrayContaining([expect.objectContaining({ key: 'diner' })]) }),
     );
   });
 

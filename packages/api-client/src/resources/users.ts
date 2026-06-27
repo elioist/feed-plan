@@ -1,11 +1,17 @@
-import type { AdminUser, CreateUserInput, Role } from '@feed-plan/shared';
+import type {
+  AdminUser,
+  CreateUserInput,
+  ResetUserPasswordInput,
+  UpdateUserRolesInput,
+  UserListQuery,
+} from '@feed-plan/shared';
 
 import type { ApiRequest } from '../types.js';
 
 export function createUsersResource(request: ApiRequest) {
   return {
-    list() {
-      return request<AdminUser[]>('/users');
+    list(query?: UserListQuery) {
+      return request<AdminUser[]>('/users', { query });
     },
     create(input: CreateUserInput) {
       return request<AdminUser>('/users', {
@@ -13,10 +19,16 @@ export function createUsersResource(request: ApiRequest) {
         body: input,
       });
     },
-    updateRole(id: string, role: Role) {
+    updateRoles(id: string, input: UpdateUserRolesInput) {
       return request<AdminUser>(`/users/${id}`, {
         method: 'PATCH',
-        body: { role },
+        body: input,
+      });
+    },
+    resetPassword(id: string, input: ResetUserPasswordInput) {
+      return request<{ ok: true }>(`/users/${id}/password`, {
+        method: 'PATCH',
+        body: input,
       });
     },
     delete(id: string) {

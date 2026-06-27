@@ -7,7 +7,11 @@ import { MealsService } from './meals.service.js';
 const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
-  role: 'chef',
+  roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
+  permissions: [],
+  actions: [],
+  menuKeys: [],
+  buttonKeys: [],
 };
 const meal: MealRow = {
   id: '22222222-2222-2222-2222-222222222222',

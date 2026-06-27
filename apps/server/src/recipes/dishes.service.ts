@@ -5,8 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, arrayContains, asc, eq, ilike, or } from 'drizzle-orm';
-import { categories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
+import { and, arrayContains, asc, eq, ilike, inArray, or } from 'drizzle-orm';
+import { categories, dishes, permissionActionBindings, type CategoryRow, type DishRow } from '@feed-plan/db';
 import type {
   CreateDishInput,
   DishDetail,
@@ -19,13 +19,15 @@ import type {
 import { DRIZZLE, type DrizzleDb } from '../drizzle/drizzle.constants.js';
 import { toDishDetail, toDishSummary } from './recipe-mappers.js';
 import { isForeignKeyViolation } from '../common/db-errors.js';
+import { ACCESS_ACTIONS } from '../auth/access-actions.js';
 
 @Injectable()
 export class DishesService {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {}
 
   async list(query: DishListQuery, user: JwtPayload): Promise<DishSummary[]> {
-    const where = this.buildListWhere(query, user);
+    const canManageRecipes = await this.userCanManageRecipes(user);
+    const where = this.buildListWhere(query, canManageRecipes);
     const rows = await this.db
       .select({ dish: dishes, category: categories })
       .from(dishes)
@@ -38,7 +40,7 @@ export class DishesService {
 
   async getById(id: string, user: JwtPayload): Promise<DishDetail> {
     const detail = await this.loadDetail(id);
-    if (!detail || (user.role !== 'chef' && !detail.dish.isActive)) {
+    if (!detail || (!(await this.userCanManageRecipes(user)) && !detail.dish.isActive)) {
       throw new NotFoundException('菜谱不存在');
     }
     return toDishDetail(detail);
@@ -128,9 +130,9 @@ export class DishesService {
     }
   }
 
-  private buildListWhere(query: DishListQuery, user: JwtPayload) {
+  private buildListWhere(query: DishListQuery, canManageRecipes: boolean) {
     const conditions = [];
-    if (user.role !== 'chef') {
+    if (!canManageRecipes) {
       conditions.push(eq(dishes.isActive, true));
     } else if (query.isActive !== undefined) {
       conditions.push(eq(dishes.isActive, query.isActive));
@@ -155,6 +157,22 @@ export class DishesService {
       conditions.push(arrayContains(dishes.dietary, [query.dietary]));
     }
     return conditions.length > 0 ? and(...conditions) : undefined;
+  }
+
+  private async userCanManageRecipes(user: JwtPayload): Promise<boolean> {
+    const permissionIds = user.permissions.map((permission) => permission.id);
+    if (permissionIds.length === 0) return false;
+    const rows = await this.db
+      .select({ action: permissionActionBindings.action })
+      .from(permissionActionBindings)
+      .where(
+        and(
+          eq(permissionActionBindings.action, ACCESS_ACTIONS.recipesManage),
+          inArray(permissionActionBindings.permissionId, permissionIds),
+        ),
+      )
+      .limit(1);
+    return Boolean(rows[0]);
   }
 
   private async loadDetail(id: string): Promise<{

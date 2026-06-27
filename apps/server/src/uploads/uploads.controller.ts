@@ -11,8 +11,9 @@ import { randomUUID } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { Roles } from '../auth/roles.decorator.js';
-import { RolesGuard } from '../auth/roles.guard.js';
+import { AccessGuard } from '../auth/access.guard.js';
+import { ACCESS_ACTIONS } from '../auth/access-actions.js';
+import { RequireAccess } from '../auth/access.decorator.js';
 import { ensureUploadDir, PUBLIC_UPLOAD_PREFIX } from './upload-paths.js';
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -38,10 +39,10 @@ function normalizeImageExt(file: { mimetype: string; originalname: string }): st
 }
 
 @Controller('uploads')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, AccessGuard)
 export class UploadsController {
   @Post('images')
-  @Roles('chef')
+  @RequireAccess(ACCESS_ACTIONS.uploadsManage)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_IMAGE_SIZE_BYTES },

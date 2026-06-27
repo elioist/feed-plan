@@ -1,11 +1,16 @@
-import type { Category, CreateCategoryInput, UpdateCategoryInput } from '@feed-plan/shared';
+import type {
+  Category,
+  CategoryListQuery,
+  CreateCategoryInput,
+  UpdateCategoryInput,
+} from '@feed-plan/shared';
 
 import type { ApiRequest } from '../types.js';
 
 export function createCategoriesResource(request: ApiRequest) {
   return {
-    list() {
-      return request<Category[]>('/categories');
+    list(query?: CategoryListQuery) {
+      return request<Category[]>('/categories', { query });
     },
     create(input: CreateCategoryInput) {
       return request<Category>('/categories', {
