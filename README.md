@@ -8,6 +8,7 @@
 apps/
   server/        # NestJS 后端（认证、API）
   admin-web/     # PC 管理后台（React + Vite + Ant Design）
+  mobile/        # Expo / React Native 移动端
 packages/
   shared/        # 前后端共享类型与 Zod 校验
   db/            # Drizzle schema 与 migration
@@ -51,7 +52,7 @@ openspec/        # SDD 规约（变更提案与已确立规约）
      pnpm --filter @feed-plan/db db:migrate
    ```
 
-5. 创建初始账号（chef、diner）：
+5. 创建初始账号（super_admin、chef、diner）：
 
    ```bash
    set -a; source .env; set +a
@@ -65,10 +66,10 @@ openspec/        # SDD 规约（变更提案与已确立规约）
    curl http://localhost:3000/health
    curl -X POST http://localhost:3000/auth/login \
      -H 'Content-Type: application/json' \
-     -d '{"username":"chef","password":"<你的 SEED_CHEF_PASSWORD>"}'
+     -d '{"username":"super_admin","password":"<你的 SEED_SUPER_ADMIN_PASSWORD>"}'
    ```
 
-   使用返回的 `accessToken` 继续验证菜谱 API：
+   使用返回的 `accessToken` 继续验证管理 API：
 
    ```bash
    TOKEN='<上一步返回的 accessToken>'
@@ -119,7 +120,25 @@ openspec/        # SDD 规约（变更提案与已确立规约）
    VITE_API_BASE_URL=http://localhost:3000 pnpm --filter @feed-plan/admin-web dev
    ```
 
-   打开 Vite 输出的本地地址，使用 seed 创建的 chef 账号登录。后台首版包含首页、分类管理、菜谱管理和点菜菜单。
+   打开 Vite 输出的本地地址，使用 seed 创建的 super_admin 账号登录。后台首版包含首页、分类管理、菜谱管理和点菜菜单。
+
+8. 启动移动端：
+
+   ```bash
+   EXPO_PUBLIC_API_BASE=http://localhost:3000 pnpm --filter @feed-plan/mobile dev
+   ```
+
+   Expo 真机或 Android 模拟器不能总是使用 `localhost` 访问电脑上的后端。若移动端点单提示连接不到后端，请按运行环境调整：
+
+   - iOS Simulator 通常可用 `http://localhost:3000`。
+   - Android Emulator 通常使用 `http://10.0.2.2:3000`。
+   - 真机使用电脑局域网 IP，例如 `http://192.168.1.8:3000`，并确保手机和电脑在同一网络。
+
+   示例：
+
+   ```bash
+   EXPO_PUBLIC_API_BASE=http://192.168.1.8:3000 pnpm --filter @feed-plan/mobile dev
+   ```
 
 ### 常用脚本
 
