@@ -31,6 +31,7 @@ const chefRow: UserRow = {
   id: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   passwordHash: 'x',
+  avatar: null,
   createdAt: new Date(),
 };
 const dinerRow: UserRow = {
@@ -47,6 +48,7 @@ const fakeUsers = {
     Promise.resolve({
       id,
       username: id === chefRow.id ? 'chef' : 'diner',
+      avatar: null,
       roles: [
         id === chefRow.id
           ? { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }
@@ -68,6 +70,7 @@ const fakeUsers = {
       buttonKeys: [],
     }),
   resetPassword: vi.fn(),
+  update: vi.fn(),
   verifyPassword: (plain: string): Promise<boolean> => Promise.resolve(plain === 'good'),
 };
 
@@ -105,8 +108,10 @@ describe('Auth (e2e)', () => {
   beforeEach(() => {
     fakeUsers.changePassword.mockClear();
     fakeUsers.resetPassword.mockClear();
+    fakeUsers.update.mockClear();
     fakeUsers.changePassword.mockResolvedValue(undefined);
     fakeUsers.resetPassword.mockResolvedValue(undefined);
+    fakeUsers.update.mockResolvedValue({ ...dinerRow, avatar: '/uploads/avatar.webp' });
   });
 
   afterAll(async () => {
@@ -185,6 +190,32 @@ describe('Auth (e2e)', () => {
 
     expect(res.status).toBe(400);
     expect(fakeUsers.changePassword).not.toHaveBeenCalled();
+  });
+
+  it('PATCH /auth/profile 当前用户修改资料 → 200 + 当前用户信息', async () => {
+    const token = await loginToken('diner', 'good');
+    const res = await request(app.getHttpServer())
+      .patch('/auth/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ username: 'diner-new', avatar: '/uploads/avatar.webp' });
+
+    expect(res.status).toBe(200);
+    expect(fakeUsers.update).toHaveBeenCalledWith(dinerRow.id, {
+      username: 'diner-new',
+      avatar: '/uploads/avatar.webp',
+    });
+    expect(res.body).toMatchObject({ id: dinerRow.id, username: 'diner', avatar: null });
+  });
+
+  it('PATCH /auth/profile 拒绝非上传接口产生的头像路径', async () => {
+    const token = await loginToken('diner', 'good');
+    const res = await request(app.getHttpServer())
+      .patch('/auth/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ avatar: 'https://example.com/avatar.webp' });
+
+    expect(res.status).toBe(400);
+    expect(fakeUsers.update).not.toHaveBeenCalled();
   });
 
   it('PATCH /users/:id/password 主厨重置他人密码 → 200', async () => {

@@ -8,7 +8,6 @@ import {
   List,
   Modal,
   Popover,
-  Space,
   Tag,
   Tooltip,
   Typography,
@@ -328,9 +327,7 @@ export function HeaderBar() {
               />
             </Tooltip>
           ) : null}
-          <Space size={0}>
-            <UserMenu />
-          </Space>
+          <UserMenu />
         </div>
       </div>
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />

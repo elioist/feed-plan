@@ -22,6 +22,7 @@ export type AdminRoutePath =
   | '/roles'
   | '/permissions'
   | '/menus'
+  | '/profile'
   | '/settings';
 
 export interface AdminMenuItem {
@@ -120,6 +121,12 @@ export const adminRoutes: AdminRouteMeta[] = [
     icon: <MenuOutlined />,
     menuKey: 'system.menus',
     requiredAction: MENU_ACTIONS.menusManage,
+  },
+  {
+    path: '/profile',
+    title: '个人中心',
+    group: '账户',
+    icon: <UserOutlined />,
   },
   {
     path: '/settings',
@@ -268,16 +275,24 @@ export function getOpenMenuKeys(pathname: string) {
   if (pathname.startsWith('/categories') || pathname.startsWith('/dishes') || pathname.startsWith('/tags')) {
     return ['recipes'];
   }
-
-  return ['system'];
+  if (
+    pathname.startsWith('/users') ||
+    pathname.startsWith('/roles') ||
+    pathname.startsWith('/permissions') ||
+    pathname.startsWith('/menus') ||
+    pathname.startsWith('/settings')
+  ) {
+    return ['system'];
+  }
+  return [];
 }
 
 function pathMatches(pathname: string, path: AdminRoutePath) {
   return path === '/' ? pathname === '/' : pathname.startsWith(path);
 }
 
-/** 当前路径所属的一级菜单 key（用于混合/双列布局确定激活分组） */
-export function getActiveTopKey(pathname: string, menus: AdminMenuItem[] = adminMenus): string {
+/** 当前路径所属的一级菜单 key；找不到时返回空，避免误高亮默认菜单。 */
+export function findActiveTopKey(pathname: string, menus: AdminMenuItem[] = adminMenus): string | undefined {
   for (const item of menus) {
     if (item.path && pathMatches(pathname, item.path)) {
       return item.key;
@@ -285,6 +300,15 @@ export function getActiveTopKey(pathname: string, menus: AdminMenuItem[] = admin
     if (item.children?.some((child) => child.path && pathMatches(pathname, child.path))) {
       return item.key;
     }
+  }
+  return undefined;
+}
+
+/** 当前路径所属的一级菜单 key（用于混合/双列布局确定激活分组） */
+export function getActiveTopKey(pathname: string, menus: AdminMenuItem[] = adminMenus): string {
+  const activeKey = findActiveTopKey(pathname, menus);
+  if (activeKey) {
+    return activeKey;
   }
   return menus[0]?.key ?? adminMenus[0]!.key;
 }

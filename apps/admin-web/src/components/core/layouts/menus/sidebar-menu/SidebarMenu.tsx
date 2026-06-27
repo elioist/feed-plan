@@ -5,7 +5,7 @@ import { Logo } from '~/components/core/base/logo/Logo';
 import { MenuThemeEnum, MenuWidth } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
 import {
-  getActiveTopKey,
+  findActiveTopKey,
   getAuthorizedMenus,
   getOpenMenuKeys,
   getRouteMeta,
@@ -34,6 +34,8 @@ export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
   const isDark = menuThemeType === MenuThemeEnum.DARK;
 
   const menus = items ?? getAuthorizedMenus({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] });
+  const activeMenuKey = findActiveTopKey(pathname, menus);
+  const selectedKeys = [activeRoute.path, activeMenuKey].filter((key): key is string => Boolean(key));
 
   return (
     <Sider
@@ -57,7 +59,7 @@ export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
           theme={isDark ? 'dark' : 'light'}
           inlineCollapsed={!menuOpen}
           defaultOpenKeys={getOpenMenuKeys(pathname)}
-          selectedKeys={[activeRoute.path, getActiveTopKey(pathname, menus)]}
+          selectedKeys={selectedKeys}
           items={toMenuItems(menus)}
         />
       </div>

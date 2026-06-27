@@ -12,6 +12,7 @@ export type LoginInput = z.infer<typeof loginInputSchema>;
 export const authUserSchema = z.object({
   id: z.string().uuid(),
   username: z.string(),
+  avatar: z.string().nullable().optional(),
   roles: z.array(roleSummarySchema),
   permissions: z.array(permissionSummarySchema),
   actions: z.array(z.string()),
@@ -82,3 +83,10 @@ export const resetUserPasswordSchema = z.object({
   password: newPasswordSchema,
 });
 export type ResetUserPasswordInput = z.infer<typeof resetUserPasswordSchema>;
+
+/** 编辑用户信息 */
+export const updateUserSchema = z.object({
+  username: z.string().trim().min(1, '用户名不能为空').max(64).optional(),
+  avatar: z.string().trim().startsWith('/uploads/', '头像路径必须来自上传接口').max(255).nullable().optional(),
+});
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

@@ -1,19 +1,23 @@
-import { Avatar, Dropdown, Typography } from 'antd';
+import { Avatar, Button, Dropdown, Typography } from 'antd';
 import type { MenuProps } from 'antd';
+import { useNavigate } from '@tanstack/react-router';
 import { SvgIcon } from '~/components/core/base/svg-icon/SvgIcon';
+import { api } from '~/lib/api-client';
 import { useAuthStore } from '~/store/modules/auth';
 
 export function UserMenu() {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const username = user?.username ?? '未登录';
+  const avatarUrl = api.getImageUrl(user?.avatar ?? null);
 
   const items: MenuProps['items'] = [
     {
       key: 'head',
       label: (
         <div className="user-menu-head">
-          <Avatar size={40} icon={<SvgIcon icon="ri:user-3-line" />} />
+          <Avatar size={40} src={avatarUrl} icon={!avatarUrl && <SvgIcon icon="ri:user-3-line" />} />
           <div className="user-menu-head-info">
             <Typography.Text strong>{username}</Typography.Text>
           </div>
@@ -26,7 +30,7 @@ export function UserMenu() {
       key: 'profile',
       icon: <SvgIcon icon="ri:user-3-line" />,
       label: '个人中心',
-      disabled: true,
+      onClick: () => navigate({ to: '/profile' }),
     },
     {
       key: 'docs',
@@ -63,9 +67,14 @@ export function UserMenu() {
       trigger={['hover']}
       classNames={{ root: 'user-menu-popover' }}
     >
-      <button type="button" className="user-menu-trigger">
-        <Avatar size={34} icon={<SvgIcon icon="ri:user-3-line" />} alt={username} />
-      </button>
+      <Button type="text" className="user-menu-trigger" aria-label={username + ' 的用户菜单'}>
+        <Avatar
+          size={34}
+          src={avatarUrl}
+          icon={!avatarUrl && <SvgIcon icon="ri:user-3-line" />}
+          alt={username}
+        />
+      </Button>
     </Dropdown>
   );
 }

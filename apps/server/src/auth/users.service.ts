@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, asc, eq, ilike, inArray } from 'drizzle-orm';
+import { and, asc, eq, ilike } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { userRoles, users, type UserRow } from '@feed-plan/db';
 import type {
@@ -13,6 +13,7 @@ import type {
   AuthUser,
   ChangePasswordInput,
   CreateUserInput,
+  UpdateUserInput,
   UpdateUserRolesInput,
   UserListQuery,
 } from '@feed-plan/shared';
@@ -152,6 +153,45 @@ export class UsersService {
     }
   }
 
+  /** 编辑用户信息（用户名、头像） */
+  async update(id: string, input: UpdateUserInput): Promise<AdminUser> {
+    await this.assertUserExists(id);
+
+    // 用户名唯一性校验
+    if (input.username) {
+      const existing = await this.findByUsername(input.username);
+      if (existing && existing.id !== id) {
+        throw new ConflictException('用户名已存在');
+      }
+    }
+
+    const updateData: { username?: string; avatar?: string | null } = {};
+    if (input.username !== undefined) {
+      updateData.username = input.username;
+    }
+    if (input.avatar !== undefined) {
+      updateData.avatar = input.avatar;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      const user = await this.findById(id);
+      if (!user) throw new NotFoundException('用户不存在');
+      return this.toAdminUser(user);
+    }
+
+    const [row] = await this.db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+
+    if (!row) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    return this.toAdminUser(row);
+  }
+
   private async assertUserExists(id: string): Promise<void> {
     const rows = await this.db
       .select({ id: users.id })
@@ -190,6 +230,7 @@ export class UsersService {
     return {
       id: row.id,
       username: row.username,
+      avatar: row.avatar ?? null,
       roles: await this.access.getUserRoles(row.id),
       permissions: await this.access.getUserPermissions(row.id),
       actions: await this.access.getUserActions(row.id),

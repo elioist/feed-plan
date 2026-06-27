@@ -8,16 +8,7 @@ import type {
 } from '@feed-plan/shared';
 
 import type { ApiRequest } from '../types.js';
-
-const withFile = <T extends object>(path: string, file: File, request: ApiRequest) => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  return request<T>(path, {
-    method: 'POST',
-    body: formData,
-  });
-};
+import { uploadFile } from '../file-upload.js';
 
 export function createDishesResource(request: ApiRequest) {
   return {
@@ -51,7 +42,7 @@ export function createDishesResource(request: ApiRequest) {
       });
     },
     uploadImage(file: File) {
-      return withFile<{ path: string }>('/uploads/images', file, request);
+      return uploadFile<{ path: string }>('/uploads/images', file, request);
     },
   };
 }

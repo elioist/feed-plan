@@ -3,7 +3,7 @@ import { Menu, Tooltip } from 'antd';
 import { Logo } from '~/components/core/base/logo/Logo';
 import { AppConfig } from '~/config';
 import {
-  getActiveTopKey,
+  findActiveTopKey,
   getAuthorizedMenus,
   getRouteMeta,
   type AdminMenuItem,
@@ -51,7 +51,7 @@ export function TopMenu({ variant }: TopMenuProps) {
   return (
     <Menu
       mode="horizontal"
-      selectedKeys={[getActiveTopKey(pathname, menus)]}
+      selectedKeys={[findActiveTopKey(pathname, menus)].filter((key): key is string => Boolean(key))}
       items={groupItems}
       className="top-menu"
       onClick={({ key }) => {
@@ -71,7 +71,7 @@ export function IconRail() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const menus = getAuthorizedMenus({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] });
-  const activeTop = getActiveTopKey(pathname, menus);
+  const activeTop = findActiveTopKey(pathname, menus);
 
   return (
     <div className="icon-rail">

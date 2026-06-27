@@ -6,6 +6,7 @@ import {
   jwtPayloadSchema,
   resetUserPasswordSchema,
   updateUserRolesSchema,
+  updateUserSchema,
 } from './auth.js';
 import { createPermissionSchema, createRoleSchema } from './roles.js';
 
@@ -39,6 +40,18 @@ describe('auth schemas', () => {
       createUserSchema.parse({ username: 'alice', password: 'secret123', roleIds: [roleId] }),
     ).toEqual({ username: 'alice', password: 'secret123', roleIds: [roleId] });
     expect(updateUserRolesSchema.safeParse({ roleIds: [] }).success).toBe(false);
+  });
+
+  it('validates user profile updates and only accepts uploaded avatar paths', () => {
+    expect(
+      updateUserSchema.parse({ username: 'chef', avatar: '/uploads/avatar.webp' }),
+    ).toEqual({
+      username: 'chef',
+      avatar: '/uploads/avatar.webp',
+    });
+
+    expect(updateUserSchema.parse({ avatar: null })).toEqual({ avatar: null });
+    expect(updateUserSchema.safeParse({ avatar: 'https://example.com/a.webp' }).success).toBe(false);
   });
 
   it('validates current JWT payload shape and rejects old role-only payloads', () => {

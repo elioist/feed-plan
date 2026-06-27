@@ -20,6 +20,7 @@
     "@tanstack/react-query": "catalog:frontend",
     "@tanstack/react-router": "catalog:frontend",
     "antd": "catalog:frontend",
+    "antd-img-crop": "^4.30.0",
     "clsx": "catalog:frontend",
     "dayjs": "^1.11.21",
     "ofetch": "catalog:frontend",

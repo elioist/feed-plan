@@ -11,6 +11,7 @@ interface AuthState {
   login: (input: LoginInput) => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
+  setUser: (user: AuthUser | null) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -38,4 +39,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = await api.auth.me();
     set({ user });
   },
+  setUser: (user) => set({ user }),
 }));

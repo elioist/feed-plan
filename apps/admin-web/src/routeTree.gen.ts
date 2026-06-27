@@ -16,6 +16,7 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTagsRouteImport } from './routes/_authenticated/tags'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
 import { Route as AuthenticatedMenusRouteImport } from './routes/_authenticated/menus'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
@@ -55,6 +56,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPermissionsRoute =
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/meals': typeof AuthenticatedMealsRouteWithChildren
   '/menus': typeof AuthenticatedMenusRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tags': typeof AuthenticatedTagsRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/meals': typeof AuthenticatedMealsRouteWithChildren
   '/menus': typeof AuthenticatedMenusRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tags': typeof AuthenticatedTagsRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/_authenticated/meals': typeof AuthenticatedMealsRouteWithChildren
   '/_authenticated/menus': typeof AuthenticatedMenusRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tags': typeof AuthenticatedTagsRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/meals'
     | '/menus'
     | '/permissions'
+    | '/profile'
     | '/roles'
     | '/settings'
     | '/tags'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/meals'
     | '/menus'
     | '/permissions'
+    | '/profile'
     | '/roles'
     | '/settings'
     | '/tags'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meals'
     | '/_authenticated/menus'
     | '/_authenticated/permissions'
+    | '/_authenticated/profile'
     | '/_authenticated/roles'
     | '/_authenticated/settings'
     | '/_authenticated/tags'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRolesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/permissions': {
       id: '/_authenticated/permissions'
       path: '/permissions'
@@ -298,6 +317,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRouteWithChildren
   AuthenticatedMenusRoute: typeof AuthenticatedMenusRoute
   AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTagsRoute: typeof AuthenticatedTagsRoute
@@ -311,6 +331,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMealsRoute: AuthenticatedMealsRouteWithChildren,
   AuthenticatedMenusRoute: AuthenticatedMenusRoute,
   AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTagsRoute: AuthenticatedTagsRoute,

@@ -5,6 +5,7 @@ export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   username: varchar('username', { length: 64 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  avatar: varchar('avatar', { length: 255 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

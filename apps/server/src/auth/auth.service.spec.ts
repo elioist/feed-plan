@@ -15,6 +15,7 @@ function makeService(opts: { user: UserRow | null; passwordOk: boolean }) {
         ? {
             id: opts.user.id,
             username: opts.user.username,
+            avatar: opts.user.avatar,
             roles: [
               {
                 id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -45,6 +46,7 @@ const chefRow: UserRow = {
   id: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   passwordHash: '$2b$10$hashhashhashhashhashhash',
+  avatar: null,
   createdAt: new Date(),
 };
 

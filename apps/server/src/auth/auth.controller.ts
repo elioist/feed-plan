@@ -1,4 +1,16 @@
-import { Body, Controller, Get, HttpCode, NotFoundException, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   changePasswordSchema,
   loginInputSchema,
@@ -7,12 +19,19 @@ import {
   type JwtPayload,
   type LoginInput,
   type LoginResponse,
+  type UpdateUserInput,
+  updateUserSchema,
 } from '@feed-plan/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { UsersService } from './users.service.js';
+import {
+  imageUploadInterceptorOptions,
+  saveUploadedImage,
+  type UploadedImageFile,
+} from '../uploads/image-upload.js';
 
 @Controller('auth')
 export class AuthController {
@@ -48,5 +67,28 @@ export class AuthController {
   ) {
     await this.users.changePassword(user.sub, body);
     return { ok: true };
+  }
+
+  /** 当前用户修改自己的资料 */
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Body(new ZodValidationPipe(updateUserSchema)) body: UpdateUserInput,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<AuthUser> {
+    await this.users.update(user.sub, body);
+    const current = await this.users.getAuthUser(user.sub);
+    if (!current) {
+      throw new NotFoundException('用户不存在');
+    }
+    return current;
+  }
+
+  /** 当前用户上传自己的头像图片 */
+  @Post('avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file', imageUploadInterceptorOptions))
+  uploadAvatar(@UploadedFile() file?: UploadedImageFile) {
+    return saveUploadedImage(file);
   }
 }

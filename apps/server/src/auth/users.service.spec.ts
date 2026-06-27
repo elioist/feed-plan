@@ -8,6 +8,7 @@ const dinerRow: UserRow = {
   id: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
   passwordHash: 'hashed',
+  avatar: null,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 const roleId = '33333333-3333-4333-8333-333333333333';
@@ -39,6 +40,7 @@ describe('UsersService（管理方法）', () => {
       {
         id: dinerRow.id,
         username: 'diner',
+        avatar: null,
         roles: [{ id: roleId, key: 'diner', name: '食客', description: null }],
         permissions: [],
         actions: [],
