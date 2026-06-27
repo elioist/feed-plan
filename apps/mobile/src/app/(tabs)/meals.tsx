@@ -22,7 +22,6 @@ export default function MenuScreen() {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
-  const removeItem = useCartStore((s) => s.removeItem);
   const items = useCartStore((s) => s.items);
 
   const getItemQuantity = (dishId: string) => {
@@ -31,7 +30,7 @@ export default function MenuScreen() {
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['categories'],
-    queryFn: api.categories.list,
+    queryFn: () => api.categories.list(),
   });
 
   const { data: dishes = [], isLoading } = useQuery<DishSummary[]>({
