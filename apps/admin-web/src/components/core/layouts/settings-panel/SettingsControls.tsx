@@ -9,7 +9,7 @@ import { Radio, Slider, Space, Switch, Typography } from 'antd';
 import { AppConfig } from '~/config';
 import { ContainerWidthEnum, MenuThemeEnum, MenuTypeEnum, SystemThemeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
-import { cn } from '~/lib/utils';
+import { cn } from '@feed-plan/shared';
 
 const tabStyleOptions = [
   { label: '灵动', value: 'tab-google' },

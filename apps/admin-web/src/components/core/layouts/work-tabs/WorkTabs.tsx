@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button, Dropdown } from 'antd';
-import { cn } from '~/lib/utils';
+import { cn } from '@feed-plan/shared';
 import type { MenuProps } from 'antd';
 import { useEffect } from 'react';
 import { useSettingStore } from '~/store/modules/setting';

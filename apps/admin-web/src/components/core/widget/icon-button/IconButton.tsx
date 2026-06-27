@@ -1,6 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { SvgIcon, type SvgIconProps } from '~/components/core/base/svg-icon';
-import { cn } from '~/lib/utils';
+import { cn } from '@feed-plan/shared';
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: SvgIconProps['icon'];

@@ -12,7 +12,7 @@ import {
   type AdminMenuItem,
 } from '~/components/core/layouts/navigation';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
-import { cn } from '~/lib/utils';
+import { cn } from '@feed-plan/shared';
 import { useAuthStore } from '~/store/modules/auth';
 
 const { Sider } = Layout;

@@ -10,7 +10,7 @@ import {
   type AdminRoutePath,
 } from '~/components/core/layouts/navigation';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
-import { cn } from '~/lib/utils';
+import { cn } from '@feed-plan/shared';
 import { useAuthStore } from '~/store/modules/auth';
 
 /** 取菜单项可跳转的首个路径（自身或第一个有 path 的子项） */
