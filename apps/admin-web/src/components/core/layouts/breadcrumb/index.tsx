@@ -42,9 +42,6 @@ export function Breadcrumb({ fallbackTitle, menus, pathname }: BreadcrumbProps) 
   return (
     <nav className={styles.breadcrumb} aria-label="breadcrumb">
       <ol>
-        <li>
-          <span>后台</span>
-        </li>
         {items.map((item, index) => {
           const last = index === items.length - 1;
           const clickable = isClickable(item, last);

@@ -1,0 +1,10 @@
+.view {
+  min-width: 0;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view {
+    will-change: opacity;
+  }
+}

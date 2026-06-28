@@ -33,6 +33,7 @@ catalogs:
     antd: ^6.4.4
     clsx: ^2.1.1
     jsdom: ^27.3.0
+    motion: ^12.34.0
     ofetch: ^1.5.1
     react: ^19.2.7
     react-dom: ^19.2.7

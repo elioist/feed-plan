@@ -11,6 +11,7 @@ export default defineConfig({
     alias: {
       '~': new URL('./src', import.meta.url).pathname,
     },
+    dedupe: ['react', 'react-dom', 'react/jsx-dev-runtime', 'react/jsx-runtime'],
   },
   server: {
     port: 5173,

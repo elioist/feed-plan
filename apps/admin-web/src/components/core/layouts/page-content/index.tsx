@@ -3,6 +3,7 @@ import { Button, Layout } from 'antd';
 import type { PropsWithChildren, RefObject } from 'react';
 import { useState } from 'react';
 import { BackToTop } from '~/components/core/base/back-to-top';
+import { RouteTransition } from '~/components/core/layouts/route-transition';
 import { useSettingStore } from '~/store/modules/setting';
 import styles from './styles.module.scss';
 
@@ -47,9 +48,7 @@ export function PageContent({ children, contentRef }: PageContentProps) {
             </div>
           ) : null}
         </div>
-        <div key={refreshToken} className="page-view">
-          {children}
-        </div>
+        <RouteTransition refreshToken={refreshToken}>{children}</RouteTransition>
       </div>
       <BackToTop targetId="app-main" />
     </Content>

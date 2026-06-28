@@ -23,6 +23,7 @@
     "antd-img-crop": "^4.30.0",
     "clsx": "catalog:frontend",
     "dayjs": "^1.11.21",
+    "motion": "catalog:frontend",
     "ofetch": "catalog:frontend",
     "react": "catalog:frontend",
     "react-dom": "catalog:frontend",
