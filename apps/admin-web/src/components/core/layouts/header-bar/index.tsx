@@ -4,6 +4,7 @@ import type { MenuProps } from 'antd';
 import { useMemo, useState } from 'react';
 import { AppConfig } from '~/config';
 import { SystemThemeEnum } from '~/enums/appEnum';
+import { runThemeTransition } from '~/lib/theme-transition';
 import { useSettingStore } from '~/store/modules/setting';
 import { SettingsPanel } from '~/components/core/layouts/settings-panel';
 import { SvgIcon } from '~/components/core/base/svg-icon';
@@ -221,7 +222,7 @@ export function HeaderBar() {
                     <SvgIcon icon="ri:moon-line" />
                   )
                 }
-                onClick={toggleTheme}
+                onClick={(event) => runThemeTransition(toggleTheme, event.nativeEvent)}
               />
             </Tooltip>
           ) : null}

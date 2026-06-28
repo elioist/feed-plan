@@ -19,7 +19,7 @@ export function ThemeSettings() {
             key={item.value}
             type="button"
             className={styles.previewItem}
-            onClick={() => switchTheme(item.value as SystemThemeEnum)}
+            onClick={(event) => switchTheme(item.value as SystemThemeEnum, event.nativeEvent)}
           >
             <span
               className={`${styles.previewBox} ${styles[`theme_${item.tone}`]} ${

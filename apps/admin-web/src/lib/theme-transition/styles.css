@@ -1,0 +1,44 @@
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.46s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+  animation-name: none;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+  animation-name: admin-theme-clip;
+}
+
+html.dark::view-transition-old(root) {
+  z-index: 9999;
+  animation-name: admin-theme-clip;
+  animation-direction: reverse;
+}
+
+html.dark::view-transition-new(root) {
+  z-index: 1;
+  animation-name: none;
+}
+
+@keyframes admin-theme-clip {
+  from {
+    clip-path: circle(0 at var(--theme-transition-x) var(--theme-transition-y));
+  }
+
+  to {
+    clip-path: circle(var(--theme-transition-radius) at var(--theme-transition-x) var(--theme-transition-y));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

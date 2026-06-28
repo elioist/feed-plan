@@ -1,4 +1,5 @@
 import { MenuThemeEnum, MenuTypeEnum, SystemThemeEnum } from '~/enums/appEnum';
+import { runThemeTransition } from '~/lib/theme-transition';
 import { useSettingStore } from '~/store/modules/setting';
 
 export function useSettingsHandlers() {
@@ -7,8 +8,8 @@ export function useSettingsHandlers() {
   const setMenuType = useSettingStore((state) => state.setMenuType);
   const setSystemThemeType = useSettingStore((state) => state.setSystemThemeType);
 
-  const switchTheme = (theme: SystemThemeEnum) => {
-    setSystemThemeType(theme);
+  const switchTheme = (theme: SystemThemeEnum, event?: MouseEvent) => {
+    runThemeTransition(() => setSystemThemeType(theme), event);
   };
 
   const switchMenuLayout = (type: MenuTypeEnum) => {

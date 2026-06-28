@@ -1,7 +1,7 @@
 import { ConfigProvider, App as AntdApp, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { SystemThemeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
 
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     return () => media.removeEventListener('change', updatePreference);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     root.classList.toggle('dark', isDark);
     root.classList.toggle('color-weak', colorWeak);
