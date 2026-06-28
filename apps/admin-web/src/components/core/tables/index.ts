@@ -1,5 +1,5 @@
-export { DataTable } from './DataTable';
-export type { DataTableColumn } from './DataTable';
+export { DataTable } from './data-table';
+export type { DataTableColumn } from './data-table';
 
-export { TableHeader } from './TableHeader';
-export type { TableHeaderProps } from './TableHeader';
+export { TableHeader } from './table-header';
+export type { TableHeaderProps } from './table-header';

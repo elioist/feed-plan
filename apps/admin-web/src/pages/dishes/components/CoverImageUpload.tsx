@@ -39,7 +39,7 @@ export function CoverImageUpload({ value, onChange }: CoverImageUploadProps) {
   };
 
   return (
-    <div className="cover-upload">
+    <div className="flex flex-col gap-3">
       <Dragger
         accept="image/jpeg,image/png,image/webp"
         customRequest={upload}

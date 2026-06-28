@@ -1,0 +1,59 @@
+.rail {
+  display: flex;
+  width: 64px;
+  height: 100vh;
+  flex: 0 0 64px;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  background: var(--default-box-color);
+  border-right: 1px solid var(--card-border);
+}
+
+.logo {
+  margin-bottom: 16px;
+}
+
+.list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-600);
+  font-size: 18px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--hover-color);
+  }
+
+  &:disabled {
+    color: var(--gray-300);
+    cursor: not-allowed;
+  }
+}
+
+.active {
+  color: var(--theme-color);
+  background: var(--tab-active-bg);
+}
+
+.name {
+  margin-top: 8px;
+  color: var(--gray-400);
+  font-weight: 600;
+}

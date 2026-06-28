@@ -18,8 +18,8 @@ import {
   userListQuerySchema,
 } from '@feed-plan/shared';
 import { Result } from 'antd';
-import { AppLayout } from '~/components/core/layouts/app-layout/AppLayout';
-import { AdminRouteError } from '~/components/core/errors/AdminRouteError';
+import { AppLayout } from '~/components/core/layouts/app-layout';
+import { AdminRouteError } from '~/components/core/errors/route-error';
 import { QueryProvider, ThemeProvider } from '~/providers';
 import { accessQueries } from '~/queries/access';
 import { categoryQueries } from '~/queries/categories';
@@ -204,7 +204,7 @@ function createRegisteredRoute(
   const entry = routeRegistry[menu.componentKey];
   if (!entry) {
     if (import.meta.env.DEV) {
-      console.warn(`[admin-router] 菜单 ${menu.key} 的 componentKey 未注册：${menu.componentKey}`);
+      console.warn(`[router] 菜单 ${menu.key} 的 componentKey 未注册：${menu.componentKey}`);
     }
     return null;
   }

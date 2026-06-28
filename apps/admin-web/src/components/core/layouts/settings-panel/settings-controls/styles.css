@@ -1,0 +1,31 @@
+.setting-section {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.setting-section:first-child {
+  padding-top: 0;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  color: var(--gray-700);
+}
+
+.theme-color-dot {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+
+.theme-color-dot.active {
+  border-color: var(--gray-900);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-color) 15%, transparent);
+}

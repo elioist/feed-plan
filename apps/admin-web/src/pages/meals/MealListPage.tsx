@@ -82,7 +82,7 @@ export function MealListPage() {
         onReset={resetSearch}
       />
 
-      <Card className="art-table-card">
+      <Card className="border border-(--card-border) bg-(--default-box-color) p-4 rounded-[calc(var(--custom-radius)/2+2px)]">
         <TableHeader loading={completeMutation.isPending} onRefresh={() => refetch()} />
         <DataTable<MenuDetail>
           rowKey={({ meal }) => meal.id}

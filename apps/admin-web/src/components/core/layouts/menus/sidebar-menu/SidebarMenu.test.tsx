@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { AuthMenu } from '@feed-plan/shared';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { SidebarMenu } from '~/components/core/layouts/menus/sidebar-menu/SidebarMenu';
+import { SidebarMenu } from '~/components/core/layouts/menus/sidebar-menu';
 import { useAuthStore } from '~/store/modules/auth';
 
 const routerMocks = vi.hoisted(() => ({

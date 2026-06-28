@@ -30,6 +30,7 @@ import { useCanButton } from '~/hooks/use-button-access';
 import { api } from '~/lib/api-client';
 import { getApiErrorMessage } from '~/lib/error-parser';
 import { accessQueries } from '~/queries/access';
+import './styles.css';
 
 type MenuFormValues = CreateMenuInput;
 type ButtonFormValues = Omit<CreateMenuButtonInput, 'menuId'>;
@@ -272,7 +273,7 @@ export function MenuListPage() {
         onReset={resetSearch}
       />
 
-      <Card className="art-table-card">
+      <Card className="border border-(--card-border) bg-(--default-box-color) p-4 rounded-[calc(var(--custom-radius)/2+2px)]">
         <TableHeader
           left={
             canCreate ? (

@@ -1,5 +1,6 @@
 import { Button, Space } from 'antd';
 import { useEffect, useRef } from 'react';
+import './styles.css';
 
 interface RichTextEditorProps {
   value?: string;

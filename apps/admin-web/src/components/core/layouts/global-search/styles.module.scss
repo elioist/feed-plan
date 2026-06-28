@@ -1,0 +1,41 @@
+.trigger {
+  width: 220px;
+}
+
+.kbd {
+  padding: 2px 8px;
+  color: var(--gray-500);
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+}
+
+.list {
+  margin-top: 12px;
+}
+
+.item {
+  padding-inline: 10px !important;
+  cursor: pointer;
+  border-radius: calc(var(--custom-radius) / 2 + 2px);
+
+  &:hover {
+    background: var(--gray-200);
+  }
+
+  :global(.ant-list-item-meta-avatar) {
+    display: inline-flex;
+    align-items: center;
+    color: var(--theme-color);
+    font-size: 18px;
+  }
+}
+
+.empty {
+  padding: 32px 0 8px;
+}
+
+@media only screen and (width <= 900px) {
+  .trigger {
+    display: none;
+  }
+}

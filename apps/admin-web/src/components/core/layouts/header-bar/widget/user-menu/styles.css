@@ -1,0 +1,25 @@
+.user-menu-trigger {
+  padding: 0;
+}
+
+.user-menu-trigger .ant-avatar {
+  flex: 0 0 auto;
+}
+
+.user-menu-popover .ant-dropdown-menu {
+  padding: 6px;
+  border-radius: calc(var(--custom-radius) / 2 + 4px);
+}
+
+.user-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.user-menu-head-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}

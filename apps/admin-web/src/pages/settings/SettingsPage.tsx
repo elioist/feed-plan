@@ -1,5 +1,5 @@
 import { Button, Card } from 'antd';
-import { SettingsControls } from '~/components/core/layouts/settings-panel/SettingsControls';
+import { SettingsControls } from '~/components/core/layouts/settings-panel/settings-controls';
 import { useSettingStore } from '~/store/modules/setting';
 
 export function SettingsPage() {
@@ -7,7 +7,7 @@ export function SettingsPage() {
 
   return (
     <Card
-      className="art-table-card settings-panel"
+      className="border border-(--card-border) bg-(--default-box-color) p-4 rounded-[calc(var(--custom-radius)/2+2px)] settings-panel"
       title="系统设置"
       extra={<Button onClick={resetSettings}>重置</Button>}
     >

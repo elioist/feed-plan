@@ -43,7 +43,7 @@ export function App() {
   if (!ready) {
     return (
       <ThemeProvider>
-        <div className="admin-boot-screen">
+        <div className="grid min-h-screen place-items-center bg-(--ant-color-bg-layout)">
           <Spin size="large" />
         </div>
       </ThemeProvider>

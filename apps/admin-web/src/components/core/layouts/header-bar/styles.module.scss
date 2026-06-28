@@ -1,0 +1,171 @@
+.bar {
+  height: 60px;
+  flex: 0 0 60px;
+  padding: 0;
+  line-height: 60px;
+  background: var(--default-box-color) !important;
+}
+
+.main {
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.left,
+.actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.left {
+  flex: 1;
+}
+
+.actions {
+  flex-shrink: 0;
+}
+
+.bar svg {
+  font-size: 19px;
+}
+
+.left :global(.ant-btn-text),
+.actions :global(.ant-btn-text) {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-600);
+  border-radius: 9px;
+  transition:
+    color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.left :global(.ant-btn-text):hover,
+.actions :global(.ant-btn-text):hover {
+  color: var(--theme-color);
+  background: var(--hover-color);
+}
+
+.notificationTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.notificationPanel {
+  width: 320px;
+}
+
+.popoverList {
+  width: 300px;
+}
+
+.popoverList :global(.ant-list-item) {
+  padding-inline: 0;
+}
+
+@media only screen and (width <= 900px) {
+  .main {
+    padding-inline: 12px;
+  }
+}
+
+@keyframes breathing {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+}
+
+.breathingDot {
+  animation: breathing 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate180 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes moveUp {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes expand {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.refreshButton:hover svg {
+  animation: rotate180 0.5s;
+}
+.settingButton:hover svg {
+  animation: rotate180 0.5s;
+}
+.languageButton:hover svg {
+  animation: moveUp 0.4s;
+}
+.fullScreenButton:hover svg {
+  animation: expand 0.6s forwards;
+}
+.noticeButton:hover svg {
+  animation: shake 0.5s ease-in-out;
+}
+.chatButton:hover svg {
+  animation: shake 0.5s ease-in-out;
+}

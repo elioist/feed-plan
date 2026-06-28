@@ -8,6 +8,7 @@ import { AvatarUpload } from '~/pages/users/components/AvatarUpload';
 import { api } from '~/lib/api-client';
 import { getApiErrorMessage } from '~/lib/error-parser';
 import { useAuthStore } from '~/store/modules/auth';
+import styles from './styles.module.scss';
 
 interface PasswordFormValues extends ChangePasswordInput {
   confirmPassword: string;
@@ -69,18 +70,18 @@ export function ProfilePage() {
   };
 
   return (
-    <Card className="art-table-card profile-page-card" title="个人中心">
-      <div className="profile-page">
-        <aside className="profile-summary">
+    <Card className="min-h-[calc(100vh-184px)] border border-(--card-border) bg-(--default-box-color) p-4 rounded-[calc(var(--custom-radius)/2+2px)]" title="个人中心">
+      <div className={styles.page}>
+        <aside className={styles.summary}>
           <Avatar
             size={88}
             src={avatarUrl}
             icon={!avatarUrl && <UserOutlined />}
-            className="profile-summary-avatar"
+            className={styles.avatar}
           >
             {user?.username?.charAt(0)?.toUpperCase()}
           </Avatar>
-          <div className="profile-summary-main">
+          <div className={styles.summaryMain}>
             <Typography.Title level={4}>{user?.username ?? '未登录'}</Typography.Title>
             <Typography.Text type="secondary">
               {user?.roles.map((role) => role.name).join(' / ') || '暂无角色'}
@@ -88,9 +89,9 @@ export function ProfilePage() {
           </div>
         </aside>
 
-        <div className="profile-content">
-          <section className="profile-section">
-            <div className="profile-section-head">
+        <div className={styles.content}>
+          <section className={styles.section}>
+            <div className={styles.sectionHead}>
               <Typography.Title level={5}>基础资料</Typography.Title>
               <Typography.Text type="secondary">更新头像和后台显示名称</Typography.Text>
             </div>
@@ -114,8 +115,8 @@ export function ProfilePage() {
             </Form>
           </section>
 
-          <section className="profile-section">
-            <div className="profile-section-head">
+          <section className={styles.section}>
+            <div className={styles.sectionHead}>
               <Typography.Title level={5}>账号安全</Typography.Title>
               <Typography.Text type="secondary">修改密码后需要重新登录</Typography.Text>
             </div>

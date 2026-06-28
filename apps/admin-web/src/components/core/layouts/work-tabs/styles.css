@@ -1,0 +1,207 @@
+.work-tabs {
+  display: flex;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 20px 0;
+  background: var(--default-box-color);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.work-tabs-scroll {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.work-tabs-list {
+  display: flex;
+  padding: 0 0 0 4px;
+  margin: 0;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.work-tab {
+  position: relative;
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 12px;
+  margin-right: 6px;
+  color: var(--gray-600);
+  cursor: pointer;
+  border: 0;
+  border-radius: calc(var(--custom-radius) / 2.5 + 4px);
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.work-tab::before,
+.work-tab::after {
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  content: '';
+  border-radius: 50%;
+  box-shadow: 0 0 0 30px transparent;
+}
+
+.work-tab::before {
+  left: -20px;
+  clip-path: inset(50% -10px 0 50%);
+}
+
+.work-tab::after {
+  right: -20px;
+  clip-path: inset(50% 50% 0 -10px);
+}
+
+.work-tab:hover:not(.active) {
+  box-sizing: border-box;
+  color: var(--gray-600);
+  background: var(--hover-color);
+  border-bottom: 1px solid var(--default-box-color);
+  border-radius: calc(var(--custom-radius) / 2.5 + 4px);
+}
+
+.work-tab.active {
+  z-index: 1;
+  color: var(--theme-color);
+  background: var(--tab-active-bg);
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.work-tab.active::before,
+.work-tab.active::after {
+  box-shadow: 0 0 0 30px var(--tab-active-bg);
+}
+
+.work-tab-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.work-tab-link:hover {
+  color: inherit;
+}
+
+.work-tab-icon {
+  display: inline-flex;
+  font-size: 15px;
+  color: inherit;
+}
+
+.work-tab-pin {
+  position: relative;
+  z-index: 1;
+  margin-left: 2px;
+  color: var(--theme-color);
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.work-tab-close {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-left: 2px;
+  color: var(--gray-500);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.work-tab-close:hover {
+  color: var(--gray-700);
+  background: var(--gray-300);
+}
+
+.work-tab-line {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: -4px;
+  width: 1px;
+  background: var(--gray-300);
+  transition: opacity 0.18s ease;
+}
+
+.work-tab:first-child .work-tab-line,
+.work-tab:hover .work-tab-line,
+.work-tab.active .work-tab-line,
+.work-tab:hover + .work-tab .work-tab-line,
+.work-tab.active + .work-tab .work-tab-line {
+  opacity: 0;
+}
+
+.work-tab-more {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  margin-top: -3px;
+  border-radius: 10px;
+}
+
+.work-tabs.tab-card .work-tab {
+  height: 30px;
+  margin-right: 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: var(--default-box-color);
+}
+
+.work-tabs.tab-card .work-tab::before,
+.work-tabs.tab-card .work-tab::after,
+.work-tabs.tab-simple .work-tab::before,
+.work-tabs.tab-simple .work-tab::after {
+  display: none;
+}
+
+.work-tabs.tab-card .work-tab:hover:not(.active) {
+  border-bottom: 1px solid var(--card-border);
+  border-radius: 6px;
+}
+
+.work-tabs.tab-card .work-tab.active {
+  border-color: var(--theme-color);
+  border-radius: 6px;
+  background: var(--tab-active-bg);
+}
+
+.work-tabs.tab-simple .work-tab {
+  margin-right: 4px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+}
+
+.work-tabs.tab-simple .work-tab:hover:not(.active) {
+  background: transparent;
+  border-bottom: 2px solid var(--card-border);
+  border-radius: 0;
+}
+
+.work-tabs.tab-simple .work-tab.active {
+  background: transparent;
+  border-bottom: 2px solid var(--theme-color);
+  border-radius: 0;
+}

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiError } from '~/lib/error-parser';
-import { AdminRouteError } from './AdminRouteError';
+import { AdminRouteError } from './route-error';
 
 describe('AdminRouteError', () => {
   it('renders a designed route error page with a friendly server error message', () => {

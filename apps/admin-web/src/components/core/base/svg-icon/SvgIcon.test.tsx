@@ -20,6 +20,6 @@ describe('SvgIcon', () => {
 
     const icon = screen.getByTestId('iconify');
     expect(icon).toHaveAttribute('data-icon', 'ri:arrow-up-wide-line');
-    expect(icon).toHaveClass('art-svg-icon', 'inline', 'text-lg');
+    expect(icon).toHaveClass('inline', 'text-lg');
   });
 });

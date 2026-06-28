@@ -1,0 +1,39 @@
+.main {
+  flex: 1;
+  padding: 0 0 24px;
+  overflow: visible;
+  background: var(--default-bg-color);
+}
+
+.content {
+  box-sizing: border-box;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  color: var(--theme-color);
+  background: color-mix(in srgb, var(--theme-color) 10%, var(--default-box-color));
+  border: 1px solid color-mix(in srgb, var(--theme-color) 36%, var(--card-border));
+  border-radius: calc(var(--custom-radius) / 2 + 4px);
+}
+
+.noticeClose {
+  margin-left: auto;
+  color: var(--gray-600);
+}
+
+@media only screen and (width <= 900px) {
+  .main {
+    padding-inline: 14px;
+  }
+
+  .content {
+    width: calc(100% - 30px);
+  }
+}

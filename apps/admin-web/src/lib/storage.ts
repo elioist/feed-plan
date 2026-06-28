@@ -1,13 +1,6 @@
 import { adminStorageNS } from '@feed-plan/shared';
 
-/**
- * 本地存储工具
- *
- * 参考 art-design-pro 的 storage 表面（统一前缀、JSON 序列化、get/set/remove），
- * 但省去版本化迁移与兼容检查 —— 单用户家庭应用用不上。
- *
- * ponytail: 无版本迁移；将来需要多版本数据隔离时再补 key 版本前缀。
- */
+/** 后台端本地存储封装：统一前缀、JSON 序列化、get/set/remove。 */
 
 export const storage = {
   get<T>(key: string, fallback: T): T {

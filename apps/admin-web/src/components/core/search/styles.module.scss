@@ -1,0 +1,64 @@
+.searchBar {
+  margin-bottom: 16px;
+
+  :global(.ant-card-body) {
+    padding: 15px 20px 0;
+  }
+
+  :global(.ant-form-item) {
+    margin-bottom: 12px;
+  }
+
+  :global(.ant-form-item-label) {
+    text-align: right;
+  }
+
+  :global(.ant-form-item-control) {
+    min-width: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+@media (width >= 768px) {
+  .actionCol {
+    margin-left: auto;
+  }
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  line-height: 32px;
+  color: var(--theme-color);
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #3b82f6;
+  }
+
+  span {
+    font-size: 14px;
+    user-select: none;
+  }
+}
+
+.filterIcon {
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}

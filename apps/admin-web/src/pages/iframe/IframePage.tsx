@@ -1,4 +1,5 @@
 import { Alert } from 'antd';
+import styles from './styles.module.scss';
 
 interface IframePageProps {
   title: string;
@@ -12,7 +13,7 @@ export function IframePage({ title, url }: IframePageProps) {
 
   return (
     <iframe
-      className="admin-iframe-page"
+      className={styles.page}
       src={url}
       title={title}
       referrerPolicy="no-referrer"
