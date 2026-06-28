@@ -8,7 +8,7 @@ import {
   updateUserRolesSchema,
   updateUserSchema,
 } from './auth.js';
-import { createPermissionSchema, createRoleSchema } from './roles.js';
+import { createMenuSchema, createRoleSchema } from './roles.js';
 
 describe('auth schemas', () => {
   it('validates change password input', () => {
@@ -67,15 +67,7 @@ describe('auth schemas', () => {
             description: null,
           },
         ],
-        permissions: [
-          {
-            id: '33333333-3333-4333-8333-333333333333',
-            key: 'users.manage',
-            name: '用户管理',
-            description: null,
-          },
-        ],
-        actions: ['users.manage'],
+        actions: ['system.users.create'],
         menuKeys: ['system.users'],
         buttonKeys: ['system.users.create'],
       }).success,
@@ -92,17 +84,62 @@ describe('auth schemas', () => {
 });
 
 describe('dynamic RBAC schemas', () => {
-  it('validates role and permission keys without fixed role values', () => {
+  it('validates role keys without fixed role values', () => {
     expect(
       createRoleSchema.parse({
         key: 'kitchen.manager',
         name: '厨房管理员',
-        permissionIds: [],
+        menuIds: [],
+        buttonIds: [],
       }),
-    ).toEqual({ key: 'kitchen.manager', name: '厨房管理员', permissionIds: [] });
+    ).toEqual({ key: 'kitchen.manager', name: '厨房管理员', menuIds: [], buttonIds: [] });
     expect(createRoleSchema.safeParse({ key: 'Chef', name: '主厨' }).success).toBe(false);
-    expect(createPermissionSchema.safeParse({ key: 'recipes.manage', name: '菜谱管理' }).success).toBe(
-      true,
-    );
+  });
+
+  it('validates menu route metadata by type', () => {
+    expect(
+      createMenuSchema.parse({
+        key: 'recipes.dishes',
+        title: '菜谱管理',
+        type: 'page',
+        path: '/dishes',
+        componentKey: 'recipes.dishes',
+      }),
+    ).toMatchObject({
+      key: 'recipes.dishes',
+      path: '/dishes',
+      componentKey: 'recipes.dishes',
+      layoutKey: 'admin',
+      isCache: false,
+      isTabVisible: true,
+    });
+
+    expect(
+      createMenuSchema.safeParse({
+        key: 'broken.page',
+        title: '坏页面',
+        type: 'page',
+        path: '/broken',
+      }).success,
+    ).toBe(false);
+
+    expect(
+      createMenuSchema.safeParse({
+        key: 'docs',
+        title: '文档',
+        type: 'iframe',
+        path: '/docs',
+        externalUrl: 'https://example.com/docs',
+      }).success,
+    ).toBe(true);
+
+    expect(
+      createMenuSchema.safeParse({
+        key: 'bad.link',
+        title: '坏外链',
+        type: 'link',
+        externalUrl: 'not-a-url',
+      }).success,
+    ).toBe(false);
   });
 });

@@ -9,35 +9,28 @@ import { and, asc, eq, ilike, inArray, or } from 'drizzle-orm';
 import {
   adminMenuButtons,
   adminMenus,
-  permissionActionBindings,
-  permissions,
   roleMenuButtons,
   roleMenus,
-  rolePermissions,
   roles,
   userRoles,
   type AdminMenuButtonRow,
   type AdminMenuRow,
-  type PermissionRow,
   type RoleRow,
 } from '@feed-plan/db';
 import type {
   AccessListQuery,
   AdminMenu,
+  AuthMenu,
   CreateMenuButtonInput,
   CreateMenuInput,
-  CreatePermissionInput,
   CreateRoleInput,
   MenuButton,
   MenuSummary,
-  Permission,
-  PermissionSummary,
   Role,
   RoleMenuAccess,
   RoleSummary,
   UpdateMenuButtonInput,
   UpdateMenuInput,
-  UpdatePermissionInput,
   UpdateRoleInput,
   UpdateRoleMenusInput,
 } from '@feed-plan/shared';
@@ -51,14 +44,6 @@ function toRoleSummary(row: RoleRow): RoleSummary {
   return { id: row.id, key: row.key, name: row.name, description: row.description };
 }
 
-function toPermissionSummary(row: PermissionRow): PermissionSummary {
-  return { id: row.id, key: row.key, name: row.name, description: row.description };
-}
-
-function toPermission(row: PermissionRow): Permission {
-  return { ...toPermissionSummary(row), isSystem: row.isSystem, createdAt: row.createdAt, updatedAt: row.updatedAt };
-}
-
 function toMenuSummary(row: AdminMenuRow): MenuSummary {
   return {
     id: row.id,
@@ -68,6 +53,14 @@ function toMenuSummary(row: AdminMenuRow): MenuSummary {
     path: row.path,
     icon: row.icon,
     type: row.type,
+    componentKey: row.componentKey,
+    externalUrl: row.externalUrl,
+    openInNewTab: row.openInNewTab,
+    layoutKey: row.layoutKey,
+    isCache: row.isCache,
+    isTabVisible: row.isTabVisible,
+    isAffix: row.isAffix,
+    activeMenuKey: row.activeMenuKey,
     sortOrder: row.sortOrder,
     isVisible: row.isVisible,
     isSystem: row.isSystem,
@@ -98,27 +91,15 @@ export class AccessService {
       .from(roles)
       .where(this.buildKeywordWhere(query.keyword, roles.name, roles.key))
       .orderBy(asc(roles.createdAt), asc(roles.name));
-    const permissionMap = await this.getPermissionsByRoleIds(rows.map((role) => role.id));
-    return rows.map((row) => ({
+    const accessMap = await this.getRoleAccessByRoleIds(rows.map((role) => role.id));
+    return rows.map((row): Role => ({
       ...toRoleSummary(row),
       isSystem: row.isSystem,
-      permissions: permissionMap.get(row.id) ?? [],
+      menuIds: accessMap.get(row.id)?.menuIds ?? [],
+      buttonIds: accessMap.get(row.id)?.buttonIds ?? [],
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     }));
-  }
-
-  async listPermissions(query: AccessListQuery = {}): Promise<Permission[]> {
-    const rows = await this.db
-      .select()
-      .from(permissions)
-      .where(
-        query.keyword
-          ? or(ilike(permissions.name, `%${query.keyword}%`), ilike(permissions.key, `%${query.keyword}%`))
-          : undefined,
-      )
-      .orderBy(asc(permissions.createdAt), asc(permissions.name));
-    return rows.map(toPermission);
   }
 
   async listMenus(query: AccessListQuery = {}): Promise<AdminMenu[]> {
@@ -152,6 +133,14 @@ export class AccessService {
           path: input.path ?? null,
           icon: input.icon ?? null,
           type: input.type,
+          componentKey: input.componentKey ?? null,
+          externalUrl: input.externalUrl ?? null,
+          openInNewTab: input.openInNewTab,
+          layoutKey: input.layoutKey,
+          isCache: input.isCache,
+          isTabVisible: input.isTabVisible,
+          isAffix: input.isAffix,
+          activeMenuKey: input.activeMenuKey ?? null,
           sortOrder: input.sortOrder,
           isVisible: input.isVisible,
         })
@@ -179,6 +168,14 @@ export class AccessService {
           ...(input.path !== undefined ? { path: input.path } : {}),
           ...(input.icon !== undefined ? { icon: input.icon } : {}),
           ...(input.type !== undefined ? { type: input.type } : {}),
+          ...(input.componentKey !== undefined ? { componentKey: input.componentKey } : {}),
+          ...(input.externalUrl !== undefined ? { externalUrl: input.externalUrl } : {}),
+          ...(input.openInNewTab !== undefined ? { openInNewTab: input.openInNewTab } : {}),
+          ...(input.layoutKey !== undefined ? { layoutKey: input.layoutKey } : {}),
+          ...(input.isCache !== undefined ? { isCache: input.isCache } : {}),
+          ...(input.isTabVisible !== undefined ? { isTabVisible: input.isTabVisible } : {}),
+          ...(input.isAffix !== undefined ? { isAffix: input.isAffix } : {}),
+          ...(input.activeMenuKey !== undefined ? { activeMenuKey: input.activeMenuKey } : {}),
           ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
           ...(input.isVisible !== undefined ? { isVisible: input.isVisible } : {}),
           updatedAt: new Date(),
@@ -267,7 +264,8 @@ export class AccessService {
   }
 
   async createRole(input: CreateRoleInput): Promise<Role> {
-    await this.assertPermissionsExist(input.permissionIds);
+    await this.assertMenusExist(input.menuIds);
+    await this.assertMenuButtonsExist(input.buttonIds);
     try {
       const [row] = await this.db
         .insert(roles)
@@ -278,7 +276,7 @@ export class AccessService {
         })
         .returning();
       if (!row) throw new BadRequestException('角色创建失败');
-      await this.replaceRolePermissions(row.id, input.permissionIds);
+      await this.replaceRoleMenuAccess(row.id, { menuIds: input.menuIds, buttonIds: input.buttonIds });
       return (await this.getRole(row.id))!;
     } catch (error) {
       if (isUniqueViolation(error)) throw new ConflictException('角色标识已存在');
@@ -288,7 +286,8 @@ export class AccessService {
 
   async updateRole(id: string, input: UpdateRoleInput): Promise<Role> {
     await this.assertRoleExists(id);
-    if (input.permissionIds) await this.assertPermissionsExist(input.permissionIds);
+    if (input.menuIds) await this.assertMenusExist(input.menuIds);
+    if (input.buttonIds) await this.assertMenuButtonsExist(input.buttonIds);
 
     try {
       if (input.key !== undefined || input.name !== undefined || input.description !== undefined) {
@@ -302,22 +301,17 @@ export class AccessService {
           })
           .where(eq(roles.id, id));
       }
-      if (input.permissionIds) await this.replaceRolePermissions(id, input.permissionIds);
+      if (input.menuIds || input.buttonIds) {
+        const current = await this.getRoleMenuAccess(id);
+        await this.replaceRoleMenuAccess(id, {
+          menuIds: input.menuIds ?? current.menuIds,
+          buttonIds: input.buttonIds ?? current.buttonIds,
+        });
+      }
       return (await this.getRole(id))!;
     } catch (error) {
       if (isUniqueViolation(error)) throw new ConflictException('角色标识已存在');
       throw error;
-    }
-  }
-
-  async replaceRolePermissions(roleId: string, permissionIds: string[]): Promise<void> {
-    await this.assertRoleExists(roleId);
-    await this.assertPermissionsExist(permissionIds);
-    await this.db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
-    if (permissionIds.length > 0) {
-      await this.db
-        .insert(rolePermissions)
-        .values([...new Set(permissionIds)].map((permissionId) => ({ roleId, permissionId })));
     }
   }
 
@@ -334,68 +328,16 @@ export class AccessService {
     await this.db.delete(roles).where(eq(roles.id, id));
   }
 
-  async createPermission(input: CreatePermissionInput): Promise<Permission> {
-    try {
-      const [row] = await this.db
-        .insert(permissions)
-        .values({ key: input.key, name: input.name, description: input.description ?? null })
-        .returning();
-      if (!row) throw new BadRequestException('权限点创建失败');
-      await this.grantPermissionToSuperAdmin(row.id);
-      return toPermission(row);
-    } catch (error) {
-      if (isUniqueViolation(error)) throw new ConflictException('权限点标识已存在');
-      throw error;
-    }
-  }
-
-  async updatePermission(id: string, input: UpdatePermissionInput): Promise<Permission> {
-    await this.assertPermissionExists(id);
-    try {
-      const [row] = await this.db
-        .update(permissions)
-        .set({
-          ...(input.key !== undefined ? { key: input.key } : {}),
-          ...(input.name !== undefined ? { name: input.name } : {}),
-          ...(input.description !== undefined ? { description: input.description ?? null } : {}),
-          updatedAt: new Date(),
-        })
-        .where(eq(permissions.id, id))
-        .returning();
-      if (!row) throw new NotFoundException('权限点不存在');
-      return toPermission(row);
-    } catch (error) {
-      if (isUniqueViolation(error)) throw new ConflictException('权限点标识已存在');
-      throw error;
-    }
-  }
-
-  async removePermission(id: string): Promise<void> {
-    await this.assertPermissionExists(id);
-    const usedByRole = await this.db
-      .select({ roleId: rolePermissions.roleId })
-      .from(rolePermissions)
-      .where(eq(rolePermissions.permissionId, id))
-      .limit(1);
-    if (usedByRole[0]) {
-      throw new ConflictException('该权限点仍被角色使用，不能删除');
-    }
-    await this.db.delete(permissions).where(eq(permissions.id, id));
-  }
-
   async roleIdsGrantAnyAction(roleIds: string[], actions: readonly AccessAction[]): Promise<boolean> {
     if (roleIds.length === 0 || actions.length === 0) return false;
     const rows = await this.db
-      .select({ action: permissionActionBindings.action })
-      .from(rolePermissions)
-      .innerJoin(
-        permissionActionBindings,
-        eq(rolePermissions.permissionId, permissionActionBindings.permissionId),
-      )
+      .select({ action: adminMenuButtons.action })
+      .from(roleMenuButtons)
+      .innerJoin(adminMenuButtons, eq(roleMenuButtons.buttonId, adminMenuButtons.id))
       .where(
         and(
-          inArray(rolePermissions.roleId, roleIds),
-          inArray(permissionActionBindings.action, [...actions]),
+          inArray(roleMenuButtons.roleId, roleIds),
+          inArray(adminMenuButtons.action, [...actions]),
         ),
       )
       .limit(1);
@@ -416,28 +358,14 @@ export class AccessService {
     return rows.map((row) => toRoleSummary(row.role));
   }
 
-  async getUserPermissions(userId: string): Promise<PermissionSummary[]> {
-    const rows = await this.db
-      .select({ permission: permissions })
-      .from(userRoles)
-      .innerJoin(rolePermissions, eq(userRoles.roleId, rolePermissions.roleId))
-      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-      .where(eq(userRoles.userId, userId))
-      .orderBy(asc(permissions.name));
-    return [...new Map(rows.map((row) => [row.permission.id, toPermissionSummary(row.permission)])).values()];
-  }
-
   async getUserActions(userId: string): Promise<string[]> {
     const rows = await this.db
-      .select({ action: permissionActionBindings.action })
+      .select({ action: adminMenuButtons.action })
       .from(userRoles)
-      .innerJoin(rolePermissions, eq(userRoles.roleId, rolePermissions.roleId))
-      .innerJoin(
-        permissionActionBindings,
-        eq(rolePermissions.permissionId, permissionActionBindings.permissionId),
-      )
+      .innerJoin(roleMenuButtons, eq(userRoles.roleId, roleMenuButtons.roleId))
+      .innerJoin(adminMenuButtons, eq(roleMenuButtons.buttonId, adminMenuButtons.id))
       .where(eq(userRoles.userId, userId))
-      .orderBy(asc(permissionActionBindings.action));
+      .orderBy(asc(adminMenuButtons.action));
     return [...new Set(rows.map((row) => row.action))];
   }
 
@@ -464,6 +392,63 @@ export class AccessService {
     return [...new Set(rows.map((row) => `${row.menuKey}.${row.buttonKey}`))];
   }
 
+  async getUserMenus(userId: string): Promise<AuthMenu[]> {
+    const menuRows = await this.db
+      .select({ menu: adminMenus })
+      .from(userRoles)
+      .innerJoin(roleMenus, eq(userRoles.roleId, roleMenus.roleId))
+      .innerJoin(adminMenus, eq(roleMenus.menuId, adminMenus.id))
+      .where(eq(userRoles.userId, userId))
+      .orderBy(asc(adminMenus.sortOrder), asc(adminMenus.createdAt));
+    const uniqueMenus = [...new Map(menuRows.map((row) => [row.menu.id, row.menu])).values()].filter(
+      (menu) => menu.isVisible,
+    );
+
+    const buttonRows = await this.db
+      .select({ button: adminMenuButtons })
+      .from(userRoles)
+      .innerJoin(roleMenuButtons, eq(userRoles.roleId, roleMenuButtons.roleId))
+      .innerJoin(adminMenuButtons, eq(roleMenuButtons.buttonId, adminMenuButtons.id))
+      .innerJoin(adminMenus, eq(adminMenuButtons.menuId, adminMenus.id))
+      .where(eq(userRoles.userId, userId))
+      .orderBy(asc(adminMenuButtons.sortOrder), asc(adminMenuButtons.createdAt));
+    const buttonsByMenuId = new Map<string, MenuButton[]>();
+    for (const row of buttonRows) {
+      const list = buttonsByMenuId.get(row.button.menuId) ?? [];
+      if (!list.some((button) => button.id === row.button.id)) {
+        list.push(toMenuButton(row.button));
+      }
+      buttonsByMenuId.set(row.button.menuId, list);
+    }
+
+    const nodes = new Map<string, AuthMenu>();
+    for (const menu of uniqueMenus) {
+      nodes.set(menu.id, {
+        ...toMenuSummary(menu),
+        buttons: buttonsByMenuId.get(menu.id) ?? [],
+        children: [],
+      });
+    }
+
+    const roots: AuthMenu[] = [];
+    for (const menu of uniqueMenus) {
+      const node = nodes.get(menu.id);
+      if (!node) continue;
+      const parent = menu.parentId ? nodes.get(menu.parentId) : undefined;
+      if (parent) {
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+    const sortTree = (items: AuthMenu[]) => {
+      items.sort((a, b) => a.sortOrder - b.sortOrder);
+      for (const item of items) sortTree(item.children);
+      return items;
+    };
+    return sortTree(roots);
+  }
+
   async assertRolesExist(roleIds: string[]): Promise<void> {
     const uniqueRoleIds = [...new Set(roleIds)];
     if (uniqueRoleIds.length === 0) return;
@@ -477,11 +462,12 @@ export class AccessService {
     const rows = await this.db.select().from(roles).where(eq(roles.id, id)).limit(1);
     const row = rows[0];
     if (!row) return null;
-    const permissionMap = await this.getPermissionsByRoleIds([id]);
+    const access = await this.getRoleMenuAccess(id);
     return {
       ...toRoleSummary(row),
       isSystem: row.isSystem,
-      permissions: permissionMap.get(id) ?? [],
+      menuIds: access.menuIds,
+      buttonIds: access.buttonIds,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -500,19 +486,26 @@ export class AccessService {
     };
   }
 
-  private async getPermissionsByRoleIds(roleIds: string[]): Promise<Map<string, PermissionSummary[]>> {
-    if (roleIds.length === 0) return new Map();
-    const rows = await this.db
-      .select({ roleId: rolePermissions.roleId, permission: permissions })
-      .from(rolePermissions)
-      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-      .where(inArray(rolePermissions.roleId, roleIds))
-      .orderBy(asc(permissions.name));
-    const map = new Map<string, PermissionSummary[]>();
-    for (const row of rows) {
-      const list = map.get(row.roleId) ?? [];
-      list.push(toPermissionSummary(row.permission));
-      map.set(row.roleId, list);
+  private async getRoleAccessByRoleIds(roleIds: string[]): Promise<Map<string, RoleMenuAccess>> {
+    const map = new Map<string, RoleMenuAccess>();
+    if (roleIds.length === 0) return map;
+    const menuRows = await this.db
+      .select({ roleId: roleMenus.roleId, menuId: roleMenus.menuId })
+      .from(roleMenus)
+      .where(inArray(roleMenus.roleId, roleIds));
+    for (const row of menuRows) {
+      const access = map.get(row.roleId) ?? { menuIds: [], buttonIds: [] };
+      access.menuIds.push(row.menuId);
+      map.set(row.roleId, access);
+    }
+    const buttonRows = await this.db
+      .select({ roleId: roleMenuButtons.roleId, buttonId: roleMenuButtons.buttonId })
+      .from(roleMenuButtons)
+      .where(inArray(roleMenuButtons.roleId, roleIds));
+    for (const row of buttonRows) {
+      const access = map.get(row.roleId) ?? { menuIds: [], buttonIds: [] };
+      access.buttonIds.push(row.buttonId);
+      map.set(row.roleId, access);
     }
     return map;
   }
@@ -538,15 +531,6 @@ export class AccessService {
     if (!rows[0]) throw new NotFoundException('角色不存在');
   }
 
-  private async assertPermissionExists(id: string): Promise<void> {
-    const rows = await this.db
-      .select({ id: permissions.id })
-      .from(permissions)
-      .where(eq(permissions.id, id))
-      .limit(1);
-    if (!rows[0]) throw new NotFoundException('权限点不存在');
-  }
-
   private async assertMenuExists(id: string): Promise<void> {
     const rows = await this.db.select({ id: adminMenus.id }).from(adminMenus).where(eq(adminMenus.id, id)).limit(1);
     if (!rows[0]) throw new NotFoundException('菜单不存在');
@@ -568,12 +552,6 @@ export class AccessService {
       .where(eq(roles.key, SUPER_ADMIN_ROLE_KEY))
       .limit(1);
     return rows[0]?.id ?? null;
-  }
-
-  private async grantPermissionToSuperAdmin(permissionId: string): Promise<void> {
-    const roleId = await this.getSuperAdminRoleId();
-    if (!roleId) return;
-    await this.db.insert(rolePermissions).values({ roleId, permissionId }).onConflictDoNothing();
   }
 
   private async grantMenuToSuperAdmin(menuId: string): Promise<void> {
@@ -605,17 +583,6 @@ export class AccessService {
     if (rows.length !== uniqueButtonIds.length) throw new BadRequestException('按钮不存在');
   }
 
-  private async assertPermissionsExist(permissionIds: string[]): Promise<void> {
-    const uniquePermissionIds = [...new Set(permissionIds)];
-    if (uniquePermissionIds.length === 0) return;
-    const rows = await this.db
-      .select({ id: permissions.id })
-      .from(permissions)
-      .where(inArray(permissions.id, uniquePermissionIds));
-    if (rows.length !== uniquePermissionIds.length) {
-      throw new BadRequestException('权限点不存在');
-    }
-  }
   private buildKeywordWhere(keyword: string | undefined, nameColumn: typeof roles.name, keyColumn: typeof roles.key) {
     if (!keyword) return undefined;
     const pattern = `%${keyword}%`;

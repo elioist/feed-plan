@@ -28,8 +28,7 @@ const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
-  permissions: [{ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', key: 'recipes.manage', name: '菜谱管理', description: null }],
-  actions: ['recipes.manage'],
+  actions: ['recipes.dishes.manage'],
   menuKeys: [],
   buttonKeys: [],
 };
@@ -38,7 +37,6 @@ const diner: JwtPayload = {
   sub: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
   roles: [{ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', key: 'diner', name: '食客', description: null }],
-  permissions: [],
   actions: [],
 };
 const category: CategoryRow = {

@@ -11,14 +11,6 @@ const validPayload: JwtPayload = {
   sub: '11111111-1111-4111-8111-111111111111',
   username: 'chef',
   roles: [{ id: '22222222-2222-4222-8222-222222222222', key: 'chef', name: '主厨', description: null }],
-  permissions: [
-    {
-      id: '33333333-3333-4333-8333-333333333333',
-      key: 'users.manage',
-      name: '用户管理',
-      description: null,
-    },
-  ],
   actions: [ACCESS_ACTIONS.usersManage],
   menuKeys: [],
   buttonKeys: [],

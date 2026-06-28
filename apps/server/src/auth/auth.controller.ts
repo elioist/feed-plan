@@ -15,6 +15,7 @@ import {
   changePasswordSchema,
   loginInputSchema,
   type AuthUser,
+  type AuthMenu,
   type ChangePasswordInput,
   type JwtPayload,
   type LoginInput,
@@ -27,6 +28,7 @@ import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { UsersService } from './users.service.js';
+import { AccessService } from './access.service.js';
 import {
   imageUploadInterceptorOptions,
   saveUploadedImage,
@@ -38,6 +40,7 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly users: UsersService,
+    private readonly access: AccessService,
   ) {}
 
   /** 账号密码登录，返回 JWT 与用户信息 */
@@ -56,6 +59,13 @@ export class AuthController {
       throw new NotFoundException('用户不存在');
     }
     return current;
+  }
+
+  /** 获取当前用户可访问的后台菜单/路由清单 */
+  @Get('menus')
+  @UseGuards(JwtAuthGuard)
+  menus(@CurrentUser() user: JwtPayload): Promise<AuthMenu[]> {
+    return this.access.getUserMenus(user.sub);
   }
 
   /** 当前用户修改自己的密码 */

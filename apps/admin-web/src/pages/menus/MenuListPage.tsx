@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { CaretDownOutlined, CaretRightOutlined } from '@ant-design/icons';
+import { Icon } from '@iconify/react';
 import {
   App as AntdApp,
   Button,
@@ -25,6 +25,7 @@ import {
 } from '@feed-plan/shared';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
 import { DataTable, TableHeader } from '~/components/core/tables';
+import { IconSelect } from './components/IconSelect';
 import { useCanButton } from '~/hooks/use-button-access';
 import { api } from '~/lib/api-client';
 import { getApiErrorMessage } from '~/lib/error-parser';
@@ -36,7 +37,14 @@ type MenuTreeNode = AdminMenu & { children?: MenuTreeNode[] };
 
 const menuTypeOptions = [
   { label: '目录', value: 'directory' },
-  { label: '页面', value: 'page' },
+  { label: '内部页面', value: 'page' },
+  { label: 'iframe', value: 'iframe' },
+  { label: '外链', value: 'link' },
+];
+
+const layoutOptions = [
+  { label: '后台布局', value: 'admin' },
+  { label: '空白布局', value: 'blank' },
 ];
 
 function getParentTitle(menus: AdminMenu[], parentId: string | null) {
@@ -64,8 +72,13 @@ function buildMenuTree(menus: AdminMenu[]): MenuTreeNode[] {
   return roots;
 }
 
+function emptyToNull(value: string | null | undefined) {
+  const text = value?.trim();
+  return text ? text : null;
+}
+
 export function MenuListPage() {
-  const search = useSearch({ from: '/_authenticated/menus' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canCreate = canButton('system.menus', 'create');
@@ -143,12 +156,12 @@ export function MenuListPage() {
   });
 
   const updateSearch = async (values: AccessListQuery) => {
-    await navigate({ to: '/menus', search: values });
+    await navigate({ to: '/menus' as never, search: values as never });
   };
 
   const resetSearch = async () => {
     searchForm.resetFields();
-    await navigate({ to: '/menus', search: {} });
+    await navigate({ to: '/menus' as never, search: {} as never });
   };
 
   const openMenuDrawer = (menu?: AdminMenu) => {
@@ -163,10 +176,27 @@ export function MenuListPage() {
             path: menu.path,
             icon: menu.icon,
             type: menu.type,
+            componentKey: menu.componentKey,
+            externalUrl: menu.externalUrl,
+            openInNewTab: menu.openInNewTab,
+            layoutKey: menu.layoutKey,
+            isCache: menu.isCache,
+            isTabVisible: menu.isTabVisible,
+            isAffix: menu.isAffix,
+            activeMenuKey: menu.activeMenuKey,
             sortOrder: menu.sortOrder,
             isVisible: menu.isVisible,
           }
-        : { type: 'page', sortOrder: 0, isVisible: true },
+        : {
+            type: 'page',
+            openInNewTab: false,
+            layoutKey: 'admin',
+            isCache: false,
+            isTabVisible: true,
+            isAffix: false,
+            sortOrder: 0,
+            isVisible: true,
+          },
     );
   };
 
@@ -205,7 +235,16 @@ export function MenuListPage() {
   };
 
   const saveMenu = async () => {
-    saveMenuMutation.mutate(await menuForm.validateFields());
+    const values = await menuForm.validateFields();
+    saveMenuMutation.mutate({
+      ...values,
+      activeMenuKey: emptyToNull(values.activeMenuKey),
+      componentKey: emptyToNull(values.componentKey),
+      externalUrl: emptyToNull(values.externalUrl),
+      icon: emptyToNull(values.icon),
+      parentId: values.parentId ?? null,
+      path: emptyToNull(values.path),
+    });
   };
 
   const saveButton = async () => {
@@ -257,7 +296,7 @@ export function MenuListPage() {
                   type="text"
                   size="small"
                   className="menu-tree-expand"
-                  icon={expanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
+                  icon={<Icon icon={expanded ? 'lucide:chevron-down' : 'lucide:chevron-right'} width={14} height={14} />}
                   onClick={(event) => onExpand(record, event)}
                 />
               ) : (
@@ -292,10 +331,13 @@ export function MenuListPage() {
             {
               title: '类型',
               width: 100,
-              render: (_, menu) =>
-                menu.type === 'directory' ? <Tag>目录</Tag> : <Tag color="blue">页面</Tag>,
+              render: (_, menu) => {
+                const label = menuTypeOptions.find((item) => item.value === menu.type)?.label ?? menu.type;
+                return <Tag color={menu.type === 'directory' ? undefined : 'blue'}>{label}</Tag>;
+              },
             },
             { title: '路径', dataIndex: 'path', render: (_, menu) => menu.path ?? '-' },
+            { title: '组件', dataIndex: 'componentKey', render: (_, menu) => menu.componentKey ?? '-' },
             { title: '排序', dataIndex: 'sortOrder', width: 90 },
             {
               title: '状态',
@@ -380,7 +422,16 @@ export function MenuListPage() {
         <Form
           form={menuForm}
           layout="vertical"
-          initialValues={{ type: 'page', sortOrder: 0, isVisible: true }}
+          initialValues={{
+            type: 'page',
+            openInNewTab: false,
+            layoutKey: 'admin',
+            isCache: false,
+            isTabVisible: true,
+            isAffix: false,
+            sortOrder: 0,
+            isVisible: true,
+          }}
         >
           <Form.Item label="上级菜单" name="parentId">
             <Select allowClear options={parentOptions} placeholder="不选则为一级菜单" />
@@ -409,8 +460,20 @@ export function MenuListPage() {
           <Form.Item label="访问路径" name="path">
             <Input maxLength={128} placeholder="例如 /users，目录可留空" />
           </Form.Item>
-          <Form.Item label="图标名" name="icon">
-            <Input maxLength={64} placeholder="例如 UserOutlined" />
+          <Form.Item label="组件标识" name="componentKey">
+            <Input maxLength={64} placeholder="例如 system.users，目录 / iframe / 外链可留空" />
+          </Form.Item>
+          <Form.Item label="外链地址" name="externalUrl">
+            <Input maxLength={512} placeholder="iframe 或外链菜单使用，例如 https://example.com" />
+          </Form.Item>
+          <Form.Item label="外链新窗口打开" name="openInNewTab" valuePropName="checked">
+            <Switch checkedChildren="新窗口" unCheckedChildren="当前页" />
+          </Form.Item>
+          <Form.Item label="布局" name="layoutKey">
+            <Select options={layoutOptions} />
+          </Form.Item>
+          <Form.Item label="图标" name="icon">
+            <IconSelect />
           </Form.Item>
           <Form.Item
             label="排序值"
@@ -421,6 +484,18 @@ export function MenuListPage() {
           </Form.Item>
           <Form.Item label="菜单可见" name="isVisible" valuePropName="checked">
             <Switch checkedChildren="显示" unCheckedChildren="隐藏" />
+          </Form.Item>
+          <Form.Item label="缓存页面" name="isCache" valuePropName="checked">
+            <Switch checkedChildren="缓存" unCheckedChildren="不缓存" />
+          </Form.Item>
+          <Form.Item label="显示标签页" name="isTabVisible" valuePropName="checked">
+            <Switch checkedChildren="显示" unCheckedChildren="隐藏" />
+          </Form.Item>
+          <Form.Item label="固定标签页" name="isAffix" valuePropName="checked">
+            <Switch checkedChildren="固定" unCheckedChildren="普通" />
+          </Form.Item>
+          <Form.Item label="激活菜单" name="activeMenuKey">
+            <Input maxLength={64} placeholder="隐藏页或详情页可填写要高亮的菜单 key" />
           </Form.Item>
         </Form>
       </Drawer>

@@ -14,7 +14,6 @@ const dinerRow: UserRow = {
 const roleId = '33333333-3333-4333-8333-333333333333';
 const access = {
   getUserRoles: vi.fn().mockResolvedValue([{ id: roleId, key: 'diner', name: '食客', description: null }]),
-  getUserPermissions: vi.fn().mockResolvedValue([]),
   getUserActions: vi.fn().mockResolvedValue([]),
   getUserMenuKeys: vi.fn().mockResolvedValue([]),
   getUserButtonKeys: vi.fn().mockResolvedValue([]),
@@ -42,7 +41,6 @@ describe('UsersService（管理方法）', () => {
         username: 'diner',
         avatar: null,
         roles: [{ id: roleId, key: 'diner', name: '食客', description: null }],
-        permissions: [],
         actions: [],
         menuKeys: [],
         buttonKeys: [],

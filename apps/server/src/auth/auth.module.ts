@@ -7,7 +7,6 @@ import { UsersService } from './users.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { AccessGuard } from './access.guard.js';
 import { RolesController } from './roles.controller.js';
-import { PermissionsController } from './permissions.controller.js';
 import { MenusController } from './menus.controller.js';
 import { AccessService } from './access.service.js';
 import { DrizzleModule } from '../drizzle/drizzle.module.js';
@@ -18,7 +17,7 @@ import { DrizzleModule } from '../drizzle/drizzle.module.js';
  */
 @Module({
   imports: [JwtModule.register({}), DrizzleModule],
-  controllers: [AuthController, UsersController, RolesController, PermissionsController, MenusController],
+  controllers: [AuthController, UsersController, RolesController, MenusController],
   providers: [AuthService, UsersService, AccessService, JwtAuthGuard, AccessGuard],
   exports: [JwtAuthGuard, AccessGuard, AccessService, JwtModule],
 })

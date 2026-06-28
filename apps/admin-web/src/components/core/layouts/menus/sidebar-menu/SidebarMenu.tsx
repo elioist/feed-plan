@@ -5,12 +5,12 @@ import { Logo } from '~/components/core/base/logo/Logo';
 import { MenuThemeEnum, MenuWidth } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
 import {
-  findActiveTopKey,
-  getAuthorizedMenus,
+  buildMenusFromApi,
   getOpenMenuKeys,
   getRouteMeta,
+  findActiveTopKey,
   type AdminMenuItem,
-} from '~/components/core/layouts/navigation';
+} from '~/routes/core/menu-processor';
 import { toMenuItems } from '~/components/core/layouts/menus/menu-items';
 import { cn } from '@feed-plan/shared';
 import { useAuthStore } from '~/store/modules/auth';
@@ -26,15 +26,16 @@ interface SidebarMenuProps {
 
 export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const activeRoute = getRouteMeta(pathname);
-  const user = useAuthStore((state) => state.user);
   const menuOpen = useSettingStore((state) => state.menuOpen);
   const menuOpenWidth = useSettingStore((state) => state.menuOpenWidth);
   const menuThemeType = useSettingStore((state) => state.menuThemeType);
   const isDark = menuThemeType === MenuThemeEnum.DARK;
+  const routeMenus = useAuthStore((state) => state.routeMenus);
 
-  const menus = items ?? getAuthorizedMenus({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] });
-  const activeMenuKey = findActiveTopKey(pathname, menus);
+  const dynamicMenus = buildMenusFromApi(routeMenus);
+  const finalMenus = items ?? dynamicMenus;
+  const activeRoute = getRouteMeta(pathname, finalMenus);
+  const activeMenuKey = findActiveTopKey(pathname, finalMenus);
   const selectedKeys = [activeRoute.path, activeMenuKey].filter((key): key is string => Boolean(key));
 
   return (
@@ -58,9 +59,9 @@ export function SidebarMenu({ items, showLogo = true }: SidebarMenuProps) {
           mode="inline"
           theme={isDark ? 'dark' : 'light'}
           inlineCollapsed={!menuOpen}
-          defaultOpenKeys={getOpenMenuKeys(pathname)}
+          defaultOpenKeys={getOpenMenuKeys(pathname, finalMenus)}
           selectedKeys={selectedKeys}
-          items={toMenuItems(menus)}
+          items={toMenuItems(finalMenus)}
         />
       </div>
     </Sider>

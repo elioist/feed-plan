@@ -23,20 +23,6 @@ export const roles = pgTable(
   (table) => [uniqueIndex('roles_key_unique').on(table.key)],
 );
 
-export const permissions = pgTable(
-  'permissions',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    key: varchar('key', { length: 64 }).notNull(),
-    name: varchar('name', { length: 64 }).notNull(),
-    description: varchar('description', { length: 255 }),
-    isSystem: boolean('is_system').notNull().default(false),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [uniqueIndex('permissions_key_unique').on(table.key)],
-);
-
 export const userRoles = pgTable(
   'user_roles',
   {
@@ -51,32 +37,6 @@ export const userRoles = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.roleId] })],
 );
 
-export const rolePermissions = pgTable(
-  'role_permissions',
-  {
-    roleId: uuid('role_id')
-      .notNull()
-      .references(() => roles.id, { onDelete: 'cascade' }),
-    permissionId: uuid('permission_id')
-      .notNull()
-      .references(() => permissions.id, { onDelete: 'restrict' }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [primaryKey({ columns: [table.roleId, table.permissionId] })],
-);
-
-export const permissionActionBindings = pgTable(
-  'permission_action_bindings',
-  {
-    permissionId: uuid('permission_id')
-      .notNull()
-      .references(() => permissions.id, { onDelete: 'cascade' }),
-    action: varchar('action', { length: 96 }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [primaryKey({ columns: [table.permissionId, table.action] })],
-);
-
 export const adminMenus = pgTable(
   'admin_menus',
   {
@@ -86,7 +46,15 @@ export const adminMenus = pgTable(
     title: varchar('title', { length: 64 }).notNull(),
     path: varchar('path', { length: 128 }),
     icon: varchar('icon', { length: 64 }),
-    type: varchar('type', { length: 16 }).notNull().$type<'directory' | 'page'>(),
+    type: varchar('type', { length: 16 }).notNull().$type<'directory' | 'page' | 'iframe' | 'link'>(),
+    componentKey: varchar('component_key', { length: 64 }),
+    externalUrl: varchar('external_url', { length: 512 }),
+    openInNewTab: boolean('open_in_new_tab').notNull().default(false),
+    layoutKey: varchar('layout_key', { length: 32 }).notNull().default('admin').$type<'admin' | 'blank'>(),
+    isCache: boolean('is_cache').notNull().default(false),
+    isTabVisible: boolean('is_tab_visible').notNull().default(true),
+    isAffix: boolean('is_affix').notNull().default(false),
+    activeMenuKey: varchar('active_menu_key', { length: 64 }),
     sortOrder: integer('sort_order').notNull().default(0),
     isVisible: boolean('is_visible').notNull().default(true),
     isSystem: boolean('is_system').notNull().default(false),
@@ -115,6 +83,7 @@ export const adminMenuButtons = pgTable(
   },
   (table) => [
     uniqueIndex('admin_menu_buttons_menu_id_key_unique').on(table.menuId, table.key),
+    uniqueIndex('admin_menu_buttons_action_unique').on(table.action),
   ],
 );
 
@@ -149,6 +118,5 @@ export const roleMenuButtons = pgTable(
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type RoleRow = typeof roles.$inferSelect;
-export type PermissionRow = typeof permissions.$inferSelect;
 export type AdminMenuRow = typeof adminMenus.$inferSelect;
 export type AdminMenuButtonRow = typeof adminMenuButtons.$inferSelect;

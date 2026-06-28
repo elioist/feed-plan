@@ -54,17 +54,6 @@ const fakeUsers = {
           ? { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }
           : { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', key: 'diner', name: '食客', description: null },
       ],
-      permissions:
-        id === chefRow.id
-          ? [
-              {
-                id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-                key: 'users.manage',
-                name: '用户管理',
-                description: null,
-              },
-            ]
-          : [],
       actions: id === chefRow.id ? [ACCESS_ACTIONS.usersManage] : [],
       menuKeys: [],
       buttonKeys: [],
@@ -73,6 +62,40 @@ const fakeUsers = {
   update: vi.fn(),
   verifyPassword: (plain: string): Promise<boolean> => Promise.resolve(plain === 'good'),
 };
+
+function collectParamValues(node: unknown, values: unknown[] = []): unknown[] {
+  if (!node || typeof node !== 'object') return values;
+  if ('value' in node && 'encoder' in node) {
+    values.push((node as { value: unknown }).value);
+  }
+  const chunks = (node as { queryChunks?: unknown[] }).queryChunks;
+  if (Array.isArray(chunks)) {
+    chunks.forEach((chunk) => collectParamValues(chunk, values));
+  }
+  return values;
+}
+
+function makeAccessDb(actionsByUserId: Record<string, string[]>) {
+  return {
+    select: () => ({
+      from: () => {
+        const query = {
+          innerJoin: () => query,
+          where: async (condition: unknown) => {
+            const values = collectParamValues(condition);
+            const userId = values.find((value) => typeof value === 'string' && value in actionsByUserId);
+            const actions = values.flatMap((value) => (Array.isArray(value) ? value : []));
+            const userActions = actionsByUserId[String(userId)] ?? [];
+            return (actions.length > 0 ? userActions.filter((action) => actions.includes(action)) : userActions).map(
+              (action) => ({ action }),
+            );
+          },
+        };
+        return query;
+      },
+    }),
+  };
+}
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -92,13 +115,7 @@ describe('Auth (e2e)', () => {
       .overrideProvider(UsersService)
       .useValue(fakeUsers)
       .overrideProvider(DRIZZLE)
-      .useValue({
-        select: () => ({
-          from: () => ({
-            where: async () => [{ action: ACCESS_ACTIONS.usersManage }],
-          }),
-        }),
-      })
+      .useValue(makeAccessDb({ [chefRow.id]: [ACCESS_ACTIONS.usersManage], [dinerRow.id]: [] }))
       .compile();
 
     app = moduleRef.createNestApplication();

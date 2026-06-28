@@ -13,7 +13,7 @@ import { categoryQueries } from '~/queries/categories';
 type CategoryFormValues = CreateCategoryInput;
 
 export function CategoryListPage() {
-  const search = useSearch({ from: '/_authenticated/categories' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canCreate = canButton('recipes.categories', 'create');
@@ -52,12 +52,12 @@ export function CategoryListPage() {
   });
 
   const updateSearch = async (values: CategoryListQuery) => {
-    await navigate({ to: '/categories', search: values });
+    await navigate({ to: '/categories' as never, search: values as never });
   };
 
   const resetSearch = async () => {
     searchForm.resetFields();
-    await navigate({ to: '/categories', search: {} });
+    await navigate({ to: '/categories' as never, search: {} as never });
   };
 
   const openDrawer = (category?: Category) => {

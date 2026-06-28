@@ -1,6 +1,6 @@
 import { Layout } from 'antd';
 import type { PropsWithChildren, ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useAuthStore } from '~/store/modules/auth';
 import { MenuTypeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
@@ -10,19 +10,17 @@ import { IconRail, TopMenu } from '~/components/core/layouts/menus/top-nav';
 import { PageContent } from '~/components/core/layouts/page-content/PageContent';
 import { WorkTabs } from '~/components/core/layouts/work-tabs/WorkTabs';
 import { useRouterState } from '@tanstack/react-router';
-import { getActiveTopKey, getAuthorizedMenus, getSubMenus } from '~/components/core/layouts/navigation';
+import {
+  buildMenusFromApi,
+  getActiveTopKey,
+  getSubMenus,
+} from '~/routes/core/menu-processor';
 
 export function AppLayout({ children }: PropsWithChildren) {
-  const restoreSession = useAuthStore((state) => state.restoreSession);
-  const user = useAuthStore((state) => state.user);
-  const access = { actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] };
+  const routeMenus = useAuthStore((state) => state.routeMenus);
   const menuType = useSettingStore((state) => state.menuType);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    void restoreSession();
-  }, [restoreSession]);
 
   const main = (
     <Layout id="app-main" className="admin-main">
@@ -34,8 +32,8 @@ export function AppLayout({ children }: PropsWithChildren) {
     </Layout>
   );
 
-  const authorizedMenus = getAuthorizedMenus(access);
-  const subMenus = getSubMenus(getActiveTopKey(pathname, authorizedMenus), authorizedMenus);
+  const dynamicMenus = buildMenusFromApi(routeMenus);
+  const subMenus = getSubMenus(getActiveTopKey(pathname, dynamicMenus), dynamicMenus);
 
   let body: ReactNode;
   if (menuType === MenuTypeEnum.TOP) {

@@ -232,7 +232,6 @@ export class UsersService {
       username: row.username,
       avatar: row.avatar ?? null,
       roles: await this.access.getUserRoles(row.id),
-      permissions: await this.access.getUserPermissions(row.id),
       actions: await this.access.getUserActions(row.id),
       menuKeys: await this.access.getUserMenuKeys(row.id),
       buttonKeys: await this.access.getUserButtonKeys(row.id),

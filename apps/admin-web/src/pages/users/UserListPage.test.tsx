@@ -11,7 +11,6 @@ const currentUser: AuthUser = {
   roles: [
     { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null },
   ],
-  permissions: [],
   actions: ['users.manage'],
   menuKeys: [],
   buttonKeys: [
@@ -37,7 +36,6 @@ const users: AdminUser[] = [
     id: '22222222-2222-2222-2222-222222222222',
     username: 'diner',
     roles: [dinerRole],
-    permissions: [],
     actions: [],
     menuKeys: [],
     buttonKeys: [],
@@ -152,14 +150,16 @@ describe('UserListPage', () => {
           data: [
             {
               ...currentUser.roles[0],
-              permissions: [],
+              menuIds: [],
+              buttonIds: [],
               isSystem: true,
               createdAt: new Date(),
               updatedAt: new Date(),
             },
             {
               ...dinerRole,
-              permissions: [],
+              menuIds: [],
+              buttonIds: [],
               isSystem: true,
               createdAt: new Date(),
               updatedAt: new Date(),

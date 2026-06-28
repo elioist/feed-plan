@@ -46,7 +46,7 @@ const toUrlSearch = (values: DishListQuery): DishListQuery => {
 };
 
 export function DishListPage() {
-  const search = useSearch({ from: '/_authenticated/dishes' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canCreate = canButton('recipes.dishes', 'create');
@@ -129,14 +129,14 @@ export function DishListPage() {
 
   const updateSearch = async (values: typeof search) => {
     await navigate({
-      to: '/dishes',
-      search: toUrlSearch(values),
+      to: '/dishes' as never,
+      search: toUrlSearch(values) as never,
     });
   };
 
   const resetSearch = async () => {
     filterForm.resetFields();
-    await navigate({ to: '/dishes', search: {} });
+    await navigate({ to: '/dishes' as never, search: {} as never });
   };
 
   const submitDish = (input: CreateDishInput) => {

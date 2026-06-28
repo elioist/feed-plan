@@ -3,14 +3,12 @@ import {
   accessListQuerySchema,
   createRoleSchema,
   idParamSchema,
-  updateRolePermissionsSchema,
   updateRoleSchema,
   type AccessListQuery,
   type CreateRoleInput,
   type IdParam,
   type Role,
   type UpdateRoleInput,
-  type UpdateRolePermissionsInput,
 } from '@feed-plan/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
 import { AccessGuard } from './access.guard.js';
@@ -41,15 +39,6 @@ export class RolesController {
     @Body(new ZodValidationPipe(updateRoleSchema)) body: UpdateRoleInput,
   ): Promise<Role> {
     return this.access.updateRole(params.id, body);
-  }
-
-  @Patch(':id/permissions')
-  async updatePermissions(
-    @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
-    @Body(new ZodValidationPipe(updateRolePermissionsSchema)) body: UpdateRolePermissionsInput,
-  ) {
-    await this.access.replaceRolePermissions(params.id, body.permissionIds);
-    return { ok: true };
   }
 
   @Delete(':id')

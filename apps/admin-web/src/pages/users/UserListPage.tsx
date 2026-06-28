@@ -30,7 +30,7 @@ import { userQueries } from '~/queries/users';
 import { useAuthStore } from '~/store/modules/auth';
 
 export function UserListPage() {
-  const search = useSearch({ from: '/_authenticated/users' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canCreate = canButton('system.users', 'create');
@@ -56,12 +56,12 @@ export function UserListPage() {
   };
 
   const updateSearch = async (values: UserListQuery) => {
-    await navigate({ to: '/users', search: values });
+    await navigate({ to: '/users' as never, search: values as never });
   };
 
   const resetSearch = async () => {
     searchForm.resetFields();
-    await navigate({ to: '/users', search: {} });
+    await navigate({ to: '/users' as never, search: {} as never });
   };
 
   const createMutation = useMutation({

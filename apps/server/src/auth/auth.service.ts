@@ -32,7 +32,6 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       roles: authUser.roles,
-      permissions: authUser.permissions,
       actions: authUser.actions,
       menuKeys: authUser.menuKeys,
       buttonKeys: authUser.buttonKeys,

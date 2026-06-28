@@ -4,11 +4,8 @@ import {
   adminMenuButtons,
   adminMenus,
   createDb,
-  permissionActionBindings,
-  permissions,
   roleMenuButtons,
   roleMenus,
-  rolePermissions,
   roles,
   tags,
   userRoles,
@@ -17,69 +14,17 @@ import {
 } from '@feed-plan/db';
 import { ACCESS_ACTIONS } from './auth/access-actions.js';
 
-const bootstrapPermissions = [
-  {
-    key: 'users.manage',
-    name: '用户管理',
-    description: '新增、搜索、删除用户，维护用户角色和重置他人密码。',
-    action: ACCESS_ACTIONS.usersManage,
-  },
-  {
-    key: 'roles.manage',
-    name: '角色管理',
-    description: '新增、搜索、编辑、删除角色，并维护角色权限点。',
-    action: ACCESS_ACTIONS.rolesManage,
-  },
-  {
-    key: 'permissions.manage',
-    name: '权限点管理',
-    description: '新增、搜索、编辑、删除权限点。',
-    action: ACCESS_ACTIONS.permissionsManage,
-  },
-  {
-    key: 'menus.manage',
-    name: '菜单管理',
-    description: '维护后台菜单、页面入口和菜单内按钮授权。',
-    action: ACCESS_ACTIONS.menusManage,
-  },
-  {
-    key: 'recipes.manage',
-    name: '菜谱管理',
-    description: '新增、编辑、删除、停用菜谱和分类。',
-    action: ACCESS_ACTIONS.recipesManage,
-  },
-  {
-    key: 'tags.manage',
-    name: '标签管理',
-    description: '新增、搜索、编辑、删除菜谱标签。',
-    action: ACCESS_ACTIONS.tagsManage,
-  },
-  {
-    key: 'uploads.manage',
-    name: '上传管理',
-    description: '上传菜谱图片等服务端资源。',
-    action: ACCESS_ACTIONS.uploadsManage,
-  },
-  {
-    key: 'meals.complete',
-    name: '结单管理',
-    description: '完成本次点餐并锁定场次。',
-    action: ACCESS_ACTIONS.mealsComplete,
-  },
-] as const;
-
-const chefPermissionKeys = new Set(['recipes.manage', 'tags.manage', 'uploads.manage', 'meals.complete']);
-
 const bootstrapMenus = [
-  { key: 'dashboard', title: '仪表盘', path: '/', icon: 'HomeOutlined', type: 'page', sortOrder: 10 },
-  { key: 'recipes', title: '菜谱中心', icon: 'BookOutlined', type: 'directory', sortOrder: 20 },
+  { key: 'dashboard', title: '仪表盘', path: '/', icon: 'lucide:layout-dashboard', type: 'page', componentKey: 'dashboard', sortOrder: 10, isAffix: true },
+  { key: 'recipes', title: '菜谱中心', icon: 'lucide:book-open', type: 'directory', sortOrder: 20 },
   {
     key: 'recipes.categories',
     parentKey: 'recipes',
     title: '分类管理',
     path: '/categories',
-    icon: 'AppstoreOutlined',
+    icon: 'lucide:layout-grid',
     type: 'page',
+    componentKey: 'recipes.categories',
     sortOrder: 21,
   },
   {
@@ -87,8 +32,10 @@ const bootstrapMenus = [
     parentKey: 'recipes',
     title: '菜谱管理',
     path: '/dishes',
-    icon: 'BookOutlined',
+    icon: 'lucide:cooking-pot',
     type: 'page',
+    componentKey: 'recipes.dishes',
+    isCache: true,
     sortOrder: 22,
   },
   {
@@ -96,19 +43,21 @@ const bootstrapMenus = [
     parentKey: 'recipes',
     title: '标签管理',
     path: '/tags',
-    icon: 'TagsOutlined',
+    icon: 'lucide:tags',
     type: 'page',
+    componentKey: 'recipes.tags',
     sortOrder: 23,
   },
-  { key: 'meals', title: '点菜菜单', path: '/meals', icon: 'ReadOutlined', type: 'page', sortOrder: 30 },
-  { key: 'system', title: '系统管理', icon: 'UserOutlined', type: 'directory', sortOrder: 90 },
+  { key: 'meals', title: '点菜菜单', path: '/meals', icon: 'lucide:utensils', type: 'page', componentKey: 'meals', sortOrder: 30 },
+  { key: 'system', title: '系统管理', icon: 'lucide:settings', type: 'directory', sortOrder: 90 },
   {
     key: 'system.users',
     parentKey: 'system',
     title: '用户管理',
     path: '/users',
-    icon: 'UserOutlined',
+    icon: 'lucide:users',
     type: 'page',
+    componentKey: 'system.users',
     sortOrder: 91,
   },
   {
@@ -116,40 +65,36 @@ const bootstrapMenus = [
     parentKey: 'system',
     title: '角色管理',
     path: '/roles',
-    icon: 'TeamOutlined',
+    icon: 'lucide:shield-check',
     type: 'page',
+    componentKey: 'system.roles',
     sortOrder: 92,
-  },
-  {
-    key: 'system.permissions',
-    parentKey: 'system',
-    title: '权限点管理',
-    path: '/permissions',
-    icon: 'SafetyCertificateOutlined',
-    type: 'page',
-    sortOrder: 93,
   },
   {
     key: 'system.menus',
     parentKey: 'system',
     title: '菜单管理',
     path: '/menus',
-    icon: 'MenuOutlined',
+    icon: 'lucide:menu',
     type: 'page',
-    sortOrder: 94,
+    componentKey: 'system.menus',
+    sortOrder: 93,
   },
   {
     key: 'system.settings',
     parentKey: 'system',
     title: '系统设置',
     path: '/settings',
-    icon: 'SettingOutlined',
+    icon: 'lucide:settings',
     type: 'page',
-    sortOrder: 95,
+    componentKey: 'system.settings',
+    sortOrder: 94,
   },
 ] as const;
 
 const bootstrapMenuButtons = [
+  { menuKey: 'recipes.dishes', key: 'manage', name: '菜谱接口管理', action: ACCESS_ACTIONS.recipesManage, sortOrder: 1 },
+  { menuKey: 'recipes.dishes', key: 'upload', name: '上传菜谱图片', action: ACCESS_ACTIONS.uploadsManage, sortOrder: 2 },
   { menuKey: 'recipes.categories', key: 'create', name: '新建分类', sortOrder: 10 },
   { menuKey: 'recipes.categories', key: 'edit', name: '编辑分类', sortOrder: 20 },
   { menuKey: 'recipes.categories', key: 'delete', name: '删除分类', sortOrder: 30 },
@@ -157,21 +102,22 @@ const bootstrapMenuButtons = [
   { menuKey: 'recipes.dishes', key: 'edit', name: '编辑菜谱', sortOrder: 20 },
   { menuKey: 'recipes.dishes', key: 'toggle-active', name: '启停菜谱', sortOrder: 30 },
   { menuKey: 'recipes.dishes', key: 'delete', name: '删除菜谱', sortOrder: 40 },
+  { menuKey: 'recipes.tags', key: 'manage', name: '标签接口管理', action: ACCESS_ACTIONS.tagsManage, sortOrder: 1 },
   { menuKey: 'recipes.tags', key: 'create', name: '新建标签', sortOrder: 10 },
   { menuKey: 'recipes.tags', key: 'edit', name: '编辑标签', sortOrder: 20 },
   { menuKey: 'recipes.tags', key: 'delete', name: '删除标签', sortOrder: 30 },
   { menuKey: 'meals', key: 'complete', name: '完成点菜', sortOrder: 10 },
+  { menuKey: 'system.users', key: 'manage', name: '用户接口管理', action: ACCESS_ACTIONS.usersManage, sortOrder: 1 },
   { menuKey: 'system.users', key: 'create', name: '新建用户', sortOrder: 10 },
   { menuKey: 'system.users', key: 'edit-roles', name: '分配角色', sortOrder: 20 },
   { menuKey: 'system.users', key: 'reset-password', name: '重置密码', sortOrder: 30 },
   { menuKey: 'system.users', key: 'delete', name: '删除用户', sortOrder: 40 },
+  { menuKey: 'system.roles', key: 'manage', name: '角色接口管理', action: ACCESS_ACTIONS.rolesManage, sortOrder: 1 },
   { menuKey: 'system.roles', key: 'create', name: '新建角色', sortOrder: 10 },
   { menuKey: 'system.roles', key: 'edit', name: '编辑角色', sortOrder: 20 },
   { menuKey: 'system.roles', key: 'authorize', name: '授权角色', sortOrder: 30 },
   { menuKey: 'system.roles', key: 'delete', name: '删除角色', sortOrder: 40 },
-  { menuKey: 'system.permissions', key: 'create', name: '新建权限点', sortOrder: 10 },
-  { menuKey: 'system.permissions', key: 'edit', name: '编辑权限点', sortOrder: 20 },
-  { menuKey: 'system.permissions', key: 'delete', name: '删除权限点', sortOrder: 30 },
+  { menuKey: 'system.menus', key: 'manage', name: '菜单接口管理', action: ACCESS_ACTIONS.menusManage, sortOrder: 1 },
   { menuKey: 'system.menus', key: 'create', name: '新建菜单', sortOrder: 10 },
   { menuKey: 'system.menus', key: 'edit', name: '编辑菜单', sortOrder: 20 },
   { menuKey: 'system.menus', key: 'delete', name: '删除菜单', sortOrder: 30 },
@@ -190,6 +136,8 @@ const chefMenuKeys = new Set([
 ]);
 
 const chefButtonKeys = new Set([
+  'recipes.dishes.manage',
+  'recipes.dishes.upload',
   'recipes.categories.create',
   'recipes.categories.edit',
   'recipes.categories.delete',
@@ -197,6 +145,7 @@ const chefButtonKeys = new Set([
   'recipes.dishes.edit',
   'recipes.dishes.toggle-active',
   'recipes.dishes.delete',
+  'recipes.tags.manage',
   'recipes.tags.create',
   'recipes.tags.edit',
   'recipes.tags.delete',
@@ -217,31 +166,6 @@ async function ensureRole(db: Database, key: string, name: string, description: 
   return row.id;
 }
 
-async function ensurePermission(db: Database, key: string, name: string, description: string): Promise<string> {
-  const existing = await db.select().from(permissions).where(eq(permissions.key, key)).limit(1);
-  if (existing[0]) {
-    await db
-      .update(permissions)
-      .set({ name, description, isSystem: true, updatedAt: new Date() })
-      .where(eq(permissions.id, existing[0].id));
-    return existing[0].id;
-  }
-  const [row] = await db.insert(permissions).values({ key, name, description, isSystem: true }).returning();
-  if (!row) throw new Error(`创建权限点失败：${key}`);
-  return row.id;
-}
-
-async function replaceRolePermissions(db: Database, roleId: string, permissionIds: string[]): Promise<void> {
-  const uniquePermissionIds = [...new Set(permissionIds)];
-  await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
-  if (uniquePermissionIds.length > 0) {
-    await db
-      .insert(rolePermissions)
-      .values(uniquePermissionIds.map((permissionId) => ({ roleId, permissionId })))
-      .onConflictDoNothing();
-  }
-}
-
 async function ensureMenu(
   db: Database,
   input: (typeof bootstrapMenus)[number],
@@ -254,6 +178,14 @@ async function ensureMenu(
     path: 'path' in input ? input.path : null,
     icon: input.icon,
     type: input.type,
+    componentKey: 'componentKey' in input ? input.componentKey : null,
+    externalUrl: null,
+    openInNewTab: false,
+    layoutKey: 'admin' as const,
+    isCache: 'isCache' in input ? input.isCache : false,
+    isTabVisible: true,
+    isAffix: 'isAffix' in input ? input.isAffix : false,
+    activeMenuKey: null,
     sortOrder: input.sortOrder,
     isVisible: true,
     isSystem: true,
@@ -280,7 +212,7 @@ async function ensureMenuButton(
     .limit(1);
   const values = {
     name: input.name,
-    action: `${input.menuKey}.${input.key}`,
+    action: 'action' in input ? input.action : `${input.menuKey}.${input.key}`,
     sortOrder: input.sortOrder,
     isSystem: true,
     updatedAt: new Date(),
@@ -311,11 +243,6 @@ async function replaceRoleMenuButtons(db: Database, roleId: string, buttonIds: s
       .values(uniqueButtonIds.map((buttonId) => ({ roleId, buttonId })))
       .onConflictDoNothing();
   }
-}
-
-async function getAllPermissionIds(db: Database): Promise<string[]> {
-  const rows = await db.select({ id: permissions.id }).from(permissions);
-  return rows.map((row) => row.id);
 }
 
 async function getAllMenuIds(db: Database): Promise<string[]> {
@@ -371,7 +298,7 @@ async function main(): Promise<void> {
     db,
     'super_admin',
     '超级管理员',
-    '默认最高权限角色，可管理用户、角色、权限点和全部业务数据。',
+    '默认最高权限角色，可管理用户、角色、菜单和全部业务数据。',
   );
   const chefRoleId = await ensureRole(
     db,
@@ -380,16 +307,6 @@ async function main(): Promise<void> {
     '默认主厨角色，可管理菜谱、上传资源并完成点餐场次。',
   );
   const dinerRoleId = await ensureRole(db, 'diner', '食客', '默认点菜角色，可浏览菜谱并参与点菜。');
-  const chefPermissionIds: string[] = [];
-
-  for (const permission of bootstrapPermissions) {
-    const permissionId = await ensurePermission(db, permission.key, permission.name, permission.description);
-    if (chefPermissionKeys.has(permission.key)) chefPermissionIds.push(permissionId);
-    await db.insert(permissionActionBindings).values({ permissionId, action: permission.action }).onConflictDoNothing();
-  }
-  await replaceRolePermissions(db, superAdminRoleId, await getAllPermissionIds(db));
-  await replaceRolePermissions(db, chefRoleId, chefPermissionIds);
-  await replaceRolePermissions(db, dinerRoleId, []);
 
   const menuIdsByKey = new Map<string, string>();
   for (const menu of bootstrapMenus) {

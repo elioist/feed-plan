@@ -7,7 +7,6 @@ import { createCategoriesResource } from './resources/categories.js';
 import { createDishesResource } from './resources/dishes.js';
 import { createMealsResource } from './resources/meals.js';
 import { createMenusResource } from './resources/menus.js';
-import { createPermissionsResource } from './resources/permissions.js';
 import { createRolesResource } from './resources/roles.js';
 import { createTagsResource } from './resources/tags.js';
 import { createUsersResource } from './resources/users.js';
@@ -59,7 +58,6 @@ export function createApiClient(options: CreateApiClientOptions) {
     auth: createAuthResource(request),
     users: createUsersResource(request),
     roles: createRolesResource(request),
-    permissions: createPermissionsResource(request),
     menus: createMenusResource(request),
     categories: createCategoriesResource(request),
     tags: createTagsResource(request),

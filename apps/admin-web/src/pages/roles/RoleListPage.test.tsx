@@ -4,8 +4,6 @@ import { RoleListPage } from '~/pages/roles/RoleListPage';
 import { useAuthStore } from '~/store/modules/auth';
 
 const roleId = '11111111-1111-4111-8111-111111111111';
-const permissionId = '22222222-2222-4222-8222-222222222222';
-
 const reactQueryMocks = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
   useQuery: vi.fn(() => ({ data: undefined })),
@@ -40,7 +38,6 @@ vi.mock('~/lib/api-client', () => ({
 vi.mock('~/queries/access', () => ({
   accessQueries: {
     roles: vi.fn(() => ({ queryKey: ['roles'], queryFn: vi.fn() })),
-    permissions: vi.fn(() => ({ queryKey: ['permissions'], queryFn: vi.fn() })),
     menus: vi.fn(() => ({ queryKey: ['menus'], queryFn: vi.fn() })),
     roleMenuAccess: vi.fn(() => ({ queryKey: ['roles', 'role-menu-access'], queryFn: vi.fn() })),
   },
@@ -64,14 +61,13 @@ vi.mock('antd', async (importOriginal) => {
 });
 
 describe('RoleListPage', () => {
-  it('renders roles without rendering the permissions management table', () => {
+  it('renders roles with menu and button authorization summary', () => {
     useAuthStore.setState({
       accessToken: 'test-token',
       user: {
         id: '11111111-1111-4111-8111-111111111111',
         username: 'test-admin',
         roles: [],
-        permissions: [],
         actions: [],
         menuKeys: [],
         buttonKeys: [
@@ -91,23 +87,8 @@ describe('RoleListPage', () => {
             name: '厨房管理员',
             description: '维护厨房资料',
             isSystem: false,
-            permissions: [
-              { id: permissionId, key: 'recipes.manage', name: '菜谱管理', description: null },
-            ],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-        refetch: vi.fn(),
-      })
-      .mockReturnValueOnce({
-        data: [
-          {
-            id: permissionId,
-            key: 'recipes.manage',
-            name: '菜谱管理',
-            description: '维护菜谱',
-            isSystem: true,
+            menuIds: ['33333333-3333-4333-8333-333333333333'],
+            buttonIds: ['44444444-4444-4444-8444-444444444444'],
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -123,7 +104,7 @@ describe('RoleListPage', () => {
 
     expect(screen.getByText('厨房管理员')).toBeInTheDocument();
     expect(screen.getByText('kitchen.manager')).toBeInTheDocument();
-    expect(screen.getByText('菜谱管理')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '新建权限点' })).not.toBeInTheDocument();
+    expect(screen.getByText('1 个菜单')).toBeInTheDocument();
+    expect(screen.getByText('1 个按钮')).toBeInTheDocument();
   });
 });

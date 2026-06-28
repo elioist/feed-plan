@@ -10,7 +10,6 @@ const currentUser: AuthUser = {
   username: 'chef',
   avatar: '/uploads/chef.webp',
   roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
-  permissions: [],
   actions: [],
   menuKeys: [],
   buttonKeys: [],

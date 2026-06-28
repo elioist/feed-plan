@@ -17,8 +17,7 @@ const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
-  permissions: [{ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', key: 'recipes.manage', name: '菜谱管理', description: null }],
-  actions: ['recipes.manage'],
+  actions: ['recipes.dishes.manage'],
   menuKeys: [],
   buttonKeys: [],
 };
@@ -26,7 +25,6 @@ const diner: JwtPayload = {
   sub: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
   roles: [{ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', key: 'diner', name: '食客', description: null }],
-  permissions: [],
   actions: [],
   menuKeys: [],
   buttonKeys: [],
@@ -77,6 +75,40 @@ const dishesService = {
   remove: vi.fn(),
 };
 
+function collectParamValues(node: unknown, values: unknown[] = []): unknown[] {
+  if (!node || typeof node !== 'object') return values;
+  if ('value' in node && 'encoder' in node) {
+    values.push((node as { value: unknown }).value);
+  }
+  const chunks = (node as { queryChunks?: unknown[] }).queryChunks;
+  if (Array.isArray(chunks)) {
+    chunks.forEach((chunk) => collectParamValues(chunk, values));
+  }
+  return values;
+}
+
+function makeAccessDb(actionsByUserId: Record<string, string[]>) {
+  return {
+    select: () => ({
+      from: () => {
+        const query = {
+          innerJoin: () => query,
+          where: async (condition: unknown) => {
+            const values = collectParamValues(condition);
+            const userId = values.find((value) => typeof value === 'string' && value in actionsByUserId);
+            const actions = values.flatMap((value) => (Array.isArray(value) ? value : []));
+            const userActions = actionsByUserId[String(userId)] ?? [];
+            return (actions.length > 0 ? userActions.filter((action) => actions.includes(action)) : userActions).map(
+              (action) => ({ action }),
+            );
+          },
+        };
+        return query;
+      },
+    }),
+  };
+}
+
 describe('Recipes API (e2e)', () => {
   let app: INestApplication;
   let jwt: JwtService;
@@ -102,13 +134,7 @@ describe('Recipes API (e2e)', () => {
       .overrideProvider(DishesService)
       .useValue(dishesService)
       .overrideProvider(DRIZZLE)
-      .useValue({
-        select: () => ({
-          from: () => ({
-            where: async () => [{ action: 'recipes.manage' }],
-          }),
-        }),
-      })
+      .useValue(makeAccessDb({ [chef.sub]: ['recipes.dishes.manage'], [diner.sub]: [] }))
       .compile();
 
     app = moduleRef.createNestApplication();

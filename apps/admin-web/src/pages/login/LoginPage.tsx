@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Button, Form, Input, App as AntdApp } from 'antd';
 import type { LoginInput } from '@feed-plan/shared';
 import { AuthLayout } from '~/components/core/layouts/AuthLayout';
+import { getApiErrorInfo } from '~/lib/error-parser';
 import { useAuthStore } from '~/store/modules/auth';
 
 export function LoginPage() {
@@ -12,9 +13,10 @@ export function LoginPage() {
   const handleFinish = async (values: LoginInput) => {
     try {
       await login(values);
-      await navigate({ to: '/', replace: true });
-    } catch {
-      message.error('用户名或密码错误');
+      await navigate({ to: '/' as never, replace: true });
+    } catch (error) {
+      const info = getApiErrorInfo(error);
+      message.error(info.status === 401 ? '用户名或密码错误' : info.message);
     }
   };
 

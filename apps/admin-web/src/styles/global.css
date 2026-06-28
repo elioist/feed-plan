@@ -1456,3 +1456,27 @@ html.dark .layout-sidebar .ant-menu-item-selected {
 .chat-button:hover .art-svg-icon {
   animation: shake 0.5s ease-in-out;
 }
+
+.admin-boot-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--ant-color-bg-layout);
+}
+
+.admin-iframe-page {
+  width: 100%;
+  min-height: calc(100vh - 160px);
+  border: 0;
+  background: var(--ant-color-bg-container);
+}
+
+.menu-link-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}

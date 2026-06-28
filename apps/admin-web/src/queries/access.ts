@@ -8,10 +8,10 @@ export const accessQueries = {
       queryKey: ['roles', query],
       queryFn: () => api.roles.list(query),
     }),
-  permissions: (query: AccessListQuery = {}) =>
+  currentMenus: () =>
     queryOptions({
-      queryKey: ['permissions', query],
-      queryFn: () => api.permissions.list(query),
+      queryKey: ['auth', 'menus'],
+      queryFn: () => api.auth.menus(),
     }),
   menus: (query: AccessListQuery = {}) =>
     queryOptions({

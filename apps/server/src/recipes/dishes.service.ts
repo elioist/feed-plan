@@ -5,8 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, arrayContains, asc, eq, ilike, inArray, or } from 'drizzle-orm';
-import { categories, dishes, permissionActionBindings, type CategoryRow, type DishRow } from '@feed-plan/db';
+import { and, arrayContains, asc, eq, ilike, or } from 'drizzle-orm';
+import { categories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
 import type {
   CreateDishInput,
   DishDetail,
@@ -159,20 +159,8 @@ export class DishesService {
     return conditions.length > 0 ? and(...conditions) : undefined;
   }
 
-  private async userCanManageRecipes(user: JwtPayload): Promise<boolean> {
-    const permissionIds = user.permissions.map((permission) => permission.id);
-    if (permissionIds.length === 0) return false;
-    const rows = await this.db
-      .select({ action: permissionActionBindings.action })
-      .from(permissionActionBindings)
-      .where(
-        and(
-          eq(permissionActionBindings.action, ACCESS_ACTIONS.recipesManage),
-          inArray(permissionActionBindings.permissionId, permissionIds),
-        ),
-      )
-      .limit(1);
-    return Boolean(rows[0]);
+  private userCanManageRecipes(user: JwtPayload): boolean {
+    return user.actions.includes(ACCESS_ACTIONS.recipesManage);
   }
 
   private async loadDetail(id: string): Promise<{

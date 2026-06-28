@@ -1,4 +1,5 @@
 import type {
+  AuthMenu,
   AuthUser,
   ChangePasswordInput,
   LoginInput,
@@ -19,6 +20,9 @@ export function createAuthResource(request: ApiRequest) {
     },
     me() {
       return request<AuthUser>('/auth/me');
+    },
+    menus() {
+      return request<AuthMenu[]>('/auth/menus');
     },
     changePassword(input: ChangePasswordInput) {
       return request<{ ok: true }>('/auth/password', {

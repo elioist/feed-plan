@@ -1,0 +1,14 @@
+ALTER TABLE "role_permissions" DROP CONSTRAINT IF EXISTS "role_permissions_permission_id_permissions_id_fk";
+ALTER TABLE "permission_action_bindings" DROP CONSTRAINT IF EXISTS "permission_action_bindings_permission_id_permissions_id_fk";
+DROP TABLE IF EXISTS "permission_action_bindings";
+DROP TABLE IF EXISTS "role_permissions";
+DROP TABLE IF EXISTS "permissions";
+ALTER TABLE "admin_menus" ADD COLUMN "component_key" varchar(64);
+ALTER TABLE "admin_menus" ADD COLUMN "external_url" varchar(512);
+ALTER TABLE "admin_menus" ADD COLUMN "open_in_new_tab" boolean DEFAULT false NOT NULL;
+ALTER TABLE "admin_menus" ADD COLUMN "layout_key" varchar(32) DEFAULT 'admin' NOT NULL;
+ALTER TABLE "admin_menus" ADD COLUMN "is_cache" boolean DEFAULT false NOT NULL;
+ALTER TABLE "admin_menus" ADD COLUMN "is_tab_visible" boolean DEFAULT true NOT NULL;
+ALTER TABLE "admin_menus" ADD COLUMN "is_affix" boolean DEFAULT false NOT NULL;
+ALTER TABLE "admin_menus" ADD COLUMN "active_menu_key" varchar(64);
+CREATE UNIQUE INDEX "admin_menu_buttons_action_unique" ON "admin_menu_buttons" USING btree ("action");

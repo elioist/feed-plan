@@ -1,10 +1,9 @@
 import { adminStorageNS } from '@feed-plan/shared';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AdminRoutePath } from '~/components/core/layouts/navigation';
 
 export interface WorkTabItem {
-  path: AdminRoutePath;
+  path: string;
   title: string;
   fixedTab?: boolean;
 }
@@ -12,24 +11,18 @@ export interface WorkTabItem {
 interface WorkTabsState {
   opened: WorkTabItem[];
   openTab: (tab: WorkTabItem) => void;
-  closeTab: (path: AdminRoutePath) => void;
-  closeOtherTabs: (path: AdminRoutePath) => void;
-  closeLeftTabs: (path: AdminRoutePath) => void;
-  closeRightTabs: (path: AdminRoutePath) => void;
+  closeTab: (path: string) => void;
+  closeOtherTabs: (path: string) => void;
+  closeLeftTabs: (path: string) => void;
+  closeRightTabs: (path: string) => void;
   closeAllTabs: () => void;
-  toggleFixedTab: (path: AdminRoutePath) => void;
+  toggleFixedTab: (path: string) => void;
 }
-
-const homeTab: WorkTabItem = {
-  path: '/',
-  title: '仪表盘',
-  fixedTab: true,
-};
 
 export const useWorkTabsStore = create<WorkTabsState>()(
   persist(
     (set) => ({
-      opened: [homeTab],
+      opened: [],
       openTab: (tab) => {
         set((state) => {
           const existingIndex = state.opened.findIndex((item) => item.path === tab.path);
@@ -50,7 +43,7 @@ export const useWorkTabsStore = create<WorkTabsState>()(
       closeTab: (path) => {
         set((state) => {
           const nextTabs = state.opened.filter((item) => item.fixedTab || item.path !== path);
-          return { opened: nextTabs.length > 0 ? nextTabs : [homeTab] };
+          return { opened: nextTabs };
         });
       },
       closeOtherTabs: (path) => {
@@ -82,13 +75,13 @@ export const useWorkTabsStore = create<WorkTabsState>()(
           };
         });
       },
-      closeAllTabs: () => set({ opened: [homeTab] }),
+      closeAllTabs: () => set({ opened: [] }),
       toggleFixedTab: (path) => {
         set((state) => ({
           opened: state.opened.map((item) =>
             item.path === path && !item.fixedTab
               ? { ...item, fixedTab: true }
-              : item.path === path && item.path !== homeTab.path
+              : item.path === path
                 ? { ...item, fixedTab: false }
                 : item,
           ),
@@ -101,3 +94,8 @@ export const useWorkTabsStore = create<WorkTabsState>()(
     },
   ),
 );
+
+export function clearWorkTabsCache() {
+  useWorkTabsStore.setState({ opened: [] });
+  useWorkTabsStore.persist.clearStorage();
+}

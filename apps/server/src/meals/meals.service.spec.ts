@@ -8,7 +8,6 @@ const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
   roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
-  permissions: [],
   actions: [],
   menuKeys: [],
   buttonKeys: [],

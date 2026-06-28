@@ -20,10 +20,11 @@ import { useSettingStore } from '~/store/modules/setting';
 import { SettingsPanel } from '~/components/core/layouts/settings-panel/SettingsPanel';
 import { SvgIcon } from '~/components/core/base/svg-icon/SvgIcon';
 import {
-  getAuthorizedRoutes,
+  buildMenusFromApi,
+  getRoutableRouteMeta,
   getRouteMeta,
   type AdminRoutePath,
-} from '~/components/core/layouts/navigation';
+} from '~/routes/core/menu-processor';
 import { UserMenu } from '~/components/core/layouts/header-bar/widget/UserMenu';
 import { useAuthStore } from '~/store/modules/auth';
 
@@ -32,8 +33,9 @@ const { Header } = Layout;
 export function HeaderBar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
-  const activeRoute = getRouteMeta(pathname);
-  const user = useAuthStore((state) => state.user);
+  const routeMenus = useAuthStore((state) => state.routeMenus);
+  const dynamicMenus = buildMenusFromApi(routeMenus);
+  const activeRoute = getRouteMeta(pathname, dynamicMenus);
   const menuOpen = useSettingStore((state) => state.menuOpen);
   const toggleMenuOpen = useSettingStore((state) => state.toggleMenuOpen);
   const reloadPage = useSettingStore((state) => state.reload);
@@ -69,8 +71,8 @@ export function HeaderBar() {
   };
 
   const authorizedRoutes = useMemo(
-    () => getAuthorizedRoutes({ actions: user?.actions ?? [], menuKeys: user?.menuKeys ?? [] }),
-    [user?.actions, user?.menuKeys],
+    () => getRoutableRouteMeta(dynamicMenus),
+    [dynamicMenus],
   );
 
   const filteredRoutes = useMemo(() => {
@@ -82,7 +84,6 @@ export function HeaderBar() {
     return authorizedRoutes.filter((route) => {
       return (
         route.title.toLowerCase().includes(keyword) ||
-        route.group.toLowerCase().includes(keyword) ||
         route.path.toLowerCase().includes(keyword)
       );
     });
@@ -90,14 +91,10 @@ export function HeaderBar() {
 
   const quickApplications = authorizedRoutes.map((route) => ({
     ...route,
-    description: route.path === '/' ? '查看后台概览' : '进入' + route.group,
+    description: route.path === '/' ? '查看后台概览' : route.path,
   }));
 
-  const quickLinks = [
-    { name: '新建菜谱', path: '/dishes' as const },
-    { name: '分类管理', path: '/categories' as const },
-    { name: '今日菜单', path: '/meals' as const },
-  ];
+  const quickLinks = authorizedRoutes.slice(0, 3).map((route) => ({ name: route.title, path: route.path }));
 
   const languageItems: MenuProps['items'] = [
     { key: 'zh', label: '简体中文' },
@@ -202,7 +199,7 @@ export function HeaderBar() {
           ) : null}
           {headerConfig.breadcrumb.enabled && showCrumbs ? (
             <Typography.Text className="admin-breadcrumb">
-              {activeRoute.group} <span>/</span> {activeRoute.title}
+              后台 <span>/</span> {activeRoute.title}
             </Typography.Text>
           ) : null}
         </div>
@@ -353,7 +350,7 @@ export function HeaderBar() {
             dataSource={filteredRoutes}
             renderItem={(route) => (
               <List.Item
-                actions={[<Tag key="group">{route.group}</Tag>]}
+                actions={[<Tag key="path">{route.path}</Tag>]}
                 className="command-list-item"
                 onClick={() => void openRoute(route.path)}
               >

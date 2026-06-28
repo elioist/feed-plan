@@ -64,6 +64,34 @@
       "when": 1782551234786,
       "tag": "0008_polite_sir_ram",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1782555513000,
+      "tag": "0009_menu_action_access_refactor",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1782555514000,
+      "tag": "0010_remove_permission_menu",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782555515000,
+      "tag": "0011_iconify_menu_icons",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1782555516000,
+      "tag": "0012_lucide_menu_icons",
+      "breakpoints": true
     }
   ]
 }

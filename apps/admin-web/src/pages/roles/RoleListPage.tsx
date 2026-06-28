@@ -9,7 +9,6 @@ import {
   Form,
   Input,
   Popconfirm,
-  Select,
   Space,
   Tabs,
   Tag,
@@ -19,7 +18,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   type AccessListQuery,
   type AdminMenu,
-  type CreateRoleInput,
   type Role,
 } from '@feed-plan/shared';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
@@ -29,7 +27,11 @@ import { api } from '~/lib/api-client';
 import { getApiErrorMessage } from '~/lib/error-parser';
 import { accessQueries } from '~/queries/access';
 
-type RoleFormValues = CreateRoleInput;
+interface RoleFormValues {
+  description?: string;
+  key: string;
+  name: string;
+}
 interface MenuTreeNode {
   key: string;
   title: string;
@@ -70,7 +72,7 @@ function includeParentMenus(menuIds: string[], menus: AdminMenu[]) {
 }
 
 export function RoleListPage() {
-  const search = useSearch({ from: '/_authenticated/roles' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canCreate = canButton('system.roles', 'create');
@@ -80,7 +82,6 @@ export function RoleListPage() {
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
   const { data: roles, refetch } = useSuspenseQuery(accessQueries.roles(search));
-  const { data: permissions } = useSuspenseQuery(accessQueries.permissions());
   const { data: menus } = useSuspenseQuery(accessQueries.menus());
   const [searchForm] = Form.useForm<AccessListQuery>();
   const [form] = Form.useForm<RoleFormValues>();
@@ -89,10 +90,6 @@ export function RoleListPage() {
   const [selectedMenuIds, setSelectedMenuIds] = useState<string[]>([]);
   const [selectedButtonIds, setSelectedButtonIds] = useState<string[]>([]);
   const menuTreeData = useMemo(() => buildMenuTree(menus), [menus]);
-  const permissionOptions = permissions.map((permission) => ({
-    label: permission.name,
-    value: permission.id,
-  }));
   const menuAccessQuery = useQuery({
     ...accessQueries.roleMenuAccess(editingRole?.id ?? ''),
     enabled: drawerOpen && Boolean(editingRole),
@@ -107,32 +104,32 @@ export function RoleListPage() {
   const invalidateRoles = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['roles'] }),
-      queryClient.invalidateQueries({ queryKey: ['permissions'] }),
       queryClient.invalidateQueries({ queryKey: ['menus'] }),
     ]);
   };
 
   const updateSearch = async (values: AccessListQuery) => {
-    await navigate({ to: '/roles', search: values });
+    await navigate({ to: '/roles' as never, search: values as never });
   };
 
   const resetSearch = async () => {
     searchForm.resetFields();
-    await navigate({ to: '/roles', search: {} });
+    await navigate({ to: '/roles' as never, search: {} as never });
   };
 
   const saveMutation = useMutation({
     mutationFn: async (input: RoleFormValues) => {
+      const accessInput = {
+        menuIds: includeParentMenus(selectedMenuIds, menus),
+        buttonIds: selectedButtonIds,
+      };
       const role = editingRole
         ? canEdit
           ? await api.roles.update(editingRole.id, input)
           : editingRole
-        : await api.roles.create(input);
+        : await api.roles.create({ ...input, ...accessInput });
       if (canAuthorize) {
-        await api.menus.updateRoleAccess(role.id, {
-          menuIds: includeParentMenus(selectedMenuIds, menus),
-          buttonIds: selectedButtonIds,
-        });
+        await api.menus.updateRoleAccess(role.id, accessInput);
       }
       return role;
     },
@@ -156,17 +153,16 @@ export function RoleListPage() {
   const openDrawer = (role?: Role) => {
     setEditingRole(role ?? null);
     setDrawerOpen(true);
-    setSelectedMenuIds([]);
-    setSelectedButtonIds([]);
+    setSelectedMenuIds(role?.menuIds ?? []);
+    setSelectedButtonIds(role?.buttonIds ?? []);
     form.setFieldsValue(
       role
         ? {
             key: role.key,
             name: role.name,
             description: role.description ?? undefined,
-            permissionIds: role.permissions.map((permission) => permission.id),
           }
-        : { permissionIds: [] },
+        : {},
     );
   };
 
@@ -233,21 +229,18 @@ export function RoleListPage() {
             showTotal: (total) => `共 ${total} 条`,
           }}
           columns={[
-            { title: '角色名称', dataIndex: 'name' },
+            { title: '角色名称', dataIndex: 'name', width: 120 },
             { title: '标识', dataIndex: 'key', width: 180 },
             { title: '描述', dataIndex: 'description' },
             {
-              title: '权限点',
+              title: '授权范围',
               render: (_, role) =>
-                role.permissions.length ? (
+                role.menuIds.length || role.buttonIds.length ? (
                   <Space wrap>
-                    {role.permissions.map((permission) => (
-                      <Tag key={permission.id}>{permission.name}</Tag>
-                    ))}
+                    <Tag color="blue">{role.menuIds.length} 个菜单</Tag>
+                    <Tag color="green">{role.buttonIds.length} 个按钮</Tag>
                   </Space>
-                ) : (
-                  '-'
-                ),
+                ) : '-',
             },
             {
               title: '操作',
@@ -307,21 +300,13 @@ export function RoleListPage() {
           <Tabs
             items={[
               {
-                key: 'permissions',
-                label: '接口权限',
-                children: (
-                  <Form.Item label="权限点" name="permissionIds">
-                    <Select disabled={editingRole ? !canEdit : !canCreate} mode="multiple" options={permissionOptions} />
-                  </Form.Item>
-                ),
-              },
-              {
                 key: 'menus',
                 label: '菜单权限',
                 disabled: !canAuthorize,
                 children: (
                   <Tree
                     checkable
+                    checkStrictly
                     defaultExpandAll
                     selectable={false}
                     treeData={menuTreeData}

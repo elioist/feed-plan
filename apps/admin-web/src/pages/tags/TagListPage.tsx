@@ -13,7 +13,7 @@ import { tagQueries } from '~/queries/tags';
 type TagFormValues = CreateTagInput;
 
 export function TagListPage() {
-  const search = useSearch({ from: '/_authenticated/tags' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canCreate = canButton('recipes.tags', 'create');
@@ -52,12 +52,12 @@ export function TagListPage() {
   });
 
   const updateSearch = async (values: TagListQuery) => {
-    await navigate({ to: '/tags', search: values });
+    await navigate({ to: '/tags' as never, search: values as never });
   };
 
   const resetSearch = async () => {
     searchForm.resetFields();
-    await navigate({ to: '/tags', search: {} });
+    await navigate({ to: '/tags' as never, search: {} as never });
   };
 
   const openDrawer = (tag?: Tag) => {

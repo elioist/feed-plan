@@ -44,7 +44,7 @@ const toUrlSearch = (values: MealSearchFormValues): MealQuery => {
 };
 
 export function MealListPage() {
-  const search = useSearch({ from: '/_authenticated/meals' });
+  const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const canButton = useCanButton();
   const canComplete = canButton('meals', 'complete');
@@ -65,12 +65,12 @@ export function MealListPage() {
   });
 
   const updateSearch = async (values: MealSearchFormValues) => {
-    await navigate({ to: '/meals', search: toUrlSearch(values) });
+    await navigate({ to: '/meals' as never, search: toUrlSearch(values) as never });
   };
 
   const resetSearch = async () => {
     filterForm.resetFields();
-    await navigate({ to: '/meals', search: {} });
+    await navigate({ to: '/meals' as never, search: {} as never });
   };
 
   return (

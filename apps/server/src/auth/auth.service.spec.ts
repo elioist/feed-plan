@@ -24,7 +24,6 @@ function makeService(opts: { user: UserRow | null; passwordOk: boolean }) {
                 description: null,
               },
             ],
-            permissions: [],
             actions: [],
             menuKeys: [],
             buttonKeys: [],
@@ -72,7 +71,7 @@ describe('AuthService.login', () => {
     );
   });
 
-  it('JWT 负载包含 sub、username、roles、permissions', async () => {
+  it('JWT 负载包含 sub、username、roles 和授权摘要', async () => {
     const { service, jwt } = makeService({ user: chefRow, passwordOk: true });
     await service.login({ username: 'chef', password: 'good' });
     expect(jwt.signAsync).toHaveBeenCalledWith(
@@ -80,7 +79,9 @@ describe('AuthService.login', () => {
         sub: chefRow.id,
         username: 'chef',
         roles: expect.any(Array),
-        permissions: expect.any(Array),
+        actions: expect.any(Array),
+        menuKeys: expect.any(Array),
+        buttonKeys: expect.any(Array),
       }),
       expect.objectContaining({ secret: expect.any(String) }),
     );

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { permissionSummarySchema, roleSummarySchema } from './roles.js';
+import { roleSummarySchema } from './roles.js';
 
 /** 登录请求体 */
 export const loginInputSchema = z.object({
@@ -14,7 +14,6 @@ export const authUserSchema = z.object({
   username: z.string(),
   avatar: z.string().nullable().optional(),
   roles: z.array(roleSummarySchema),
-  permissions: z.array(permissionSummarySchema),
   actions: z.array(z.string()),
   menuKeys: z.array(z.string()),
   buttonKeys: z.array(z.string()),
@@ -34,7 +33,6 @@ export const jwtPayloadSchema = z.object({
   sub: z.string().uuid(),
   username: z.string(),
   roles: z.array(roleSummarySchema),
-  permissions: z.array(permissionSummarySchema),
   actions: z.array(z.string()),
   menuKeys: z.array(z.string()),
   buttonKeys: z.array(z.string()),

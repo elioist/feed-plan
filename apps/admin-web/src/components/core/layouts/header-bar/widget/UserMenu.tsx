@@ -30,7 +30,7 @@ export function UserMenu() {
       key: 'profile',
       icon: <SvgIcon icon="ri:user-3-line" />,
       label: '个人中心',
-      onClick: () => navigate({ to: '/profile' }),
+      onClick: () => navigate({ to: '/profile' as never }),
     },
     {
       key: 'docs',

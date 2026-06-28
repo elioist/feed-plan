@@ -1,32 +1,35 @@
-import {
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  CloseCircleOutlined,
-  CloseOutlined,
-  DownOutlined,
-  PushpinFilled,
-  PushpinOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { Icon } from '@iconify/react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button, Dropdown } from 'antd';
 import { cn } from '@feed-plan/shared';
 import type { MenuProps } from 'antd';
 import { useEffect } from 'react';
 import { useSettingStore } from '~/store/modules/setting';
-import { getRouteMeta, homeRoute, type AdminRoutePath } from '~/components/core/layouts/navigation';
+import {
+  buildMenusFromApi,
+  getFirstRoutablePath,
+  getRouteMeta,
+} from '~/routes/core/menu-processor';
 import { useWorkTabsStore } from '~/components/core/layouts/work-tabs/work-tabs-store';
+import { useAuthStore } from '~/store/modules/auth';
 
-function getNextPath(tabs: { path: AdminRoutePath }[], closingPath: AdminRoutePath) {
+function getNextPath(tabs: { path: string }[], closingPath: string, fallbackPath: string) {
   const closingIndex = tabs.findIndex((item) => item.path === closingPath);
-  const fallback = tabs[closingIndex - 1] ?? tabs[closingIndex + 1] ?? homeRoute;
-  return fallback.path;
+  const fallback = tabs[closingIndex - 1] ?? tabs[closingIndex + 1];
+  return fallback?.path ?? fallbackPath;
+}
+
+function lucideIcon(icon: string, size = 14) {
+  return <Icon icon={icon} width={size} height={size} />;
 }
 
 export function WorkTabs() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
-  const activeRoute = getRouteMeta(pathname);
+  const routeMenus = useAuthStore((state) => state.routeMenus);
+  const menus = buildMenusFromApi(routeMenus);
+  const fallbackPath = getFirstRoutablePath(menus);
+  const activeRoute = getRouteMeta(pathname, menus);
   const opened = useWorkTabsStore((state) => state.opened);
   const openTab = useWorkTabsStore((state) => state.openTab);
   const closeTab = useWorkTabsStore((state) => state.closeTab);
@@ -45,24 +48,24 @@ export function WorkTabs() {
       title: activeRoute.title,
       fixedTab: activeRoute.fixedTab,
     });
-  }, [activeRoute, openTab]);
+  }, [activeRoute.fixedTab, activeRoute.path, activeRoute.title, openTab]);
 
-  const close = async (path: AdminRoutePath) => {
-    const nextPath = getNextPath(opened, path);
+  const close = async (path: string) => {
+    const nextPath = getNextPath(opened, path, fallbackPath);
     closeTab(path);
     if (activeRoute.path === path) {
       await navigate({ to: nextPath });
     }
   };
 
-  const closeOther = async (path: AdminRoutePath) => {
+  const closeOther = async (path: string) => {
     closeOtherTabs(path);
     if (activeRoute.path !== path) {
       await navigate({ to: path });
     }
   };
 
-  const closeLeft = async (path: AdminRoutePath) => {
+  const closeLeft = async (path: string) => {
     const clickedIndex = opened.findIndex((item) => item.path === path);
     const activeIndex = opened.findIndex((item) => item.path === activeRoute.path);
     closeLeftTabs(path);
@@ -71,7 +74,7 @@ export function WorkTabs() {
     }
   };
 
-  const closeRight = async (path: AdminRoutePath) => {
+  const closeRight = async (path: string) => {
     const clickedIndex = opened.findIndex((item) => item.path === path);
     const activeIndex = opened.findIndex((item) => item.path === activeRoute.path);
     closeRightTabs(path);
@@ -82,10 +85,10 @@ export function WorkTabs() {
 
   const closeAll = async () => {
     closeAllTabs();
-    await navigate({ to: homeRoute.path });
+    await navigate({ to: fallbackPath });
   };
 
-  const getMenuItems = (path: AdminRoutePath): MenuProps['items'] => {
+  const getMenuItems = (path: string): MenuProps['items'] => {
     const tab = opened.find((item) => item.path === path);
     const index = opened.findIndex((item) => item.path === path);
     const leftClosable = opened.slice(0, index).some((item) => !item.fixedTab);
@@ -96,50 +99,50 @@ export function WorkTabs() {
     return [
       {
         key: 'refresh',
-        icon: <ReloadOutlined />,
+        icon: lucideIcon('lucide:refresh-cw'),
         label: '刷新当前',
         disabled: activeRoute.path !== path,
         onClick: reloadPage,
       },
       {
         key: 'fixed',
-        icon: <PushpinOutlined />,
+        icon: lucideIcon('lucide:pin'),
         label: tab?.fixedTab ? '取消固定' : '固定标签',
-        disabled: path === homeRoute.path,
+        disabled: false,
         onClick: () => toggleFixedTab(path),
       },
       { type: 'divider' },
       {
         key: 'left',
-        icon: <ArrowLeftOutlined />,
+        icon: lucideIcon('lucide:arrow-left'),
         label: '关闭左侧',
         disabled: !leftClosable,
         onClick: () => void closeLeft(path),
       },
       {
         key: 'right',
-        icon: <ArrowRightOutlined />,
+        icon: lucideIcon('lucide:arrow-right'),
         label: '关闭右侧',
         disabled: !rightClosable,
         onClick: () => void closeRight(path),
       },
       {
         key: 'other',
-        icon: <CloseOutlined />,
+        icon: lucideIcon('lucide:x'),
         label: '关闭其他',
         disabled: !otherClosable,
         onClick: () => void closeOther(path),
       },
       {
         key: 'all',
-        icon: <CloseCircleOutlined />,
+        icon: lucideIcon('lucide:circle-x'),
         label: '关闭全部',
         disabled: !allClosable,
         onClick: () => void closeAll(),
       },
       {
         key: 'current',
-        icon: <CloseOutlined />,
+        icon: lucideIcon('lucide:x'),
         label: '关闭当前',
         disabled: Boolean(tab?.fixedTab),
         onClick: () => void close(path),
@@ -156,7 +159,7 @@ export function WorkTabs() {
       <div className="work-tabs-scroll">
         <ul className="work-tabs-list">
           {opened.map((item, index) => {
-            const meta = getRouteMeta(item.path);
+            const meta = getRouteMeta(item.path, menus);
             const active = activeRoute.path === item.path;
 
             return (
@@ -176,7 +179,7 @@ export function WorkTabs() {
                     <span>{item.title}</span>
                   </Link>
                   {item.fixedTab ? (
-                    <PushpinFilled className="work-tab-pin" title="固定标签" />
+                    <Icon className="work-tab-pin" icon="lucide:pin" width={12} height={12} aria-label="固定标签" />
                   ) : null}
                   {!item.fixedTab && opened.length > 1 ? (
                     <button
@@ -185,7 +188,7 @@ export function WorkTabs() {
                       type="button"
                       onClick={() => void close(item.path)}
                     >
-                      <CloseOutlined />
+                      <Icon icon="lucide:x" width={12} height={12} />
                     </button>
                   ) : null}
                 </li>
@@ -199,7 +202,7 @@ export function WorkTabs() {
         trigger={['click']}
         placement="bottomRight"
       >
-        <Button className="work-tab-more" icon={<DownOutlined />} />
+        <Button className="work-tab-more" icon={lucideIcon('lucide:chevron-down')} />
       </Dropdown>
     </div>
   );

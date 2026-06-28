@@ -8,7 +8,7 @@ import { api } from '~/lib/api-client';
 const { Title } = Typography;
 
 export function MealDetailPage() {
-  const { mealId } = useParams({ from: '/_authenticated/meals/$mealId' });
+  const { mealId } = useParams({ strict: false });
   const canButton = useCanButton();
   const canComplete = canButton('meals', 'complete');
   const { data } = useSuspenseQuery(mealQueries.detail(mealId));
