@@ -1,9 +1,10 @@
-import { View, TouchableOpacity, ScrollView } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '~/stores/auth-store';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
+import { api, getImageUrl } from '~/lib/api-client';
 
 const menuItems = [
   { icon: 'account-edit-outline', label: '编辑资料', disabled: true },
@@ -29,6 +30,10 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
+  const handleAvatarPress = () => {
+    Alert.alert('修改头像', '头像修改功能即将上线', [{ text: '确定' }]);
+  };
+
   return (
     <SafeScreen>
       <ScrollView style={{ flex: 1 }}>
@@ -44,35 +49,61 @@ export default function ProfileScreen() {
         }}
       >
         {/* Avatar */}
-        <View
-          style={{
-            width: 88,
-            height: 88,
-            borderRadius: 44,
-            backgroundColor: role?.backgroundColor ?? '#fae8df',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 16,
-            borderWidth: 3,
-            borderColor: '#fffcf8',
-            shadowColor: role?.color ?? '#c45a32',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 12,
-            elevation: 4,
-          }}
-        >
-          <Text
+        <TouchableOpacity onPress={handleAvatarPress} activeOpacity={0.8}>
+          <View
             style={{
-              fontSize: 36,
-              fontWeight: '800',
-              color: role?.color ?? '#c45a32',
-              fontFamily: '"Baloo 2"',
+              width: 88,
+              height: 88,
+              borderRadius: 44,
+              backgroundColor: role?.backgroundColor ?? '#fae8df',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+              borderWidth: 3,
+              borderColor: '#fffcf8',
+              shadowColor: role?.color ?? '#c45a32',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 12,
+              elevation: 4,
+              overflow: 'hidden',
             }}
           >
-            {user?.username?.charAt(0).toUpperCase() ?? '?'}
-          </Text>
-        </View>
+            {(user as any)?.avatar ? (
+              <Image
+                source={{ uri: getImageUrl((user as any).avatar) ?? (user as any).avatar }}
+                style={{ width: 88, height: 88, borderRadius: 44 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: '800',
+                  color: role?.color ?? '#c45a32',
+                  fontFamily: '"Baloo 2"',
+                }}
+              >
+                {user?.username?.charAt(0).toUpperCase() ?? '?'}
+              </Text>
+            )}
+          </View>
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 8,
+              right: 0,
+              backgroundColor: '#c45a32',
+              borderRadius: 12,
+              width: 24,
+              height: 24,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MaterialCommunityIcons name="camera" size={14} color="#ffffff" />
+          </View>
+        </TouchableOpacity>
 
         {/* Name */}
         <Text

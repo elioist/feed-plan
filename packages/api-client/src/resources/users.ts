@@ -2,6 +2,7 @@ import type {
   AdminUser,
   CreateUserInput,
   ResetUserPasswordInput,
+  UpdateUserInput,
   UpdateUserRolesInput,
   UserListQuery,
 } from '@feed-plan/shared';
@@ -27,6 +28,12 @@ export function createUsersResource(request: ApiRequest) {
     },
     resetPassword(id: string, input: ResetUserPasswordInput) {
       return request<{ ok: true }>(`/users/${id}/password`, {
+        method: 'PATCH',
+        body: input,
+      });
+    },
+    updateProfile(id: string, input: UpdateUserInput) {
+      return request<AdminUser>(`/users/${id}/profile`, {
         method: 'PATCH',
         body: input,
       });

@@ -4,12 +4,14 @@ import {
   idParamSchema,
   resetUserPasswordSchema,
   updateUserRolesSchema,
+  updateUserSchema,
   userListQuerySchema,
   type AdminUser,
   type CreateUserInput,
   type IdParam,
   type JwtPayload,
   type ResetUserPasswordInput,
+  type UpdateUserInput,
   type UpdateUserRolesInput,
   type UserListQuery,
 } from '@feed-plan/shared';
@@ -38,13 +40,12 @@ export class UsersController {
     return this.users.create(body);
   }
 
-  @Patch(':id')
-  updateRoles(
+  @Patch(':id/profile')
+  updateProfile(
     @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
-    @Body(new ZodValidationPipe(updateUserRolesSchema)) body: UpdateUserRolesInput,
-    @CurrentUser() operator: JwtPayload,
+    @Body(new ZodValidationPipe(updateUserSchema)) body: UpdateUserInput,
   ): Promise<AdminUser> {
-    return this.users.updateRoles(params.id, body, operator.sub);
+    return this.users.update(params.id, body);
   }
 
   @Patch(':id/password')
@@ -55,6 +56,15 @@ export class UsersController {
   ) {
     await this.users.resetPassword(params.id, body.password, operator.sub);
     return { ok: true };
+  }
+
+  @Patch(':id')
+  updateRoles(
+    @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
+    @Body(new ZodValidationPipe(updateUserRolesSchema)) body: UpdateUserRolesInput,
+    @CurrentUser() operator: JwtPayload,
+  ): Promise<AdminUser> {
+    return this.users.updateRoles(params.id, body, operator.sub);
   }
 
   @Delete(':id')
