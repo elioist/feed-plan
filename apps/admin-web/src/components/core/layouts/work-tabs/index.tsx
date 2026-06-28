@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button, Dropdown } from 'antd';
 import { cn } from '@feed-plan/shared';
 import type { MenuProps } from 'antd';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSettingStore } from '~/store/modules/setting';
 import {
   buildMenusFromApi,
@@ -24,6 +24,8 @@ function lucideIcon(icon: string, size = 14) {
   return <Icon icon={icon} width={size} height={size} />;
 }
 
+const SCROLL_EDGE_TOLERANCE = 1;
+
 export function WorkTabs() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
@@ -42,14 +44,137 @@ export function WorkTabs() {
   const showWorkTab = useSettingStore((state) => state.showWorkTab);
   const tabStyle = useSettingStore((state) => state.tabStyle);
   const reloadPage = useSettingStore((state) => state.reload);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const translateXRef = useRef(0);
+  const [translateX, setTranslateX] = useState(0);
+  const [scrolling, setScrolling] = useState(false);
+  const [scrollBounds, setScrollBounds] = useState({ max: 0, min: 0 });
+
+  const getTranslateBounds = useCallback(() => {
+    const scrollWidth = scrollRef.current?.offsetWidth ?? 0;
+    const listWidth = listRef.current?.offsetWidth ?? 0;
+    return {
+      max: 0,
+      min: Math.min(scrollWidth - listWidth, 0),
+    };
+  }, []);
+
+  const updateScrollBounds = useCallback(() => {
+    const bounds = getTranslateBounds();
+    setScrollBounds((current) =>
+      current.max === bounds.max && current.min === bounds.min ? current : bounds,
+    );
+    return bounds;
+  }, [getTranslateBounds]);
+
+  const setBoundedTranslate = useCallback(
+    (nextValue: number | ((current: number) => number)) => {
+      const { max, min } = updateScrollBounds();
+      setTranslateX((current) => {
+        const resolved = typeof nextValue === 'function' ? nextValue(current) : nextValue;
+        const bounded = Math.min(Math.max(resolved, min), max);
+        translateXRef.current = bounded;
+        return bounded;
+      });
+    },
+    [updateScrollBounds],
+  );
+
+  const setRawTranslate = useCallback((nextValue: number) => {
+    translateXRef.current = nextValue;
+    setTranslateX(nextValue);
+  }, []);
+
+  const moveTabs = useCallback(
+    (delta: number) => {
+      setScrolling(true);
+      setBoundedTranslate((current) => current - delta);
+      window.setTimeout(() => setScrolling(false), 250);
+    },
+    [setBoundedTranslate],
+  );
+
+  const scrollLeft = () => moveTabs(-180);
+  const scrollRight = () => moveTabs(180);
+  const canScrollLeft = scrollBounds.min < 0 && translateX < scrollBounds.max - SCROLL_EDGE_TOLERANCE;
+  const canScrollRight = scrollBounds.min < 0 && translateX > scrollBounds.min + SCROLL_EDGE_TOLERANCE;
+
+  const handleWheel = (event: React.WheelEvent) => {
+    const { min } = updateScrollBounds();
+    if (min === 0) return;
+
+    event.preventDefault();
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    moveTabs(delta);
+  };
 
   useEffect(() => {
+    if (activeRoute.isTabVisible === false) {
+      closeTab(activeRoute.path);
+      return;
+    }
+
     openTab({
       path: activeRoute.path,
       title: activeRoute.title,
       fixedTab: activeRoute.fixedTab,
     });
-  }, [activeRoute.fixedTab, activeRoute.path, activeRoute.title, openTab]);
+  }, [activeRoute.fixedTab, activeRoute.isTabVisible, activeRoute.path, activeRoute.title, closeTab, openTab]);
+
+  const autoPositionActiveTab = useCallback(() => {
+    const activeIndex = opened.findIndex((item) => item.path === activeRoute.path);
+    const activeElement = document.getElementById(`scroll-li-${activeIndex}`);
+    const scrollElement = scrollRef.current;
+    const listElement = listRef.current;
+
+    if (!activeElement || !scrollElement || !listElement) return;
+
+    const scrollWidth = scrollElement.offsetWidth;
+    const listWidth = listElement.offsetWidth;
+    setScrollBounds({ max: 0, min: Math.min(scrollWidth - listWidth, 0) });
+    if (listWidth <= scrollWidth) {
+      setRawTranslate(0);
+      return;
+    }
+
+    const tabLeft = activeElement.offsetLeft;
+    const tabRight = tabLeft + activeElement.offsetWidth;
+    const visibleLeft = Math.abs(translateXRef.current);
+    const visibleRight = visibleLeft + scrollWidth;
+
+    if (tabLeft >= visibleLeft && tabRight <= visibleRight) return;
+
+    const nextTranslate =
+      tabRight > visibleRight ? Math.max(scrollWidth - tabRight - 6, scrollWidth - listWidth) : -tabLeft;
+
+    setScrolling(true);
+    setBoundedTranslate(nextTranslate);
+    window.setTimeout(() => setScrolling(false), 250);
+  }, [activeRoute.path, opened, setBoundedTranslate, setRawTranslate]);
+
+  useLayoutEffect(() => {
+    autoPositionActiveTab();
+  }, [autoPositionActiveTab]);
+
+  useLayoutEffect(() => {
+    updateScrollBounds();
+    setBoundedTranslate((current) => current);
+  }, [opened.length, setBoundedTranslate, tabStyle, updateScrollBounds]);
+
+  useEffect(() => {
+    const scrollElement = scrollRef.current;
+    const listElement = listRef.current;
+    if (!scrollElement || !listElement || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => {
+      updateScrollBounds();
+      setBoundedTranslate((current) => current);
+    });
+    observer.observe(scrollElement);
+    observer.observe(listElement);
+    return () => observer.disconnect();
+  }, [setBoundedTranslate, updateScrollBounds]);
 
   const close = async (path: string) => {
     const nextPath = getNextPath(opened, path, fallbackPath);
@@ -157,8 +282,24 @@ export function WorkTabs() {
 
   return (
     <div className={cn('work-tabs', tabStyle)}>
+      <Button
+        aria-label="向左滚动标签页"
+        className="work-tab-scroll-button"
+        disabled={!canScrollLeft}
+        icon={lucideIcon('lucide:chevron-left')}
+        onClick={scrollLeft}
+      />
       <div className="work-tabs-scroll">
-        <ul className="work-tabs-list">
+        <div
+          ref={scrollRef}
+          className="work-tabs-viewport"
+          onWheel={handleWheel}
+        >
+          <ul
+            ref={listRef}
+            className={cn('work-tabs-list', scrolling && 'scrolling')}
+            style={{ transform: `translateX(${translateX}px)` }}
+          >
           {opened.map((item, index) => {
             const meta = getRouteMeta(item.path, menus);
             const active = activeRoute.path === item.path;
@@ -196,8 +337,16 @@ export function WorkTabs() {
               </Dropdown>
             );
           })}
-        </ul>
+          </ul>
+        </div>
       </div>
+      <Button
+        aria-label="向右滚动标签页"
+        className="work-tab-scroll-button"
+        disabled={!canScrollRight}
+        icon={lucideIcon('lucide:chevron-right')}
+        onClick={scrollRight}
+      />
       <Dropdown
         menu={{ items: getMenuItems(activeRoute.path) }}
         trigger={['click']}

@@ -14,8 +14,13 @@ export const SETTING_DEFAULT_CONFIG = {
   showWorkTab: true,
   showLanguage: true,
   showSettingGuide: true,
+  showNprogress: true,
+  uniqueOpened: true,
+  colorWeak: false,
+  watermarkVisible: false,
   boxBorderMode: true,
   tabStyle: 'tab-google',
+  pageTransition: 'fade',
   customRadius: 0.75,
   containerWidth: ContainerWidthEnum.FULL,
 } as const;

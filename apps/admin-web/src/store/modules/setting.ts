@@ -18,8 +18,13 @@ export interface SettingState {
   showWorkTab: boolean;
   showLanguage: boolean;
   showSettingGuide: boolean;
+  showNprogress: boolean;
+  uniqueOpened: boolean;
+  colorWeak: boolean;
+  watermarkVisible: boolean;
   boxBorderMode: boolean;
   tabStyle: string;
+  pageTransition: string;
   customRadius: number;
   containerWidth: ContainerWidthEnum;
   refreshToken: number;
@@ -32,6 +37,7 @@ export interface SettingState {
   setBoxBorderMode: (enabled: boolean) => void;
   setContainerWidth: (width: ContainerWidthEnum) => void;
   setCustomRadius: (radius: number) => void;
+  setMenuOpenWidth: (width: number) => void;
   setShowWorkTab: (show: boolean) => void;
   setMenuType: (type: MenuTypeEnum) => void;
   setMenuThemeType: (theme: MenuThemeEnum) => void;
@@ -40,7 +46,12 @@ export interface SettingState {
   setShowFastEnter: (show: boolean) => void;
   setShowCrumbs: (show: boolean) => void;
   setShowLanguage: (show: boolean) => void;
+  setShowNprogress: (show: boolean) => void;
+  setUniqueOpened: (uniqueOpened: boolean) => void;
+  setColorWeak: (colorWeak: boolean) => void;
+  setWatermarkVisible: (watermarkVisible: boolean) => void;
   setTabStyle: (style: string) => void;
+  setPageTransition: (transition: string) => void;
   resetSettings: () => void;
 }
 
@@ -64,6 +75,7 @@ export const useSettingStore = create<SettingState>()(
       setBoxBorderMode: (boxBorderMode) => set({ boxBorderMode }),
       setContainerWidth: (containerWidth) => set({ containerWidth }),
       setCustomRadius: (customRadius) => set({ customRadius }),
+      setMenuOpenWidth: (menuOpenWidth) => set({ menuOpenWidth }),
       setShowWorkTab: (showWorkTab) => set({ showWorkTab }),
       setMenuType: (menuType) => set({ menuType }),
       setMenuThemeType: (menuThemeType) => set({ menuThemeType }),
@@ -72,19 +84,26 @@ export const useSettingStore = create<SettingState>()(
       setShowFastEnter: (showFastEnter) => set({ showFastEnter }),
       setShowCrumbs: (showCrumbs) => set({ showCrumbs }),
       setShowLanguage: (showLanguage) => set({ showLanguage }),
+      setShowNprogress: (showNprogress) => set({ showNprogress }),
+      setUniqueOpened: (uniqueOpened) => set({ uniqueOpened }),
+      setColorWeak: (colorWeak) => set({ colorWeak }),
+      setWatermarkVisible: (watermarkVisible) => set({ watermarkVisible }),
       setTabStyle: (tabStyle) => set({ tabStyle }),
+      setPageTransition: (pageTransition) => set({ pageTransition }),
       resetSettings: () => set({ ...SETTING_DEFAULT_CONFIG }),
     }),
     {
       name: adminStorageNS('setting'),
       partialize: (state) => ({
         menuType: state.menuType,
+        menuOpenWidth: state.menuOpenWidth,
         menuOpen: state.menuOpen,
         systemThemeType: state.systemThemeType,
         systemThemeColor: state.systemThemeColor,
         menuThemeType: state.menuThemeType,
         boxBorderMode: state.boxBorderMode,
         tabStyle: state.tabStyle,
+        pageTransition: state.pageTransition,
         customRadius: state.customRadius,
         containerWidth: state.containerWidth,
         showWorkTab: state.showWorkTab,
@@ -93,6 +112,10 @@ export const useSettingStore = create<SettingState>()(
         showFastEnter: state.showFastEnter,
         showCrumbs: state.showCrumbs,
         showLanguage: state.showLanguage,
+        showNprogress: state.showNprogress,
+        uniqueOpened: state.uniqueOpened,
+        colorWeak: state.colorWeak,
+        watermarkVisible: state.watermarkVisible,
       }),
     },
   ),

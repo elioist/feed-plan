@@ -34,6 +34,17 @@ export interface ResolvedRouteMeta {
   type?: MenuType;
 }
 
+const builtinRouteMetas: Record<AdminRoutePath, ResolvedRouteMeta> = {
+  '/profile': {
+    icon: <SvgIcon icon="lucide:user" width={16} height={16} />,
+    iconKey: 'lucide:user',
+    isTabVisible: true,
+    path: '/profile',
+    title: '个人中心',
+    type: 'page',
+  },
+};
+
 function pathMatches(pathname: string, path: AdminRoutePath) {
   return path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
 }
@@ -87,6 +98,9 @@ export function getRoutableRouteMeta(menus: AdminMenuItem[]) {
 export function getRouteMeta(pathname: string, menus: AdminMenuItem[]): ResolvedRouteMeta {
   const item = flattenMenuItems(menus).find((menu) => menu.path && pathMatches(pathname, menu.path));
   if (!item?.path) {
+    const builtinMeta = builtinRouteMetas[pathname];
+    if (builtinMeta) return builtinMeta;
+
     return {
       icon: null,
       isTabVisible: false,

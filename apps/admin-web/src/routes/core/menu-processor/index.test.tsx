@@ -161,8 +161,13 @@ describe('backend-driven navigation', () => {
     expect(getSubMenus(undefined, [])).toEqual([]);
     expect(getRoutableRouteMeta([])).toEqual([]);
     expect(getRouteMeta('/profile', [])).toMatchObject({
-      isTabVisible: false,
+      isTabVisible: true,
       path: '/profile',
+      title: '个人中心',
+    });
+    expect(getRouteMeta('/unknown', [])).toMatchObject({
+      isTabVisible: false,
+      path: '/unknown',
       title: '页面',
     });
   });

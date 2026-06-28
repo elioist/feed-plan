@@ -15,12 +15,23 @@
   overflow: hidden;
 }
 
+.work-tabs-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
 .work-tabs-list {
   display: flex;
+  width: max-content;
   padding: 0 0 0 4px;
   margin: 0;
   list-style: none;
   white-space: nowrap;
+  will-change: transform;
+}
+
+.work-tabs-list.scrolling {
+  transition: transform 0.25s cubic-bezier(0.15, 0, 0.15, 1);
 }
 
 .work-tab {
@@ -107,9 +118,13 @@
   position: relative;
   z-index: 1;
   margin-left: 2px;
-  color: var(--theme-color);
+  color: var(--gray-500);
   font-size: 12px;
   opacity: 0.85;
+}
+
+.work-tab.active .work-tab-pin {
+  color: var(--theme-color);
 }
 
 .work-tab-close {
@@ -160,6 +175,33 @@
   flex: 0 0 auto;
   margin-top: -3px;
   border-radius: 10px;
+}
+
+.work-tab-scroll-button {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  margin-top: -3px;
+  color: var(--gray-600);
+  border-radius: calc(var(--custom-radius) / 2.5 + 0px);
+}
+
+.work-tab-scroll-button:hover {
+  color: var(--theme-color) !important;
+  background: var(--hover-color) !important;
+}
+
+.work-tabs.tab-google {
+  height: 37px;
+  flex-basis: 37px;
+  align-items: flex-start;
+  padding-top: 4px;
+  padding-bottom: 0;
+}
+
+.work-tabs.tab-google .work-tab-more,
+.work-tabs.tab-google .work-tab-scroll-button {
+  margin-top: -2px;
 }
 
 .work-tabs.tab-card .work-tab {

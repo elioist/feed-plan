@@ -117,9 +117,6 @@ const routeRegistry: Record<string, RouteRegistryEntry> = {
     },
     component: lazyRouteComponent(() => import('~/pages/menus/MenuListPage'), 'MenuListPage'),
   },
-  'system.settings': {
-    component: lazyRouteComponent(() => import('~/pages/settings/SettingsPage'), 'SettingsPage'),
-  },
 };
 
 const profileRouteEntry: RouteRegistryEntry = {

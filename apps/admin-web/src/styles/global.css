@@ -89,3 +89,7 @@ html.dark ::-webkit-scrollbar-track {
 html.dark ::-webkit-scrollbar-thumb {
   background-color: var(--gray-300) !important;
 }
+
+html.color-weak {
+  filter: grayscale(0.85);
+}

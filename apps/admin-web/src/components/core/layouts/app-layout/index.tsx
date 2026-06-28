@@ -10,6 +10,7 @@ import { DualMenuRail } from '~/components/core/layouts/menus/dual-menu-rail';
 import { HorizontalMenu } from '~/components/core/layouts/menus/horizontal-menu';
 import { MixedMenu } from '~/components/core/layouts/menus/mixed-menu';
 import { PageContent } from '~/components/core/layouts/page-content';
+import { RouteProgress } from '~/components/core/layouts/route-progress';
 import { WorkTabs } from '~/components/core/layouts/work-tabs';
 import { useRouterState } from '@tanstack/react-router';
 import {
@@ -27,6 +28,7 @@ export function AppLayout({ children }: PropsWithChildren) {
 
   const main = (
     <Layout id="app-main" className={styles.main}>
+      <RouteProgress />
       <div id="app-header" className={styles.headerShell}>
         <HeaderBar />
         <WorkTabs />

@@ -92,6 +92,13 @@
       "when": 1782555516000,
       "tag": "0012_lucide_menu_icons",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1782555517000,
+      "tag": "0013_remove_settings_menu",
+      "breakpoints": true
     }
   ]
 }

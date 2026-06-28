@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import {
   adminMenuButtons,
   adminMenus,
@@ -80,16 +80,6 @@ const bootstrapMenus = [
     componentKey: 'system.menus',
     sortOrder: 93,
   },
-  {
-    key: 'system.settings',
-    parentKey: 'system',
-    title: '系统设置',
-    path: '/settings',
-    icon: 'lucide:settings',
-    type: 'page',
-    componentKey: 'system.settings',
-    sortOrder: 94,
-  },
 ] as const;
 
 const bootstrapMenuButtons = [
@@ -132,7 +122,6 @@ const chefMenuKeys = new Set([
   'recipes.tags',
   'meals',
   'system',
-  'system.settings',
 ]);
 
 const chefButtonKeys = new Set([
@@ -152,6 +141,8 @@ const chefButtonKeys = new Set([
   'meals.complete',
 ]);
 
+const retiredSystemMenuKeys = ['system.settings'] as const;
+
 async function ensureRole(db: Database, key: string, name: string, description: string): Promise<string> {
   const existing = await db.select().from(roles).where(eq(roles.key, key)).limit(1);
   if (existing[0]) {
@@ -164,6 +155,10 @@ async function ensureRole(db: Database, key: string, name: string, description: 
   const [row] = await db.insert(roles).values({ key, name, description, isSystem: true }).returning();
   if (!row) throw new Error(`创建角色失败：${key}`);
   return row.id;
+}
+
+async function removeRetiredSystemMenus(db: Database): Promise<void> {
+  await db.delete(adminMenus).where(inArray(adminMenus.key, retiredSystemMenuKeys));
 }
 
 async function ensureMenu(
@@ -294,6 +289,8 @@ async function main(): Promise<void> {
   const dinerName = process.env.SEED_DINER_USERNAME ?? 'diner';
 
   const db = createDb(url);
+  await removeRetiredSystemMenus(db);
+
   const superAdminRoleId = await ensureRole(
     db,
     'super_admin',

@@ -1,6 +1,6 @@
-import { Button, Drawer } from 'antd';
-import { useSettingStore } from '~/store/modules/setting';
-import { SettingsControls } from './settings-controls';
+import { SettingDrawer } from './widget/setting-drawer';
+import { SettingHeader } from './widget/setting-header';
+import { SettingsPanelContent } from './widget/settings-panel-content';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -8,19 +8,12 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
-  const resetSettings = useSettingStore((state) => state.resetSettings);
-
   return (
-    <Drawer
-      title="系统设置"
-      open={open}
-      size={330}
-      onClose={onClose}
-      destroyOnHidden
-      className="settings-panel"
-      extra={<Button onClick={resetSettings}>重置</Button>}
-    >
-      <SettingsControls />
-    </Drawer>
+    <SettingDrawer open={open} onClose={onClose}>
+      <SettingHeader onClose={onClose} />
+      <SettingsPanelContent />
+    </SettingDrawer>
   );
 }
+
+export { SettingsPanelContent } from './widget/settings-panel-content';
