@@ -298,7 +298,7 @@ export function WorkTabs() {
         aria-label="向左滚动标签页"
         className="work-tab-action-button work-tab-scroll-button"
         disabled={!canScrollLeft}
-        icon="lucide:chevron-left"
+        icon="lucide:chevrons-left"
         onClick={scrollLeft}
       />
       <div className="work-tabs-scroll">
@@ -358,7 +358,7 @@ export function WorkTabs() {
         aria-label="向右滚动标签页"
         className="work-tab-action-button work-tab-scroll-button"
         disabled={!canScrollRight}
-        icon="lucide:chevron-right"
+        icon="lucide:chevrons-right"
         onClick={scrollRight}
       />
       <Dropdown
