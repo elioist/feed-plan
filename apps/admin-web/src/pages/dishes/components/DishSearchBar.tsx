@@ -31,9 +31,10 @@ export function DishSearchBar({
     },
     {
       type: 'select',
-      name: 'categoryId',
+      name: 'categoryIds',
       label: '分类',
       placeholder: '请选择分类',
+      mode: 'multiple',
       options: categoryOptions,
     },
     {

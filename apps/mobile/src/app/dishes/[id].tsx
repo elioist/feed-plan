@@ -1,6 +1,6 @@
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'tamagui';
+import { AlertCircle, ArrowLeft, Heart, Utensils, Tag, Clock, Users, ChefHat, Lightbulb, Link, ChevronRight, Plus, Flame } from '@tamagui/lucide-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -62,7 +62,7 @@ export default function DishDetailScreen() {
   if (!dish) {
     return (
       <View style={{ flex: 1, backgroundColor: '#fdf6ee', justifyContent: 'center', alignItems: 'center' }}>
-        <MaterialCommunityIcons name="food-off" size={48} color="#e8ddd0" />
+        <AlertCircle size={48} color="#e8ddd0" />
         <Text style={{ color: '#b8a898', marginTop: 12 }}>菜谱不存在</Text>
       </View>
     );
@@ -90,7 +90,7 @@ export default function DishDetailScreen() {
           onPress={() => router.back()}
           style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center' }}
         >
-          <MaterialCommunityIcons name="arrow-left" size={20} color="#2d1f14" />
+          <ArrowLeft size={20} color="#2d1f14" />
         </TouchableOpacity>
         <Text style={{ flex: 1, fontSize: 17, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }} numberOfLines={1}>
           {dish.name}
@@ -98,7 +98,7 @@ export default function DishDetailScreen() {
         <TouchableOpacity
           style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center' }}
         >
-          <MaterialCommunityIcons name="heart-outline" size={20} color="#2d1f14" />
+          <Heart size={20} color="#2d1f14" />
         </TouchableOpacity>
       </View>
 
@@ -109,7 +109,7 @@ export default function DishDetailScreen() {
             <Image source={{ uri: getImageUrl(dish.coverImage)! }} style={{ width: '100%', height: 200, borderRadius: 20 }} resizeMode="cover" />
           ) : (
             <View style={{ width: '100%', height: 200, borderRadius: 20, backgroundColor: '#fae8df', alignItems: 'center', justifyContent: 'center' }}>
-              <MaterialCommunityIcons name="food" size={80} color="#c45a32" />
+              <Utensils size={80} color="#c45a32" />
             </View>
           )}
         </View>
@@ -117,8 +117,8 @@ export default function DishDetailScreen() {
         <View style={{ paddingHorizontal: 20 }}>
           {/* Category */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 4, borderRadius: 999, backgroundColor: '#fae8df', alignSelf: 'flex-start', marginBottom: 9 }}>
-            <MaterialCommunityIcons name="tag-outline" size={13} color="#c45a32" />
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#8b3a1e', fontFamily: '"Baloo 2"' }}>{dish.category?.name ?? '未分类'}</Text>
+            <Tag size={13} color="#c45a32" />
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#8b3a1e', fontFamily: '"Baloo 2"' }}>{dish.categories?.[0]?.name}</Text>
           </View>
 
           {dish.description ? (
@@ -128,12 +128,12 @@ export default function DishDetailScreen() {
           {/* Stats */}
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
             {[
-              { icon: 'clock-outline', value: dish.difficulty === 'easy' ? '15' : dish.difficulty === 'hard' ? '45' : '30', label: '分钟' },
-              { icon: 'fire', value: dish.difficulty === 'easy' ? '200' : dish.difficulty === 'hard' ? '500' : '350', label: 'kcal' },
-              { icon: 'account-group', value: '2', label: '人份' },
+              { Icon: Clock, value: dish.difficulty === 'easy' ? '15' : dish.difficulty === 'hard' ? '45' : '30', label: '分钟' },
+              { Icon: Flame, value: dish.difficulty === 'easy' ? '200' : dish.difficulty === 'hard' ? '500' : '350', label: 'kcal' },
+              { Icon: Users, value: '2', label: '人份' },
             ].map((stat) => (
               <View key={stat.label} style={{ flex: 1, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', borderRadius: 16, padding: 12, alignItems: 'center' }}>
-                <MaterialCommunityIcons name={stat.icon as keyof typeof MaterialCommunityIcons.glyphMap} size={20} color="#c45a32" />
+                <stat.Icon size={20} color="#c45a32" />
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#2d1f14', marginTop: 4, fontFamily: '"Baloo 2"' }}>{stat.value}</Text>
                 <Text style={{ fontSize: 11, color: '#8a7565' }}>{stat.label}</Text>
               </View>
@@ -142,7 +142,7 @@ export default function DishDetailScreen() {
 
           {/* Difficulty */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 11, borderRadius: 16, backgroundColor: difficulty.bg, marginBottom: 20 }}>
-            <MaterialCommunityIcons name="chef-hat" size={20} color={difficulty.fg} />
+            <ChefHat size={20} color={difficulty.fg} />
             <Text style={{ fontSize: 12, fontWeight: '700', color: difficulty.fg, fontFamily: '"Baloo 2"' }}>难度：{difficulty.label}</Text>
           </View>
 
@@ -151,7 +151,7 @@ export default function DishDetailScreen() {
             <View style={{ marginBottom: 20 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 14 }}>
                 <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: '#f7f3ee', alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialCommunityIcons name="pot-steam" size={18} color="#c45a32" />
+                  <Utensils size={18} color="#c45a32" />
                 </View>
                 <Text style={{ fontSize: 17, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>做法步骤</Text>
                 <Text style={{ marginLeft: 'auto', fontSize: 12, color: '#b8a898', fontFamily: '"Baloo 2"', fontWeight: '700' }}>{steps.length} 步</Text>
@@ -172,7 +172,7 @@ export default function DishDetailScreen() {
 
           {/* Tips */}
           <View style={{ padding: 13, borderRadius: 16, backgroundColor: '#faf3dc', flexDirection: 'row', gap: 11, alignItems: 'flex-start', marginBottom: 20 }}>
-            <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#8b6a2a" style={{ marginTop: 1 }} />
+            <Lightbulb size={20} color="#8b6a2a" style={{ marginTop: 1 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#8b6a2a', fontFamily: '"Baloo 2"' }}>主厨小贴士</Text>
               <Text style={{ fontSize: 12, color: '#8b6a2a', lineHeight: 18, marginTop: 4 }}>
@@ -185,7 +185,7 @@ export default function DishDetailScreen() {
           <View style={{ marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 14 }}>
               <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: '#f7f3ee', alignItems: 'center', justifyContent: 'center' }}>
-                <MaterialCommunityIcons name="link-variant" size={18} color="#c45a32" />
+                <Link size={18} color="#c45a32" />
               </View>
               <Text style={{ fontSize: 17, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>参考链接</Text>
             </View>
@@ -206,7 +206,7 @@ export default function DishDetailScreen() {
                   </Text>
                   <Text style={{ fontSize: 11, color: '#8a7565' }}>查看详细内容</Text>
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={18} color="#b8a898" />
+                <ChevronRight size={18} color="#b8a898" />
               </TouchableOpacity>
             )}
 
@@ -218,7 +218,7 @@ export default function DishDetailScreen() {
                 activeOpacity={0.7}
               >
                 <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: '#6b7890', alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialCommunityIcons name="link" size={24} color="#ffffff" />
+                  <Link size={24} color="#ffffff" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 14, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }} numberOfLines={1}>
@@ -226,7 +226,7 @@ export default function DishDetailScreen() {
                   </Text>
                   <Text style={{ fontSize: 11, color: '#8a7565' }}>{dish.referenceUrl}</Text>
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={18} color="#b8a898" />
+                <ChevronRight size={18} color="#b8a898" />
               </TouchableOpacity>
             )}
 
@@ -249,7 +249,7 @@ export default function DishDetailScreen() {
                     {platform.name === 'YouTube' ? 'Search for video' : '查看相关内容'}
                   </Text>
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={18} color="#b8a898" />
+                <ChevronRight size={18} color="#b8a898" />
               </TouchableOpacity>
             ))}
           </View>
@@ -274,7 +274,7 @@ export default function DishDetailScreen() {
           }}
           activeOpacity={0.85}
         >
-          <MaterialCommunityIcons name="plus" size={18} color="#ffffff" />
+          <Plus size={18} color="#ffffff" />
           <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700', fontFamily: '"Baloo 2"' }}>加入这一单</Text>
         </TouchableOpacity>
       </View>

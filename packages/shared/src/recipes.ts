@@ -40,6 +40,16 @@ const queryBooleanSchema = z.preprocess((value) => {
 
   return value;
 }, z.boolean());
+const queryStringArraySchema = z.preprocess((value) => {
+  if (typeof value === 'string') {
+    return [value];
+  }
+  if (Array.isArray(value) && value.length === 0) {
+    return undefined;
+  }
+
+  return value;
+}, z.array(z.string().uuid()).min(1).optional());
 
 export const categorySchema = z.object({
   id: z.string().uuid(),
@@ -98,7 +108,7 @@ export type UpdateTagInput = z.infer<typeof updateTagSchema>;
 
 export const createDishSchema = z.object({
   name: z.string().trim().min(1, '菜谱名称不能为空').max(128),
-  categoryId: z.string().uuid('分类 id 不合法'),
+  categoryIds: z.array(z.string().uuid()).min(1, '请选择至少一个分类'),
   coverImage: optionalImagePath,
   description: optionalText,
   referenceUrl: optionalUrl,
@@ -121,7 +131,7 @@ export const updateDishActiveSchema = z.object({
 export type UpdateDishActiveInput = z.infer<typeof updateDishActiveSchema>;
 
 export const dishListQuerySchema = z.object({
-  categoryId: z.string().uuid().optional(),
+  categoryIds: queryStringArraySchema,
   keyword: z.string().trim().min(1).max(64).optional(),
   tag: z.string().trim().min(1).max(32).optional(),
   dietary: z.string().trim().min(1).max(32).optional(),
@@ -132,8 +142,7 @@ export type DishListQuery = z.infer<typeof dishListQuerySchema>;
 export const dishSummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  categoryId: z.string().uuid().nullable(),
-  category: categorySchema.nullable(),
+  categories: z.array(categorySchema).default([]),
   coverImage: z.string().nullable(),
   description: z.string().nullable(),
   referenceUrl: z.string().nullable(),

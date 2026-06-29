@@ -5,8 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, arrayContains, asc, eq, ilike, or } from 'drizzle-orm';
-import { categories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
+import { and, arrayContains, asc, eq, exists, ilike, inArray, or } from 'drizzle-orm';
+import { categories, dishCategories, dishes, type CategoryRow, type DishRow } from '@feed-plan/db';
 import type {
   CreateDishInput,
   DishDetail,
@@ -29,13 +29,29 @@ export class DishesService {
     const canManageRecipes = await this.userCanManageRecipes(user);
     const where = this.buildListWhere(query, canManageRecipes);
     const rows = await this.db
-      .select({ dish: dishes, category: categories })
+      .select({ dish: dishes })
       .from(dishes)
-      .leftJoin(categories, eq(dishes.categoryId, categories.id))
       .where(where)
       .orderBy(asc(dishes.createdAt), asc(dishes.name));
 
-    return rows.map((row) => toDishSummary(row.dish, row.category));
+    // 获取所有菜品的多分类
+    const dishIds = rows.map((row) => row.dish.id);
+    const catRows = dishIds.length > 0
+      ? await this.db
+          .select({ dishId: dishCategories.dishId, category: categories })
+          .from(dishCategories)
+          .innerJoin(categories, eq(dishCategories.categoryId, categories.id))
+          .where(inArray(dishCategories.dishId, dishIds))
+      : [];
+
+    const categoriesByDish = new Map<string, CategoryRow[]>();
+    for (const row of catRows) {
+      const list = categoriesByDish.get(row.dishId) ?? [];
+      list.push(row.category);
+      categoriesByDish.set(row.dishId, list);
+    }
+
+    return rows.map((row) => toDishSummary(row.dish, categoriesByDish.get(row.dish.id) ?? []));
   }
 
   async getById(id: string, user: JwtPayload): Promise<DishDetail> {
@@ -47,13 +63,15 @@ export class DishesService {
   }
 
   async create(input: CreateDishInput): Promise<DishDetail> {
-    await this.assertCategoryExists(input.categoryId);
+    for (const catId of input.categoryIds) {
+      await this.assertCategoryExists(catId);
+    }
 
     const [dish] = await this.db
       .insert(dishes)
       .values({
         name: input.name,
-        categoryId: input.categoryId,
+        categoryId: null,
         coverImage: input.coverImage ?? null,
         description: input.description ?? null,
         referenceUrl: input.referenceUrl ?? null,
@@ -68,6 +86,11 @@ export class DishesService {
       throw new BadRequestException('菜谱创建失败');
     }
 
+    // 写入多分类关联
+    await this.db.insert(dishCategories).values(
+      input.categoryIds.map((categoryId) => ({ dishId: dish.id, categoryId })),
+    );
+
     const detail = await this.loadDetail(dish.id);
     if (!detail) {
       throw new NotFoundException('菜谱不存在');
@@ -77,8 +100,10 @@ export class DishesService {
 
   async update(id: string, input: UpdateDishInput): Promise<DishDetail> {
     await this.assertDishExists(id);
-    if (input.categoryId) {
-      await this.assertCategoryExists(input.categoryId);
+    if (input.categoryIds?.length) {
+      for (const catId of input.categoryIds) {
+        await this.assertCategoryExists(catId);
+      }
     }
 
     const dishPatch = this.toDishPatch(input);
@@ -90,6 +115,16 @@ export class DishesService {
           updatedAt: new Date(),
         })
         .where(eq(dishes.id, id));
+    }
+
+    // 更新多分类关联
+    if (input.categoryIds !== undefined) {
+      await this.db.delete(dishCategories).where(eq(dishCategories.dishId, id));
+      if (input.categoryIds.length > 0) {
+        await this.db.insert(dishCategories).values(
+          input.categoryIds.map((categoryId) => ({ dishId: id, categoryId })),
+        );
+      }
     }
 
     const detail = await this.loadDetail(id);
@@ -137,8 +172,20 @@ export class DishesService {
     } else if (query.isActive !== undefined) {
       conditions.push(eq(dishes.isActive, query.isActive));
     }
-    if (query.categoryId) {
-      conditions.push(eq(dishes.categoryId, query.categoryId));
+    if (query.categoryIds?.length) {
+      conditions.push(
+        exists(
+          this.db
+            .select({ dishId: dishCategories.dishId })
+            .from(dishCategories)
+            .where(
+              and(
+                eq(dishCategories.dishId, dishes.id),
+                inArray(dishCategories.categoryId, query.categoryIds),
+              ),
+            ),
+        ),
+      );
     }
     if (query.keyword) {
       const keyword = `%${query.keyword}%`;
@@ -165,12 +212,11 @@ export class DishesService {
 
   private async loadDetail(id: string): Promise<{
     dish: DishRow;
-    category: CategoryRow | null;
+    categories: CategoryRow[];
   } | null> {
     const dishRows = await this.db
-      .select({ dish: dishes, category: categories })
+      .select({ dish: dishes })
       .from(dishes)
-      .leftJoin(categories, eq(dishes.categoryId, categories.id))
       .where(eq(dishes.id, id))
       .limit(1);
 
@@ -179,9 +225,16 @@ export class DishesService {
       return null;
     }
 
+    // 获取多分类
+    const catRows = await this.db
+      .select({ category: categories })
+      .from(dishCategories)
+      .innerJoin(categories, eq(dishCategories.categoryId, categories.id))
+      .where(eq(dishCategories.dishId, id));
+
     return {
       dish: row.dish,
-      category: row.category,
+      categories: catRows.map((r) => r.category),
     };
   }
 
@@ -210,7 +263,6 @@ export class DishesService {
   private toDishPatch(input: UpdateDishInput): Partial<typeof dishes.$inferInsert> {
     return {
       ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
       ...(input.coverImage !== undefined ? { coverImage: input.coverImage ?? null } : {}),
       ...(input.description !== undefined ? { description: input.description ?? null } : {}),
       ...(input.referenceUrl !== undefined ? { referenceUrl: input.referenceUrl ?? null } : {}),

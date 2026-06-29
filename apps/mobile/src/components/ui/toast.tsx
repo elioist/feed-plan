@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { CheckCircle, XCircle, Info } from '@tamagui/lucide-icons';
 
 interface ToastData {
   id: number;
@@ -19,10 +19,10 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
-const TOAST_ICONS: Record<ToastData['type'], string> = {
-  success: 'check-circle',
-  error: 'close-circle',
-  info: 'information',
+const TOAST_ICONS: Record<ToastData['type'], any> = {
+  success: CheckCircle,
+  error: XCircle,
+  info: Info,
 };
 
 const TOAST_COLORS: Record<ToastData['type'], string> = {
@@ -54,11 +54,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             exiting={FadeOut.duration(150)}
             style={styles.toast}
           >
-            <MaterialCommunityIcons
-              name={TOAST_ICONS[t.type] as keyof typeof MaterialCommunityIcons.glyphMap}
-              size={20}
-              color={TOAST_COLORS[t.type]}
-            />
+            {React.createElement(TOAST_ICONS[t.type], {
+              size: 20,
+              color: TOAST_COLORS[t.type],
+            })}
             <Text style={styles.message}>{t.message}</Text>
           </Animated.View>
         ))}

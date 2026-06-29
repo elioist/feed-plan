@@ -1,6 +1,6 @@
 import { View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text, Input } from 'tamagui';
+import { ShoppingCart, Utensils, Minus, Plus, Flame, Sun, Moon } from '@tamagui/lucide-icons';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeScreen } from '~/components/safe-screen';
@@ -10,10 +10,10 @@ import type { MealType } from '@feed-plan/shared';
 import { getOrderErrorFeedback } from '~/lib/order-errors';
 import { useAuthStore } from '~/stores/auth-store';
 
-const MEAL_OPTIONS: { value: MealType; label: string; icon: string }[] = [
-  { value: 'breakfast', label: '早餐', icon: 'weather-sunny' },
-  { value: 'lunch', label: '午餐', icon: 'white-balance-sunny' },
-  { value: 'dinner', label: '晚餐', icon: 'weather-night' },
+const MEAL_OPTIONS: { value: MealType; label: string; Icon: any }[] = [
+  { value: 'breakfast', label: '早餐', Icon: Sun },
+  { value: 'lunch', label: '午餐', Icon: Utensils },
+  { value: 'dinner', label: '晚餐', Icon: Moon },
 ];
 
 export default function CartScreen() {
@@ -107,8 +107,7 @@ export default function CartScreen() {
                 gap: 6,
               }}
             >
-              <MaterialCommunityIcons
-                name={option.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+              <option.Icon
                 size={16}
                 color={mealType === option.value ? '#ffffff' : '#8a7565'}
               />
@@ -154,7 +153,7 @@ export default function CartScreen() {
         >
           {items.length === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: 24 }}>
-              <MaterialCommunityIcons name="cart-outline" size={40} color="#e8ddd0" />
+              <ShoppingCart size={40} color="#e8ddd0" />
               <Text style={{ color: '#b8a898', fontSize: 13, marginTop: 8, textAlign: 'center' }}>
                 购物车还是空的{'\n'}去菜单挑几道想吃的吧
               </Text>
@@ -190,7 +189,7 @@ export default function CartScreen() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <MaterialCommunityIcons name="food" size={24} color="#c45a32" />
+                    <Utensils size={24} color="#c45a32" />
                   )}
                 </View>
 
@@ -221,7 +220,7 @@ export default function CartScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <MaterialCommunityIcons name="minus" size={14} color="#2d1f14" />
+                    <Minus size={14} color="#2d1f14" />
                   </TouchableOpacity>
                   <Text
                     style={{
@@ -246,7 +245,7 @@ export default function CartScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <MaterialCommunityIcons name="plus" size={14} color="#ffffff" />
+                    <Plus size={14} color="#ffffff" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -267,16 +266,17 @@ export default function CartScreen() {
         >
           给厨房的备注
         </Text>
-        <TextInput
+        <Input
           value={note}
           onChangeText={setNote}
           multiline
           numberOfLines={2}
           placeholder="想吃辣一点 / 米饭少一点..."
           placeholderTextColor="#b8a898"
-          mode="outlined"
-          outlineStyle={{ borderRadius: 14, borderColor: '#e8ddd0' }}
-          style={{ backgroundColor: '#fffcf8' }}
+          borderWidth={1}
+          borderColor="#e8ddd0"
+          borderRadius={14}
+          backgroundColor="#fffcf8"
         />
       </ScrollView>
 
@@ -318,7 +318,7 @@ export default function CartScreen() {
           }}
           activeOpacity={0.85}
         >
-          <MaterialCommunityIcons name="fire" size={20} color="#ffffff" />
+          <Flame size={20} color="#ffffff" />
           <Text
             style={{
               color: '#ffffff',

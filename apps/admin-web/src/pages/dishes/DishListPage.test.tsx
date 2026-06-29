@@ -19,8 +19,7 @@ const dishes: DishSummary[] = [
   {
     id: '22222222-2222-2222-2222-222222222222',
     name: '番茄炒蛋',
-    categoryId: categories[0]!.id,
-    category: categories[0]!,
+    categories: [categories[0]!],
     coverImage: null,
     description: '家常快手菜',
     referenceUrl: null,

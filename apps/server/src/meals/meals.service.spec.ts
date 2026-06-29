@@ -126,19 +126,23 @@ describe('MealsService', () => {
           from: vi.fn(() => ({
             leftJoin: vi.fn(() => ({
               innerJoin: vi.fn(() => ({
-                leftJoin: vi.fn(() => ({
-                  where: vi.fn(() => ({
-                    orderBy: vi.fn(async () => [
-                      {
-                        order,
-                        user: { username: 'chef' },
-                        dish,
-                        category,
-                      },
-                    ]),
-                  })),
+                where: vi.fn(() => ({
+                  orderBy: vi.fn(async () => [
+                    {
+                      order,
+                      user: { username: 'chef' },
+                      dish,
+                    },
+                  ]),
                 })),
               })),
+            })),
+          })),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn(() => ({
+            innerJoin: vi.fn(() => ({
+              where: vi.fn(async () => [{ dishId: dish.id, category }]),
             })),
           })),
         }),

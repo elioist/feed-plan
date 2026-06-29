@@ -1,6 +1,6 @@
 import { View, FlatList, TouchableOpacity } from 'react-native';
-import { Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'tamagui';
+import { ChevronRight, FileText } from '@tamagui/lucide-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
@@ -50,7 +50,7 @@ export default function OrdersScreen() {
               <Text style={{ fontSize: 12, color: '#5a9a6a', fontWeight: '600' }}>进行中</Text>
             </View>
           </View>
-          <MaterialCommunityIcons name="chevron-right" size={18} color="#b8a898" />
+          <ChevronRight size={18} color="#b8a898" />
         </View>
         <Text style={{ fontSize: 16, fontWeight: '700', color: '#2d1f14', marginTop: 12, fontFamily: '"Baloo 2"' }}>
           {item.title ?? `${mealConfig.label}场次`}
@@ -80,7 +80,7 @@ export default function OrdersScreen() {
         contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 100 }}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 80 }}>
-            <MaterialCommunityIcons name="receipt-text-outline" size={48} color="#e8ddd0" />
+            <FileText size={48} color="#e8ddd0" />
             <Text style={{ color: '#b8a898', fontSize: 14, marginTop: 12 }}>
               {isLoading ? '加载中...' : '暂无进行中的订单'}
             </Text>

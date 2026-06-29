@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
-import { TextInput, Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Input, Text } from 'tamagui';
+import { UtensilsCrossed, Eye, EyeOff } from '@tamagui/lucide-icons';
 import { useAuthStore } from '~/stores/auth-store';
 
 export default function LoginScreen() {
@@ -58,7 +58,7 @@ export default function LoginScreen() {
               elevation: 8,
             }}
           >
-            <MaterialCommunityIcons name="food-fork-drink" size={44} color="#ffffff" />
+            <UtensilsCrossed size={44} color="#ffffff" />
           </View>
           <Text
             style={{
@@ -143,37 +143,38 @@ export default function LoginScreen() {
         {/* Form */}
         <View style={{ gap: 14 }}>
           <View>
-            <TextInput
+            <Input
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
               autoCorrect={false}
-              mode="outlined"
-              outlineStyle={{ borderRadius: 14, borderColor: '#e8ddd0' }}
-              style={{ backgroundColor: '#fffcf8' }}
+              borderWidth={1}
+              borderColor="#e8ddd0"
+              borderRadius={14}
+              backgroundColor="#fffcf8"
               placeholder="用户名"
               placeholderTextColor="#b8a898"
             />
           </View>
 
           <View>
-            <TextInput
+            <Input
               value={password}
               onChangeText={setPassword}
               secureTextEntry={secureEntry}
-              mode="outlined"
-              outlineStyle={{ borderRadius: 14, borderColor: '#e8ddd0' }}
-              style={{ backgroundColor: '#fffcf8' }}
+              borderWidth={1}
+              borderColor="#e8ddd0"
+              borderRadius={14}
+              backgroundColor="#fffcf8"
               placeholder="密码"
               placeholderTextColor="#b8a898"
-              right={
-                <TextInput.Icon
-                  icon={secureEntry ? 'eye-off' : 'eye'}
-                  onPress={() => setSecureEntry(!secureEntry)}
-                  color="#8a7565"
-                />
-              }
             />
+            <TouchableOpacity
+              onPress={() => setSecureEntry(!secureEntry)}
+              style={{ position: 'absolute', right: 12, top: 12 }}
+            >
+              {secureEntry ? <EyeOff size={20} color="#8a7565" /> : <Eye size={20} color="#8a7565" />}
+            </TouchableOpacity>
           </View>
 
           {error ? (

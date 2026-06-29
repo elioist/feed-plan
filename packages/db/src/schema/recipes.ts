@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid, varchar } from 'drizzle-orm/pg-core';
 import { DISH_DIFFICULTIES } from '@feed-plan/shared';
 
 export const categories = pgTable('categories', {
@@ -40,9 +40,24 @@ export const tags = pgTable(
   (table) => [uniqueIndex('tags_name_unique').on(table.name)],
 );
 
+export const dishCategories = pgTable(
+  'dish_categories',
+  {
+    dishId: uuid('dish_id')
+      .notNull()
+      .references(() => dishes.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+  },
+  (table) => [primaryKey({ columns: [table.dishId, table.categoryId] })],
+);
+
 export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;
 export type DishRow = typeof dishes.$inferSelect;
 export type NewDishRow = typeof dishes.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
+export type DishCategoryRow = typeof dishCategories.$inferSelect;
+export type NewDishCategoryRow = typeof dishCategories.$inferInsert;

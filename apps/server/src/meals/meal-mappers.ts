@@ -45,7 +45,7 @@ export function toMenuDetail(args: {
     order: OrderRow;
     user: Pick<UserRow, 'username'> | null;
     dish: DishRow;
-    category: CategoryRow | null;
+    categories: CategoryRow[];
   }>;
 }): MenuDetail {
   const orders = args.rows.map((row) => toOrderWithUser(row.order, row.user));
@@ -65,7 +65,7 @@ export function toMenuDetail(args: {
       existing.quantities.push(quantity);
     } else {
       itemMap.set(row.dish.id, {
-        dish: toDishSummary(row.dish, row.category),
+        dish: toDishSummary(row.dish, row.categories),
         totalQuantity: row.order.quantity,
         quantities: [quantity],
       });

@@ -17,6 +17,8 @@ export interface SearchFormItem {
   maxLength?: number;
   /** 下拉选项（select 类型） */
   options?: Array<{ label: string; value: string | number | boolean }>;
+  /** 下拉选择模式 */
+  mode?: 'multiple' | 'tags';
   /** 样式宽度 */
   width?: number | string;
   /** 是否允许清除 */
@@ -137,6 +139,7 @@ export function SearchBar({
                   <Select
                     placeholder={getTextPlaceholder(item.placeholder)}
                     allowClear={item.allowClear ?? true}
+                    mode={item.mode}
                     style={{ width: item.width }}
                     options={item.options}
                   />
@@ -221,6 +224,7 @@ export function SearchBar({
                     <Select
                       placeholder={getTextPlaceholder(item.placeholder)}
                       allowClear={item.allowClear ?? true}
+                      mode={item.mode}
                       style={{ width: item.width }}
                       options={item.options}
                     />

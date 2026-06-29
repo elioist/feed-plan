@@ -39,8 +39,7 @@ const category: Category = {
 const dishSummary: DishSummary = {
   id: '44444444-4444-4444-4444-444444444444',
   name: '番茄炒蛋',
-  categoryId: category.id,
-  category,
+  categories: [category],
   coverImage: null,
   description: '下饭',
   referenceUrl: null,
@@ -216,11 +215,14 @@ describe('Recipes API (e2e)', () => {
 
   it('GET /dishes query 传给 service，diner 只读', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/dishes?categoryId=${category.id}&keyword=番茄`)
+      .get(`/dishes?categoryIds=${category.id}&keyword=番茄`)
       .set('Authorization', `Bearer ${dinerToken}`);
     expect(res.status).toBe(200);
+    expect(res.body[0]).not.toHaveProperty('categoryId');
+    expect(res.body[0]).not.toHaveProperty('category');
+    expect(res.body[0]).toHaveProperty('categories');
     expect(dishesService.list).toHaveBeenCalledWith(
-      { categoryId: category.id, keyword: '番茄' },
+      { categoryIds: [category.id], keyword: '番茄' },
       expect.objectContaining({ roles: expect.arrayContaining([expect.objectContaining({ key: 'diner' })]) }),
     );
   });
@@ -258,7 +260,7 @@ describe('Recipes API (e2e)', () => {
       .set('Authorization', `Bearer ${chefToken}`)
       .send({
         name: '番茄炒蛋',
-        categoryId: category.id,
+        categoryIds: [category.id],
         difficulty: 'easy',
         recipeContent: '<p>鸡蛋和番茄炒熟</p>',
       });
@@ -271,21 +273,21 @@ describe('Recipes API (e2e)', () => {
       .set('Authorization', `Bearer ${chefToken}`)
       .send({
         name: '番茄炒蛋',
-        categoryId: category.id,
+        categoryIds: [category.id],
         difficulty: 'unknown',
         recipeContent: '<p>内容</p>',
       });
     expect(res.status).toBe(400);
   });
 
-  it('POST /dishes 不存在 categoryId → 404', async () => {
+  it('POST /dishes 不存在 categoryIds → 404', async () => {
     dishesService.create.mockRejectedValueOnce(new NotFoundException('分类不存在'));
     const res = await request(app.getHttpServer())
       .post('/dishes')
       .set('Authorization', `Bearer ${chefToken}`)
       .send({
         name: '番茄炒蛋',
-        categoryId: category.id,
+        categoryIds: [category.id],
         difficulty: 'easy',
         recipeContent: '<p>内容</p>',
       });

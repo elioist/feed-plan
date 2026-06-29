@@ -2,7 +2,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Column } from 'drizzle-orm';
 import { describe, expect, it, vi } from 'vitest';
 import type { CategoryRow, DishRow } from '@feed-plan/db';
-import type { DishDetail, DishListQuery, JwtPayload } from '@feed-plan/shared';
+import type { DishListQuery, JwtPayload } from '@feed-plan/shared';
 import { DishesService } from './dishes.service.js';
 
 /** 递归收集 drizzle 条件里引用到的列名 */
@@ -61,29 +61,6 @@ const dish: DishRow = {
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
-const detail: DishDetail = {
-  id: dish.id,
-  name: dish.name,
-  categoryId: category.id,
-  category: {
-    id: category.id,
-    name: category.name,
-    sortOrder: category.sortOrder,
-    createdAt: category.createdAt,
-    updatedAt: category.updatedAt,
-  },
-  coverImage: null,
-  description: '下饭',
-  referenceUrl: null,
-  recipeContent: dish.recipeContent,
-  difficulty: 'easy',
-  tags: dish.tags,
-  dietary: dish.dietary,
-  isActive: true,
-  createdAt: dish.createdAt,
-  updatedAt: dish.updatedAt,
-};
-
 describe('DishesService', () => {
   it('diner 访问停用菜谱详情时返回 404，chef 可访问', async () => {
     const service = new DishesService({} as never);
@@ -92,7 +69,7 @@ describe('DishesService', () => {
       'loadDetail',
     ).mockResolvedValue({
       dish: { ...dish, isActive: false },
-      category,
+      categories: [category],
     });
     vi.spyOn(
       service as never as { userCanManageRecipes: (user: JwtPayload) => Promise<boolean> },
@@ -156,7 +133,7 @@ describe('DishesService', () => {
       'loadDetail',
     ).mockResolvedValue({
       dish,
-      category,
+      categories: [category],
     });
 
     await service.update(dish.id, {

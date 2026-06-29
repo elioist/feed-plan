@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AlertCircle } from '@tamagui/lucide-icons';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <View style={styles.container}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#c45a32" />
+          <AlertCircle size={48} color="#c45a32" />
           <Text style={styles.title}>出错了</Text>
           <Text style={styles.message}>{this.state.error?.message ?? '未知错误'}</Text>
           <TouchableOpacity style={styles.button} onPress={this.handleRetry}>

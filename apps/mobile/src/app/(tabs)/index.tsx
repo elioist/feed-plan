@@ -1,6 +1,6 @@
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'tamagui';
+import { Utensils, Plus, Bell } from '@tamagui/lucide-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
@@ -73,7 +73,7 @@ export default function HomeScreen() {
         {getImageUrl(item.coverImage) ? (
           <Image source={{ uri: getImageUrl(item.coverImage)! }} style={{ width: 58, height: 58 }} resizeMode="cover" />
         ) : (
-          <MaterialCommunityIcons name="food" size={28} color="#c45a32" />
+          <Utensils size={28} color="#c45a32" />
         )}
       </View>
 
@@ -82,7 +82,7 @@ export default function HomeScreen() {
           {item.name}
         </Text>
         <Text style={{ fontSize: 12, color: '#8a7565', marginTop: 2 }} numberOfLines={1}>
-          {item.description ?? item.category?.name ?? '家常美味'}
+          {item.description}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
           {item.difficulty && (
@@ -105,7 +105,7 @@ export default function HomeScreen() {
           alignItems: 'center', justifyContent: 'center',
         }}
       >
-        <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+        <Plus size={20} color="#ffffff" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -129,7 +129,7 @@ export default function HomeScreen() {
               borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <MaterialCommunityIcons name="bell-outline" size={19} color="#2d1f14" />
+            <Bell size={19} color="#2d1f14" />
           </TouchableOpacity>
         </View>
 
@@ -177,7 +177,7 @@ export default function HomeScreen() {
               }}
               activeOpacity={0.85}
             >
-              <MaterialCommunityIcons name="plus" size={18} color="#8b3a1e" />
+              <Plus size={18} color="#8b3a1e" />
               <Text style={{ fontSize: 15, fontWeight: '800', color: '#8b3a1e', fontFamily: '"Baloo 2"' }}>
                 我来开单
               </Text>

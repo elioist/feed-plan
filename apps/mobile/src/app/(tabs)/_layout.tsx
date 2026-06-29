@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Home, BookOpen, Plus, ClipboardList, User } from '@tamagui/lucide-icons';
 
 export default function TabsLayout() {
   return (
@@ -17,7 +17,7 @@ export default function TabsLayout() {
         options={{
           title: '首页',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size + 4} color={color} />
+            <Home size={size + 4} color={color as any} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -28,7 +28,7 @@ export default function TabsLayout() {
         options={{
           title: '菜单',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list-outline" size={size + 4} color={color} />
+            <BookOpen size={size + 4} color={color as any} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -40,7 +40,7 @@ export default function TabsLayout() {
           title: '开单',
           tabBarIcon: () => (
             <View style={styles.fab}>
-              <Ionicons name="add" size={30} color="#ffffff" />
+              <Plus size={30} color="#ffffff" strokeWidth={2.5} />
             </View>
           ),
           tabBarLabel: () => null,
@@ -51,7 +51,7 @@ export default function TabsLayout() {
         options={{
           title: '当前单',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size + 4} color={color} />
+            <ClipboardList size={size + 4} color={color as any} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -62,7 +62,7 @@ export default function TabsLayout() {
         options={{
           title: '我的',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size + 4} color={color} />
+            <User size={size + 4} color={color as any} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',

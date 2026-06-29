@@ -41,6 +41,9 @@ const toUrlSearch = (values: DishListQuery): DishListQuery => {
   if (next.isActive === true) {
     delete next.isActive;
   }
+  if (next.categoryIds?.length === 0) {
+    delete next.categoryIds;
+  }
 
   return next;
 };
@@ -53,7 +56,7 @@ export function DishListPage() {
   const canEdit = canButton('recipes.dishes', 'edit');
   const canToggleActive = canButton('recipes.dishes', 'toggle-active');
   const canDelete = canButton('recipes.dishes', 'delete');
-  const listSearch = { ...search, isActive: search.isActive ?? true };
+  const listSearch = { ...search, isActive: search.isActive };
   const { data: dishes, refetch } = useSuspenseQuery(dishQueries.list(listSearch));
   const { data: categories } = useSuspenseQuery(categoryQueries.all());
   const queryClient = useQueryClient();
@@ -67,6 +70,8 @@ export function DishListPage() {
     ...dishQueries.detail(editingDishId ?? ''),
     enabled: drawerMode === 'edit' && Boolean(editingDishId),
   });
+
+  const editingDish = drawerMode === 'edit' ? editingDishQuery.data : undefined;
 
   const closeDrawer = () => {
     setDrawerOpen(false);
@@ -148,9 +153,7 @@ export function DishListPage() {
   };
 
   const drawerLoading = createMutation.isPending || updateMutation.isPending;
-  const editingDish = drawerMode === 'edit' ? editingDishQuery.data : undefined;
-  const isLoading =
-    createMutation.isPending || updateMutation.isPending || editingDishQuery.isFetching;
+  const isLoading = createMutation.isPending || updateMutation.isPending || editingDishQuery.isFetching;
 
   const categoryOptions = categories.map((category) => ({
     label: category.name,
@@ -201,7 +204,11 @@ export function DishListPage() {
             { title: '菜名', dataIndex: 'name' },
             {
               title: '分类',
-              render: (_, dish) => dish.category?.name ?? '-',
+              render: (_, dish) => (
+                <Space wrap>
+                  {dish.categories?.map((cat) => <Tag key={cat.id}>{cat.name}</Tag>) ?? '-'}
+                </Space>
+              ),
             },
             {
               title: '难度',
@@ -306,21 +313,19 @@ export function DishListPage() {
         open={drawerOpen}
         onClose={closeDrawer}
         size={720}
-        destroyOnHidden
+        forceRender
       >
-        {drawerMode === 'create' || editingDish ? (
-          <DishForm
-            key={drawerMode === 'edit' ? editingDish?.id : 'create'}
-            categories={categories}
-            initialValue={editingDish}
-            loading={drawerLoading || editingDishQuery.isFetching}
-            onSubmit={(input) => {
-              if (drawerMode === 'edit' && !canEdit) return;
-              if (drawerMode === 'create' && !canCreate) return;
-              submitDish(input);
-            }}
-          />
-        ) : null}
+        <DishForm
+          key={drawerMode === 'edit' ? editingDish?.id ?? editingDishId : 'create'}
+          categories={categories}
+          initialValue={editingDish}
+          loading={drawerLoading || editingDishQuery.isFetching}
+          onSubmit={(input) => {
+            if (drawerMode === 'edit' && !canEdit) return;
+            if (drawerMode === 'create' && !canCreate) return;
+            submitDish(input);
+          }}
+        />
       </Drawer>
     </>
   );

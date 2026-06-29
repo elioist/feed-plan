@@ -23,8 +23,7 @@ const menuDetail: MenuDetail = {
       dish: {
         id: '33333333-3333-3333-3333-333333333333',
         name: '番茄炒蛋',
-        categoryId: '44444444-4444-4444-4444-444444444444',
-        category: null,
+        categories: [],
         coverImage: null,
         description: null,
         referenceUrl: null,

@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq, gte, lte } from 'drizzle-orm';
-import { categories, dishes, meals, orders, users, type MealRow } from '@feed-plan/db';
+import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm';
+import { categories, dishCategories, dishes, meals, orders, users, type MealRow } from '@feed-plan/db';
 import type {
   AddOrderInput,
   CurrentMealInput,
@@ -80,16 +80,37 @@ export class MealsService {
           username: users.username,
         },
         dish: dishes,
-        category: categories,
       })
       .from(orders)
       .leftJoin(users, eq(orders.userId, users.id))
       .innerJoin(dishes, eq(orders.dishId, dishes.id))
-      .leftJoin(categories, eq(dishes.categoryId, categories.id))
       .where(eq(orders.mealId, id))
       .orderBy(asc(orders.createdAt));
 
-    return toMenuDetail({ meal, rows: orderRows });
+    const dishIds = [...new Set(orderRows.map((row) => row.dish.id))];
+    const catRows =
+      dishIds.length > 0
+        ? await this.db
+            .select({ dishId: dishCategories.dishId, category: categories })
+            .from(dishCategories)
+            .innerJoin(categories, eq(dishCategories.categoryId, categories.id))
+            .where(inArray(dishCategories.dishId, dishIds))
+        : [];
+
+    const categoriesByDish = new Map<string, Array<(typeof catRows)[number]['category']>>();
+    for (const row of catRows) {
+      const list = categoriesByDish.get(row.dishId) ?? [];
+      list.push(row.category);
+      categoriesByDish.set(row.dishId, list);
+    }
+
+    return toMenuDetail({
+      meal,
+      rows: orderRows.map((row) => ({
+        ...row,
+        categories: categoriesByDish.get(row.dish.id) ?? [],
+      })),
+    });
   }
 
   async addOrder(mealId: string, input: AddOrderInput, user: JwtPayload): Promise<MenuDetail> {

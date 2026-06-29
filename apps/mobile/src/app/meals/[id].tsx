@@ -1,6 +1,6 @@
 import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'tamagui';
+import { Loader, AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon } from '@tamagui/lucide-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { api, getImageUrl } from '~/lib/api-client';
@@ -8,10 +8,10 @@ import { useAuthStore } from '~/stores/auth-store';
 import { SafeScreen } from '~/components/safe-screen';
 import type { MenuDetail } from '@feed-plan/shared';
 
-const MEAL_TYPE_CONFIG: Record<string, { label: string; bg: string; fg: string; icon: string }> = {
-  breakfast: { label: '早餐', bg: '#fdf0dc', fg: '#8b6a2a', icon: 'weather-sunny' },
-  lunch: { label: '午餐', bg: '#fae8df', fg: '#c45a32', icon: 'weather-partly-cloudy' },
-  dinner: { label: '晚餐', bg: '#f0e8f5', fg: '#8b5fa8', icon: 'weather-night' },
+const MEAL_TYPE_CONFIG: Record<string, { label: string; bg: string; fg: string; Icon: any }> = {
+  breakfast: { label: '早餐', bg: '#fdf0dc', fg: '#8b6a2a', Icon: Sun },
+  lunch: { label: '午餐', bg: '#fae8df', fg: '#c45a32', Icon: Cloud },
+  dinner: { label: '晚餐', bg: '#f0e8f5', fg: '#8b5fa8', Icon: Moon },
 };
 
 export default function MealDetailScreen() {
@@ -50,7 +50,7 @@ export default function MealDetailScreen() {
   if (isLoading) {
     return (
       <SafeScreen style={styles.center}>
-        <MaterialCommunityIcons name="loading" size={32} color="#b8a898" />
+        <Loader size={32} color="#b8a898" />
         <Text style={styles.loadingText}>加载中...</Text>
       </SafeScreen>
     );
@@ -59,7 +59,7 @@ export default function MealDetailScreen() {
   if (!data) {
     return (
       <SafeScreen style={styles.center}>
-        <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#e8ddd0" />
+        <AlertCircle size={48} color="#e8ddd0" />
         <Text style={styles.emptyText}>订单不存在</Text>
       </SafeScreen>
     );
@@ -77,7 +77,7 @@ export default function MealDetailScreen() {
       {/* 顶部导航栏 */}
       <View style={styles.topbar}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="chevron-left" size={24} color="#2d1f14" />
+          <ChevronLeft size={24} color="#2d1f14" />
         </TouchableOpacity>
         <View style={styles.topbarContent}>
           <Text style={styles.topbarTitle}>进行中的一单</Text>
@@ -103,7 +103,7 @@ export default function MealDetailScreen() {
         <View style={styles.orderHeader}>
           <View style={styles.orderHeaderTop}>
             <View style={styles.mealTypeBadge}>
-              <MaterialCommunityIcons name={mealConfig.icon as any} size={14} color={mealConfig.fg} />
+              <mealConfig.Icon size={14} color={mealConfig.fg} />
               <Text style={[styles.mealTypeText, { color: mealConfig.fg }]}>{mealConfig.label}</Text>
             </View>
             <Text style={styles.orderDate}>{meal.mealDate}</Text>
@@ -141,7 +141,7 @@ export default function MealDetailScreen() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <MaterialCommunityIcons name="food" size={28} color="#c45a32" />
+                    <Utensils size={28} color="#c45a32" />
                   )}
                 </View>
                 <View style={styles.dishInfo}>
@@ -168,7 +168,7 @@ export default function MealDetailScreen() {
             style={styles.addMoreBtn}
             onPress={() => router.push('/(tabs)/meals')}
           >
-            <MaterialCommunityIcons name="plus" size={18} color="#c45a32" />
+            <Plus size={18} color="#c45a32" />
             <Text style={styles.addMoreText}>还想吃？继续加菜</Text>
           </TouchableOpacity>
         )}
@@ -176,7 +176,7 @@ export default function MealDetailScreen() {
         {/* 提示信息 */}
         {isOrdering && canCompleteMeal && (
           <View style={styles.tipRow}>
-            <MaterialCommunityIcons name="lock-outline" size={18} color="#b8a898" />
+            <Lock size={18} color="#b8a898" />
             <Text style={styles.tipText}>
               这一单由你负责结单。结单前大家都能随时加菜。
             </Text>
@@ -184,7 +184,7 @@ export default function MealDetailScreen() {
         )}
         {isOrdering && !canCompleteMeal && (
           <View style={styles.tipRow}>
-            <MaterialCommunityIcons name="lock-outline" size={18} color="#b8a898" />
+            <Lock size={18} color="#b8a898" />
             <Text style={styles.tipText}>
               这一单会由有结单权限的人完成。结单前大家都能随时加菜。
             </Text>
@@ -200,7 +200,7 @@ export default function MealDetailScreen() {
             onPress={handleComplete}
             disabled={completeMutation.isPending}
           >
-            <MaterialCommunityIcons name="check-circle" size={20} color="#ffffff" />
+            <CheckCircle size={20} color="#ffffff" />
             <Text style={styles.completeBtnText}>
               {completeMutation.isPending ? '处理中...' : '完成点餐'}
             </Text>

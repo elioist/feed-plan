@@ -1,16 +1,16 @@
 import { View, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
-import { Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'tamagui';
+import { Camera, User, FileText, Bell, Heart, Info, ChevronRight } from '@tamagui/lucide-icons';
 import { useAuthStore } from '~/stores/auth-store';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
 import { api, getImageUrl } from '~/lib/api-client';
 
 const menuItems = [
-  { icon: 'account-edit-outline', label: '编辑资料', disabled: true },
-  { icon: 'bell-outline', label: '通知设置', disabled: true },
-  { icon: 'heart-outline', label: '我的收藏', disabled: true },
-  { icon: 'information-outline', label: '关于', disabled: true },
+  { Icon: User, label: '编辑资料', disabled: true },
+  { Icon: Bell, label: '通知设置', disabled: true },
+  { Icon: Heart, label: '我的收藏', disabled: true },
+  { Icon: Info, label: '关于', disabled: true },
 ];
 
 export default function ProfileScreen() {
@@ -101,7 +101,7 @@ export default function ProfileScreen() {
               justifyContent: 'center',
             }}
           >
-            <MaterialCommunityIcons name="camera" size={14} color="#ffffff" />
+            <Camera size={14} color="#ffffff" />
           </View>
         </TouchableOpacity>
 
@@ -178,7 +178,7 @@ export default function ProfileScreen() {
             }}
             disabled={item.disabled}
           >
-            <MaterialCommunityIcons name={item.icon as keyof typeof MaterialCommunityIcons.glyphMap} size={22} color="#8a7565" />
+            <item.Icon size={22} color="#8a7565" />
             <Text
               style={{
                 flex: 1,
@@ -190,7 +190,7 @@ export default function ProfileScreen() {
             >
               {item.label}
             </Text>
-            <MaterialCommunityIcons name="chevron-right" size={18} color="#b8a898" />
+            <ChevronRight size={18} color="#b8a898" />
           </TouchableOpacity>
         ))}
       </View>

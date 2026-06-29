@@ -1,6 +1,6 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'tamagui';
+import { ShoppingCart, ChevronRight } from '@tamagui/lucide-icons';
 import { useRouter } from 'expo-router';
 import { useCartStore } from '~/stores/cart-store';
 
@@ -18,7 +18,7 @@ export function FloatingCart() {
       activeOpacity={0.85}
     >
       <View style={styles.iconWrapper}>
-        <MaterialCommunityIcons name="cart" size={22} color="#ffffff" />
+        <ShoppingCart size={22} color="#ffffff" />
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{total}</Text>
         </View>
@@ -29,7 +29,7 @@ export function FloatingCart() {
         </Text>
         <Text style={styles.hint}>去下单</Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color="#ffffff" />
+      <ChevronRight size={20} color="#ffffff" />
     </TouchableOpacity>
   );
 }

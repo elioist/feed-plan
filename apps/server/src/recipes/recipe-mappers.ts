@@ -11,12 +11,14 @@ export function toCategory(row: CategoryRow): Category {
   };
 }
 
-export function toDishSummary(row: DishRow, category: CategoryRow | null): DishSummary {
+export function toDishSummary(
+  row: DishRow,
+  categories: CategoryRow[] = [],
+): DishSummary {
   return {
     id: row.id,
     name: row.name,
-    categoryId: row.categoryId,
-    category: category ? toCategory(category) : null,
+    categories: categories.map(toCategory),
     coverImage: row.coverImage,
     description: row.description,
     referenceUrl: row.referenceUrl,
@@ -29,9 +31,12 @@ export function toDishSummary(row: DishRow, category: CategoryRow | null): DishS
   };
 }
 
-export function toDishDetail(args: { dish: DishRow; category: CategoryRow | null }): DishDetail {
+export function toDishDetail(args: {
+  dish: DishRow;
+  categories: CategoryRow[];
+}): DishDetail {
   return {
-    ...toDishSummary(args.dish, args.category),
+    ...toDishSummary(args.dish, args.categories),
     recipeContent: args.dish.recipeContent,
   };
 }

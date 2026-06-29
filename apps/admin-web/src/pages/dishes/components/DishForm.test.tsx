@@ -96,7 +96,7 @@ describe('DishForm', () => {
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({
-          categoryId: categories[0]!.id,
+          categoryIds: [categories[0]!.id],
           coverImage: '/uploads/tomato.webp',
           description: '酸甜下饭',
           difficulty: 'medium',

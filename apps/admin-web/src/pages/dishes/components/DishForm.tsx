@@ -15,20 +15,36 @@ interface DishFormProps {
 const defaultRecipeContent = '<h3>食材</h3><p></p><h3>做法</h3><p></p><h3>备注</h3><p></p>';
 
 export function DishForm({ categories, initialValue, loading, onSubmit }: DishFormProps) {
-  const initialValues = initialValue ?? {
-    difficulty: 'easy',
-    isActive: true,
-    recipeContent: defaultRecipeContent,
-  };
+  const initialValues = initialValue
+    ? {
+        name: initialValue.name,
+        difficulty: initialValue.difficulty,
+        isActive: initialValue.isActive,
+        recipeContent: initialValue.recipeContent,
+        coverImage: initialValue.coverImage,
+        description: initialValue.description,
+        referenceUrl: initialValue.referenceUrl,
+        tags: initialValue.tags,
+        dietary: initialValue.dietary,
+        categoryIds: initialValue.categories?.map((c) => c.id) ?? [],
+      }
+    : {
+        difficulty: 'easy',
+        isActive: true,
+        recipeContent: defaultRecipeContent,
+        categoryIds: [],
+      };
 
   return (
     <Form layout="vertical" initialValues={initialValues} onFinish={onSubmit}>
       <Form.Item label="菜名" name="name" rules={[{ required: true, message: '请输入菜名' }]}>
         <Input maxLength={128} />
       </Form.Item>
-      <Form.Item label="分类" name="categoryId" rules={[{ required: true, message: '请选择分类' }]}>
+      <Form.Item label="分类" name="categoryIds" rules={[{ required: true, message: '请选择至少一个分类' }]}>
         <Select
+          mode="multiple"
           options={categories.map((category) => ({ label: category.name, value: category.id }))}
+          placeholder="选择分类"
         />
       </Form.Item>
       <Form.Item label="难度" name="difficulty" rules={[{ required: true, message: '请选择难度' }]}>
