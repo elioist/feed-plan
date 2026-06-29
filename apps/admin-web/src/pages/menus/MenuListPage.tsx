@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { Icon } from '@iconify/react';
 import {
   App as AntdApp,
   Button,
@@ -23,6 +22,7 @@ import {
   type CreateMenuInput,
   type MenuButton,
 } from '@feed-plan/shared';
+import { SvgIcon } from '~/components/core/base/svg-icon';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
 import { DataTable, TableHeader } from '~/components/core/tables';
 import { IconSelect } from './components/IconSelect';
@@ -297,7 +297,13 @@ export function MenuListPage() {
                   type="text"
                   size="small"
                   className="menu-tree-expand"
-                  icon={<Icon icon={expanded ? 'lucide:chevron-down' : 'lucide:chevron-right'} width={14} height={14} />}
+                  icon={
+                    <SvgIcon
+                      icon={expanded ? 'lucide:chevron-down' : 'lucide:chevron-right'}
+                      width={14}
+                      height={14}
+                    />
+                  }
                   onClick={(event) => onExpand(record, event)}
                 />
               ) : (

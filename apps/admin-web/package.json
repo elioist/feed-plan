@@ -16,6 +16,7 @@
     "@ant-design/pro-components": "catalog:frontend",
     "@feed-plan/api-client": "workspace:*",
     "@feed-plan/shared": "workspace:*",
+    "@iconify-json/lucide": "^1.2.114",
     "@iconify/react": "catalog:frontend",
     "@tanstack/react-query": "catalog:frontend",
     "@tanstack/react-router": "catalog:frontend",

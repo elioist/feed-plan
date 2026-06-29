@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from '~/App';
+import '~/lib/iconify/offline-icons';
 import '~/styles/global.css';
 import '~/lib/theme-transition/styles.css';
 

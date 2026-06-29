@@ -1,6 +1,5 @@
-import { Icon } from '@iconify/react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
-import { Button, Dropdown } from 'antd';
+import { Dropdown } from 'antd';
 import { cn } from '@feed-plan/shared';
 import type { MenuProps } from 'antd';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -12,6 +11,8 @@ import {
 } from '~/routes/core/menu-processor';
 import { useWorkTabsStore } from '~/components/core/layouts/work-tabs/work-tabs-store';
 import { useAuthStore } from '~/store/modules/auth';
+import { SvgIcon } from '~/components/core/base/svg-icon';
+import { IconButton } from '~/components/core/widget/icon-button';
 import './styles.css';
 
 function getNextPath(tabs: { path: string }[], closingPath: string, fallbackPath: string) {
@@ -21,7 +22,7 @@ function getNextPath(tabs: { path: string }[], closingPath: string, fallbackPath
 }
 
 function lucideIcon(icon: string, size = 14) {
-  return <Icon icon={icon} width={size} height={size} />;
+  return <SvgIcon icon={icon} width={size} height={size} />;
 }
 
 const SCROLL_EDGE_TOLERANCE = 1;
@@ -97,8 +98,10 @@ export function WorkTabs() {
 
   const scrollLeft = () => moveTabs(-180);
   const scrollRight = () => moveTabs(180);
-  const canScrollLeft = scrollBounds.min < 0 && translateX < scrollBounds.max - SCROLL_EDGE_TOLERANCE;
-  const canScrollRight = scrollBounds.min < 0 && translateX > scrollBounds.min + SCROLL_EDGE_TOLERANCE;
+  const canScrollLeft =
+    scrollBounds.min < 0 && translateX < scrollBounds.max - SCROLL_EDGE_TOLERANCE;
+  const canScrollRight =
+    scrollBounds.min < 0 && translateX > scrollBounds.min + SCROLL_EDGE_TOLERANCE;
 
   const handleWheel = (event: React.WheelEvent) => {
     const { min } = updateScrollBounds();
@@ -120,7 +123,14 @@ export function WorkTabs() {
       title: activeRoute.title,
       fixedTab: activeRoute.fixedTab,
     });
-  }, [activeRoute.fixedTab, activeRoute.isTabVisible, activeRoute.path, activeRoute.title, closeTab, openTab]);
+  }, [
+    activeRoute.fixedTab,
+    activeRoute.isTabVisible,
+    activeRoute.path,
+    activeRoute.title,
+    closeTab,
+    openTab,
+  ]);
 
   const autoPositionActiveTab = useCallback(() => {
     const activeIndex = opened.findIndex((item) => item.path === activeRoute.path);
@@ -146,7 +156,9 @@ export function WorkTabs() {
     if (tabLeft >= visibleLeft && tabRight <= visibleRight) return;
 
     const nextTranslate =
-      tabRight > visibleRight ? Math.max(scrollWidth - tabRight - 6, scrollWidth - listWidth) : -tabLeft;
+      tabRight > visibleRight
+        ? Math.max(scrollWidth - tabRight - 6, scrollWidth - listWidth)
+        : -tabLeft;
 
     setScrolling(true);
     setBoundedTranslate(nextTranslate);
@@ -282,69 +294,71 @@ export function WorkTabs() {
 
   return (
     <div className={cn('work-tabs', tabStyle)}>
-      <Button
+      <IconButton
         aria-label="向左滚动标签页"
-        className="work-tab-scroll-button"
+        className="work-tab-action-button work-tab-scroll-button"
         disabled={!canScrollLeft}
-        icon={lucideIcon('lucide:chevron-left')}
+        icon="lucide:chevron-left"
         onClick={scrollLeft}
       />
       <div className="work-tabs-scroll">
-        <div
-          ref={scrollRef}
-          className="work-tabs-viewport"
-          onWheel={handleWheel}
-        >
+        <div ref={scrollRef} className="work-tabs-viewport" onWheel={handleWheel}>
           <ul
             ref={listRef}
             className={cn('work-tabs-list', scrolling && 'scrolling')}
             style={{ transform: `translateX(${translateX}px)` }}
           >
-          {opened.map((item, index) => {
-            const meta = getRouteMeta(item.path, menus);
-            const active = activeRoute.path === item.path;
+            {opened.map((item, index) => {
+              const meta = getRouteMeta(item.path, menus);
+              const active = activeRoute.path === item.path;
 
-            return (
-              <Dropdown
-                key={item.path}
-                menu={{ items: getMenuItems(item.path) }}
-                trigger={['contextMenu']}
-                placement="bottomLeft"
-              >
-                <li
-                  id={'scroll-li-' + index}
-                  className={cn('work-tab', active && 'activ-tab active')}
+              return (
+                <Dropdown
+                  key={item.path}
+                  menu={{ items: getMenuItems(item.path) }}
+                  trigger={['contextMenu']}
+                  placement="bottomLeft"
                 >
-                  <span className="work-tab-line" />
-                  <Link className="work-tab-link" to={item.path}>
-                    <span className="work-tab-icon">{meta.icon}</span>
-                    <span>{item.title}</span>
-                  </Link>
-                  {item.fixedTab ? (
-                    <Icon className="work-tab-pin" icon="lucide:pin" width={12} height={12} aria-label="固定标签" />
-                  ) : null}
-                  {!item.fixedTab && opened.length > 1 ? (
-                    <button
-                      aria-label={'关闭 ' + item.title}
-                      className="work-tab-close"
-                      type="button"
-                      onClick={() => void close(item.path)}
-                    >
-                      <Icon icon="lucide:x" width={12} height={12} />
-                    </button>
-                  ) : null}
-                </li>
-              </Dropdown>
-            );
-          })}
+                  <li
+                    id={'scroll-li-' + index}
+                    className={cn('work-tab', active && 'activ-tab active')}
+                  >
+                    <span className="work-tab-line" />
+                    <Link className="work-tab-link" to={item.path}>
+                      <span className="work-tab-icon">{meta.icon}</span>
+                      <span>{item.title}</span>
+                    </Link>
+                    {item.fixedTab ? (
+                      <SvgIcon
+                        className="work-tab-pin"
+                        icon="lucide:pin"
+                        width={12}
+                        height={12}
+                        aria-label="固定标签"
+                      />
+                    ) : null}
+                    {!item.fixedTab && opened.length > 1 ? (
+                      <button
+                        aria-label={'关闭 ' + item.title}
+                        className="work-tab-close"
+                        type="button"
+                        onClick={() => void close(item.path)}
+                      >
+                        <SvgIcon icon="lucide:x" width={12} height={12} />
+                      </button>
+                    ) : null}
+                  </li>
+                </Dropdown>
+              );
+            })}
           </ul>
         </div>
       </div>
-      <Button
+      <IconButton
         aria-label="向右滚动标签页"
-        className="work-tab-scroll-button"
+        className="work-tab-action-button work-tab-scroll-button"
         disabled={!canScrollRight}
-        icon={lucideIcon('lucide:chevron-right')}
+        icon="lucide:chevron-right"
         onClick={scrollRight}
       />
       <Dropdown
@@ -352,7 +366,11 @@ export function WorkTabs() {
         trigger={['click']}
         placement="bottomRight"
       >
-        <Button className="work-tab-more" icon={lucideIcon('lucide:chevron-down')} />
+        <IconButton
+          aria-label="标签页更多操作"
+          className="work-tab-action-button work-tab-more"
+          icon="lucide:chevron-down"
+        />
       </Dropdown>
     </div>
   );
