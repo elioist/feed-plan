@@ -20,7 +20,7 @@ import {
 import { Result } from 'antd';
 import { AppLayout } from '~/components/core/layouts/app-layout';
 import { AdminRouteError } from '~/components/core/errors/route-error';
-import { QueryProvider, ThemeProvider } from '~/providers';
+import { RouterInnerProviders } from '~/providers';
 import { accessQueries } from '~/queries/access';
 import { categoryQueries } from '~/queries/categories';
 import { dishQueries } from '~/queries/dishes';
@@ -131,11 +131,7 @@ const mealDetailRouteEntry: RouteRegistryEntry = {
 };
 
 function RootRoute() {
-  return (
-    <ThemeProvider>
-      <Outlet />
-    </ThemeProvider>
-  );
+  return <Outlet />;
 }
 
 function AuthenticatedRoute() {
@@ -313,7 +309,7 @@ export function getRouter({ queryClient, routeMenus }: GetRouterInput) {
     defaultPreloadStaleTime: 0,
     defaultStructuralSharing: true,
     scrollRestoration: true,
-    Wrap: ({ children }) => <QueryProvider client={queryClient}>{children}</QueryProvider>,
+    InnerWrap: ({ children }) => <RouterInnerProviders>{children}</RouterInnerProviders>,
   });
 }
 

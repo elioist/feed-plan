@@ -1,8 +1,7 @@
 import { RouterProvider } from '@tanstack/react-router';
 import { Spin } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { ThemeProvider } from '~/providers';
-import { createQueryClient } from '~/providers/query-client';
+import { AdminAppProviders, createQueryClient } from '~/providers';
 import { getRouter } from '~/routes/router';
 import { useAuthStore } from '~/store/modules/auth';
 
@@ -42,13 +41,17 @@ export function App() {
 
   if (!ready) {
     return (
-      <ThemeProvider>
+      <AdminAppProviders queryClient={queryClient}>
         <div className="grid min-h-screen place-items-center bg-(--ant-color-bg-layout)">
           <Spin size="large" />
         </div>
-      </ThemeProvider>
+      </AdminAppProviders>
     );
   }
 
-  return <RouterProvider router={router} />;
+  return (
+    <AdminAppProviders queryClient={queryClient}>
+      <RouterProvider router={router} />
+    </AdminAppProviders>
+  );
 }

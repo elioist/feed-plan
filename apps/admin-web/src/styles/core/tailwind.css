@@ -1,0 +1,14 @@
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: var(--theme-color);
+  --color-page: var(--default-bg-color);
+  --color-surface: var(--default-box-color);
+  --color-border-subtle: var(--default-border);
+  --radius-admin: var(--custom-radius);
+}

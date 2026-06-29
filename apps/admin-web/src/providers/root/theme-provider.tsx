@@ -1,9 +1,16 @@
-import { ConfigProvider, App as AntdApp, theme } from 'antd';
+import { App as AntdApp, ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
+import type { ThemeConfig } from 'antd';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
+import { useMediaQuery } from 'usehooks-ts';
 import { SystemThemeEnum } from '~/enums/appEnum';
 import { useSettingStore } from '~/store/modules/setting';
+import { AppWatermark } from './app-watermark';
+
+function toAntdRadius(radius: number, scale: number) {
+  return Math.round(radius * scale);
+}
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const systemThemeType = useSettingStore((state) => state.systemThemeType);
@@ -12,22 +19,13 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   const boxBorderMode = useSettingStore((state) => state.boxBorderMode);
   const colorWeak = useSettingStore((state) => state.colorWeak);
   const pageTransition = useSettingStore((state) => state.pageTransition);
-  const watermarkVisible = useSettingStore((state) => state.watermarkVisible);
-  const [prefersDark, setPrefersDark] = useState(false);
+  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)', {
+    defaultValue: false,
+    initializeWithValue: true,
+  });
   const isDark =
     systemThemeType === SystemThemeEnum.DARK ||
     (systemThemeType === SystemThemeEnum.AUTO && prefersDark);
-
-  useEffect(() => {
-    if (!window.matchMedia) return;
-
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    setPrefersDark(media.matches);
-
-    const updatePreference = (event: MediaQueryListEvent) => setPrefersDark(event.matches);
-    media.addEventListener('change', updatePreference);
-    return () => media.removeEventListener('change', updatePreference);
-  }, []);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -36,61 +34,31 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     root.dataset.boxMode = boxBorderMode ? 'border-mode' : 'shadow-mode';
     root.dataset.pageTransition = pageTransition;
     root.style.setProperty('--theme-color', systemThemeColor);
-    root.style.setProperty('--custom-radius', customRadius + 'rem');
+    root.style.setProperty('--custom-radius', `${customRadius}rem`);
   }, [boxBorderMode, colorWeak, customRadius, isDark, pageTransition, systemThemeColor]);
 
-  useEffect(() => {
-    const watermarkId = 'admin-settings-watermark';
-    const existing = document.getElementById(watermarkId);
-
-    if (!watermarkVisible) {
-      existing?.remove();
-      return;
-    }
-
-    const watermark = existing ?? document.createElement('div');
-    watermark.id = watermarkId;
-    watermark.setAttribute('aria-hidden', 'true');
-    watermark.style.pointerEvents = 'none';
-    watermark.style.position = 'fixed';
-    watermark.style.inset = '0';
-    watermark.style.zIndex = '9999';
-    watermark.style.opacity = isDark ? '0.08' : '0.06';
-    watermark.style.backgroundImage =
-      'repeating-linear-gradient(-24deg, transparent 0 72px, currentColor 72px 73px, transparent 73px 144px)';
-    watermark.style.color = systemThemeColor;
-
-    if (!existing) {
-      document.body.appendChild(watermark);
-    }
-
-    return () => {
-      document.getElementById(watermarkId)?.remove();
-    };
-  }, [isDark, systemThemeColor, watermarkVisible]);
-
-  const antdTheme = useMemo(
+  const antdTheme = useMemo<ThemeConfig>(
     () => ({
       algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
       token: {
+        borderRadius: toAntdRadius(customRadius, 10),
         colorPrimary: systemThemeColor,
-        borderRadius: Math.round(customRadius * 10),
         fontFamily:
           'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       },
       components: {
+        Card: {
+          borderRadiusLG: toAntdRadius(customRadius, 14),
+        },
         Layout: {
           bodyBg: 'var(--default-bg-color)',
           headerBg: 'var(--default-box-color)',
           siderBg: 'var(--default-box-color)',
         },
         Menu: {
+          collapsedIconSize: 18,
           itemBorderRadius: 6,
           itemHeight: 42,
-          collapsedIconSize: 18,
-        },
-        Card: {
-          borderRadiusLG: Math.round(customRadius * 14),
         },
       },
     }),
@@ -99,7 +67,9 @@ export function ThemeProvider({ children }: PropsWithChildren) {
 
   return (
     <ConfigProvider locale={zhCN} theme={antdTheme}>
-      <AntdApp>{children}</AntdApp>
+      <AntdApp>
+        <AppWatermark isDark={isDark}>{children}</AppWatermark>
+      </AntdApp>
     </ConfigProvider>
   );
 }

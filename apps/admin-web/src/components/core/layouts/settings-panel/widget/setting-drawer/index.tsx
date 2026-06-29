@@ -11,7 +11,7 @@ export function SettingDrawer({ children, onClose, open }: SettingDrawerProps) {
   return (
     <Drawer
       open={open}
-      width={300}
+      size={300}
       onClose={onClose}
       destroyOnHidden={false}
       closable={false}

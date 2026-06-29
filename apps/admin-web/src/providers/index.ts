@@ -1,2 +1,8 @@
-export { QueryProvider } from '~/providers/QueryProvider';
-export { ThemeProvider } from '~/providers/ThemeProvider';
+export {
+  AdminAppProviders,
+  createQueryClient,
+  DebugProvider,
+  ReactQueryProvider,
+  RouterInnerProviders,
+  ThemeProvider,
+} from '~/providers/root';
