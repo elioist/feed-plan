@@ -37,6 +37,12 @@
       "skillPath": "skills/react-native-best-practices/SKILL.md",
       "computedHash": "15bd57b18d9ad0dcd003bd2c7ec6ed17d813cc671dd4d423e1d904d2a7b9d2bb"
     },
+    "tamagui": {
+      "source": "tamagui/tamagui",
+      "sourceType": "github",
+      "skillPath": "plans/tamagui-skill/skills/tamagui/SKILL.md",
+      "computedHash": "c16ef17b45cf188289a72600898110f6245c295c41cf5493b8ead3fd45027544"
+    },
     "tanstack-integration-best-practices": {
       "source": "deckardger/tanstack-agent-skills",
       "sourceType": "github",
