@@ -18,6 +18,7 @@ import {
   userListQuerySchema,
 } from '@feed-plan/shared';
 import { Result } from 'antd';
+import { AppLoading } from '~/components/core/base/app-loading';
 import { AppLayout } from '~/components/core/layouts/app-layout';
 import { AdminRouteError } from '~/components/core/errors/route-error';
 import { RouterInnerProviders } from '~/providers';
@@ -61,7 +62,10 @@ const routeRegistry: Record<string, RouteRegistryEntry> = {
     loader: async ({ context: { queryClient }, deps }) => {
       await queryClient.ensureQueryData(categoryQueries.all(deps));
     },
-    component: lazyRouteComponent(() => import('~/pages/categories/CategoryListPage'), 'CategoryListPage'),
+    component: lazyRouteComponent(
+      () => import('~/pages/categories/CategoryListPage'),
+      'CategoryListPage',
+    ),
   },
   'recipes.dishes': {
     validateSearch: (search) => dishListQuerySchema.partial().parse(search),
@@ -143,7 +147,9 @@ function AuthenticatedRoute() {
 }
 
 function RouteNotFound() {
-  return <Result status="404" title="页面不存在" subTitle="这个后台页面没有配置到当前账号的菜单中。" />;
+  return (
+    <Result status="404" title="页面不存在" subTitle="这个后台页面没有配置到当前账号的菜单中。" />
+  );
 }
 
 function AdminForbidden() {
@@ -177,10 +183,7 @@ function findFirstRoutablePath(items: AuthMenu[]): string | null {
   return null;
 }
 
-function createRegisteredRoute(
-  parentRoute: AnyRoute,
-  menu: AuthMenu,
-) {
+function createRegisteredRoute(parentRoute: AnyRoute, menu: AuthMenu) {
   const path = normalizePath(menu.path);
   if (!path) return null;
 
@@ -273,12 +276,14 @@ export function getRouter({ queryClient, routeMenus }: GetRouterInput) {
       : null,
   ].filter((route): route is NonNullable<typeof route> => Boolean(route));
 
-  const homeMenu = flatMenus.find((menu) => normalizePath(menu.path) === '/' && isRoutableMenu(menu));
+  const homeMenu = flatMenus.find(
+    (menu) => normalizePath(menu.path) === '/' && isRoutableMenu(menu),
+  );
   const firstRoutablePath = findFirstRoutablePath(routeMenus);
   const indexRouteEntry =
     homeMenu?.type === 'page'
-      ? routeRegistry[homeMenu.componentKey ?? homeMenu.key] ??
-        (homeMenu.key === 'dashboard' ? routeRegistry.dashboard : undefined)
+      ? (routeRegistry[homeMenu.componentKey ?? homeMenu.key] ??
+        (homeMenu.key === 'dashboard' ? routeRegistry.dashboard : undefined))
       : undefined;
 
   const homeIndexRoute = createRoute({
@@ -292,7 +297,7 @@ export function getRouter({ queryClient, routeMenus }: GetRouterInput) {
     component:
       homeMenu?.type === 'iframe'
         ? () => <IframePage title={homeMenu.title} url={homeMenu.externalUrl} />
-        : indexRouteEntry?.component ?? (routeMenus.length > 0 ? RouteNotFound : AdminForbidden),
+        : (indexRouteEntry?.component ?? (routeMenus.length > 0 ? RouteNotFound : AdminForbidden)),
   });
 
   const routeTree = rootRoute.addChildren([
@@ -307,6 +312,9 @@ export function getRouter({ queryClient, routeMenus }: GetRouterInput) {
     },
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    defaultPendingComponent: AppLoading,
+    defaultPendingMs: 100,
+    defaultPendingMinMs: 200,
     defaultStructuralSharing: true,
     scrollRestoration: true,
     InnerWrap: ({ children }) => <RouterInnerProviders>{children}</RouterInnerProviders>,
