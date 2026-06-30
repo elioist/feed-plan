@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -9,7 +9,7 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { Text } from 'tamagui';
-import { Utensils, Minus, Plus, Search, XCircle, AlertCircle } from '@tamagui/lucide-icons';
+import { Utensils, Minus, Plus, Search, XCircle, AlertCircle, Sparkles } from '@tamagui/lucide-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
@@ -17,6 +17,15 @@ import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { FloatingCart } from '~/components/floating-cart';
 import type { DishSummary, Category } from '@feed-plan/shared';
+import {
+  findCategoryAtPosition,
+  getCategoryScrollTarget,
+  getRightContentBottomSpace,
+  isProgrammaticScrollSettled,
+  RIGHT_STICKY_HEADER_HEIGHT,
+  sortCategoryOffsets,
+  type CategoryOffset,
+} from '~/lib/menu-scroll';
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string }> = {
   easy: { label: '简单', bg: '#e8f5eb', fg: '#5a9a6a' },
@@ -26,11 +35,15 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string 
 
 export default function MenuScreen() {
   const [search, setSearch] = useState('');
-  const [highlightCatId, setHighlightCatId] = useState<string | null>(null);
-  const [stickyCatId, setStickyCatId] = useState<string | null>(null);
+  const [activeCatId, setActiveCatId] = useState<string | null>(null);
+  const [rightViewportHeight, setRightViewportHeight] = useState(0);
   const rightScrollRef = useRef<ScrollView>(null);
   const groupOffsets = useRef<Map<string, number>>(new Map());
-  const clickingRef = useRef(false);
+  const sortedGroupOffsets = useRef<CategoryOffset[]>([]);
+  const groupOffsetsKeyRef = useRef('');
+  const programmaticTargetYRef = useRef<number | null>(null);
+  const programmaticTargetCatIdRef = useRef<string | null>(null);
+  const activeCatIdRef = useRef<string | null>(null);
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -41,55 +54,86 @@ export default function MenuScreen() {
   const { data: categories = [] } = useQuery<Category[]>({ queryKey: ['categories'], queryFn: () => api.categories.list() });
   const { data: dishes = [], isLoading } = useQuery<DishSummary[]>({ queryKey: ['dishes'], queryFn: () => api.dishes.list({ isActive: true }) });
 
-  useEffect(() => {
-    if (categories.length > 0 && !highlightCatId) {
-      const rec = categories.find((c) => c.name.includes('推荐'));
-      const initId = rec?.id ?? categories[0].id;
-      setHighlightCatId(initId);
-      setStickyCatId(initId);
-    }
-  }, [categories]);
-
-  const groupedDishes = categories.map((cat) => ({
+  const groupedDishes = useMemo(() => categories.map((cat) => ({
     category: cat,
     dishes: dishes.filter((d) => {
       const inCat = d.categories.some((c) => c.id === cat.id);
       const matchSearch = !search.trim() || d.name.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase());
       return inCat && matchSearch;
     }),
-  })).filter((g) => g.dishes.length > 0);
+  })).filter((g) => g.dishes.length > 0), [categories, dishes, search]);
 
-  // 判断滚动位置对应的分类
-  const findCategoryAtPosition = (offsets: Map<string, number>, y: number): string | null => {
-    let hit: string | null = null;
-    const sorted = Array.from(offsets.entries()).sort((a, b) => a[1] - b[1]);
-    for (const [catId, offset] of sorted) {
-      if (y >= offset - 10) hit = catId;
+  const groupedDishesKey = groupedDishes.map((g) => g.category.id).join('|');
+  if (groupOffsetsKeyRef.current !== groupedDishesKey) {
+    groupOffsets.current.clear();
+    sortedGroupOffsets.current = [];
+    groupOffsetsKeyRef.current = groupedDishesKey;
+  }
+
+  const setActiveCategory = useCallback((catId: string | null) => {
+    if (activeCatIdRef.current === catId) return;
+    activeCatIdRef.current = catId;
+    setActiveCatId(catId);
+  }, []);
+
+  useEffect(() => {
+    if (groupedDishes.length === 0) {
+      setActiveCategory(null);
+      return;
     }
-    return hit;
-  };
 
-  const isAtBottom = (y: number, contentH: number, layoutH: number) => y + layoutH >= contentH - 10;
+    const activeExists = groupedDishes.some((g) => g.category.id === activeCatId);
+    if (!activeExists) {
+      setActiveCategory(groupedDishes[0].category.id);
+    }
+  }, [groupedDishes, activeCatId, setActiveCategory]);
+
+  const syncActiveCategoryByScrollY = useCallback((y: number) => {
+    const hit = findCategoryAtPosition(sortedGroupOffsets.current, y);
+    if (hit) setActiveCategory(hit);
+  }, [setActiveCategory]);
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (clickingRef.current) return;
     const y = e.nativeEvent.contentOffset.y;
-    const contentH = e.nativeEvent.contentSize.height;
-    const layoutH = e.nativeEvent.layoutMeasurement.height;
-    if (isAtBottom(y, contentH, layoutH)) return;
-    const hit = findCategoryAtPosition(groupOffsets.current, y);
-    if (hit) {
-      setStickyCatId(hit);
+    const targetY = programmaticTargetYRef.current;
+
+    if (targetY !== null) {
+      if (isProgrammaticScrollSettled(y, targetY)) {
+        programmaticTargetYRef.current = null;
+        programmaticTargetCatIdRef.current = null;
+        syncActiveCategoryByScrollY(y);
+      }
+      return;
     }
+
+    syncActiveCategoryByScrollY(y);
+  };
+
+  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const fallbackCatId = programmaticTargetCatIdRef.current;
+    programmaticTargetYRef.current = null;
+    programmaticTargetCatIdRef.current = null;
+    const hit = findCategoryAtPosition(sortedGroupOffsets.current, y);
+    setActiveCategory(hit ?? fallbackCatId);
   };
 
   const handleCategoryPress = (catId: string) => {
-    clickingRef.current = true;
-    setHighlightCatId(catId);
+    setActiveCategory(catId);
     const y = groupOffsets.current.get(catId);
-    if (y !== undefined) rightScrollRef.current?.scrollTo({ y, animated: true });
-    setTimeout(() => { clickingRef.current = false; }, 50);
+    if (y !== undefined) {
+      const targetY = getCategoryScrollTarget(y);
+      programmaticTargetYRef.current = targetY;
+      programmaticTargetCatIdRef.current = catId;
+      rightScrollRef.current?.scrollTo({ y: targetY, animated: true });
+    }
   };
+
+  const handleGroupLayout = useCallback((catId: string, y: number) => {
+    if (groupOffsets.current.get(catId) === y) return;
+    groupOffsets.current.set(catId, y);
+    sortedGroupOffsets.current = sortCategoryOffsets(groupOffsets.current);
+  }, []);
 
   const renderDishCard = (item: DishSummary) => {
     const diff = DIFFICULTY_CONFIG[item.difficulty] ?? DIFFICULTY_CONFIG.medium;
@@ -131,7 +175,8 @@ export default function MenuScreen() {
     );
   };
 
-  const stickyCat = groupedDishes.find((g) => g.category.id === stickyCatId);
+  const activeCat = groupedDishes.find((g) => g.category.id === activeCatId);
+  const rightContentBottomSpace = getRightContentBottomSpace(rightViewportHeight);
 
   return (
     <SafeScreen>
@@ -153,9 +198,10 @@ export default function MenuScreen() {
         <View style={{ width: '25%', backgroundColor: '#f7f3ee', borderRightWidth: 1, borderRightColor: '#e8ddd0' }}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 4 }}>
             {groupedDishes.map((g) => {
-              const isActive = highlightCatId === g.category.id;
+              const isActive = activeCatId === g.category.id;
               return (
                 <TouchableOpacity key={g.category.id} onPress={() => handleCategoryPress(g.category.id)}
+                  activeOpacity={0.85}
                   style={{ paddingVertical: 14, paddingHorizontal: 10, paddingLeft: 12, backgroundColor: isActive ? '#fffcf8' : 'transparent', borderLeftWidth: isActive ? 3 : 0, borderLeftColor: '#c45a32' }}>
                   <Text style={{ fontSize: 13, fontWeight: '700', fontFamily: '"Baloo 2"', color: isActive ? '#8b3a1e' : '#8a7565' }} numberOfLines={1}>{g.category.name}</Text>
                   <Text style={{ fontSize: 10, fontWeight: '600', color: isActive ? '#c45a32' : '#b8a898', marginTop: 2 }}>{g.dishes.length} 道</Text>
@@ -166,7 +212,7 @@ export default function MenuScreen() {
         </View>
 
         {/* 右侧菜品 */}
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }} onLayout={(e) => setRightViewportHeight(e.nativeEvent.layout.height)}>
           {isLoading ? (
             <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}><Text style={{ color: '#b8a898', fontSize: 14 }}>加载中...</Text></View>
           ) : groupedDishes.length === 0 ? (
@@ -174,27 +220,30 @@ export default function MenuScreen() {
           ) : (
             <View style={{ flex: 1 }}>
               {/* 吸顶标题 */}
-              {stickyCat && (
-                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#fdf6ee', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {activeCat && (
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, height: RIGHT_STICKY_HEADER_HEIGHT, paddingHorizontal: 12, backgroundColor: '#fdf6ee', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <View style={{ width: 3, height: 16, borderRadius: 2, backgroundColor: '#c45a32' }} />
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>{stickyCat.category.name}</Text>
-                  <Text style={{ fontSize: 11, color: '#b8a898' }}>{stickyCat.dishes.length} 道</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>{activeCat.category.name}</Text>
+                  <Text style={{ fontSize: 11, color: '#b8a898' }}>{activeCat.dishes.length} 道</Text>
                 </View>
               )}
 
               <ScrollView ref={rightScrollRef} showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ padding: 12, paddingTop: 48, paddingBottom: 100 }}
-                onScroll={handleScroll} scrollEventThrottle={16}>
+                contentContainerStyle={{ padding: 12, paddingTop: 0, paddingBottom: 12 }}
+                onScroll={handleScroll}
+                onMomentumScrollEnd={handleScrollEnd}
+                onScrollEndDrag={handleScrollEnd}
+                scrollEventThrottle={16}>
                 {groupedDishes.map((group) => (
-                  <View key={group.category.id} onLayout={(e) => { groupOffsets.current.set(group.category.id, e.nativeEvent.layout.y); }}>
-                    {/* 分类标题 - 吸顶时隐藏 */}
-                    {group.category.id !== stickyCatId && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, marginBottom: 8 }}>
-                        <View style={{ width: 3, height: 16, borderRadius: 2, backgroundColor: '#c45a32' }} />
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>{group.category.name}</Text>
-                        <Text style={{ fontSize: 11, color: '#b8a898' }}>{group.dishes.length} 道</Text>
-                      </View>
-                    )}
+                  <View key={group.category.id} onLayout={(e) => handleGroupLayout(group.category.id, e.nativeEvent.layout.y)}>
+                    <View
+                      pointerEvents="none"
+                      style={{ height: RIGHT_STICKY_HEADER_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 8, opacity: group.category.id === activeCatId ? 0 : 1 }}
+                    >
+                      <View style={{ width: 3, height: 16, borderRadius: 2, backgroundColor: '#c45a32' }} />
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>{group.category.name}</Text>
+                      <Text style={{ fontSize: 11, color: '#b8a898' }}>{group.dishes.length} 道</Text>
+                    </View>
                     {group.dishes.map((dish) => (
                       <View key={`${group.category.id}-${dish.id}`}>
                         {renderDishCard(dish)}
@@ -202,6 +251,13 @@ export default function MenuScreen() {
                     ))}
                   </View>
                 ))}
+                <View style={{ alignItems: 'center', paddingTop: 10, paddingBottom: 18, paddingHorizontal: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 999, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0' }}>
+                    <Sparkles size={14} color="#c45a32" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#8a7565' }}>菜单翻到底啦，喜欢哪道就放进小篮子吧</Text>
+                  </View>
+                </View>
+                <View style={{ height: rightContentBottomSpace }} />
               </ScrollView>
             </View>
           )}
