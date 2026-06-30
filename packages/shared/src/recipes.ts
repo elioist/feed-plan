@@ -26,6 +26,21 @@ export const idParamSchema = z.object({
 });
 export type IdParam = z.infer<typeof idParamSchema>;
 
+export const reorderItemsSchema = z
+  .object({
+    ids: z.array(z.string().trim().min(1, '排序项不能为空').max(64)).min(1, '排序项不能为空'),
+  })
+  .superRefine((value, context) => {
+    if (new Set(value.ids).size !== value.ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: '排序项不能重复',
+        path: ['ids'],
+      });
+    }
+  });
+export type ReorderItemsInput = z.infer<typeof reorderItemsSchema>;
+
 const optionalText = z.string().trim().max(1000).optional().nullable();
 const optionalImagePath = z.string().trim().max(255).optional().nullable();
 const optionalUrl = z.string().trim().max(255).optional().nullable();

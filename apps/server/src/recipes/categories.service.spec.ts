@@ -72,6 +72,37 @@ describe('CategoriesService', () => {
     );
   });
 
+  it('按传入 id 顺序批量更新排序值', async () => {
+    const updatedRows: unknown[] = [];
+    const tx = {
+      update: vi.fn(() => ({
+        set: vi.fn((value) => {
+          updatedRows.push(value);
+          return { where: vi.fn(async () => undefined) };
+        }),
+      })),
+    };
+    const db = {
+      select: vi.fn(() => ({
+        from: vi.fn(() => ({
+          where: vi.fn(async () => [
+            { id: category.id },
+            { id: '22222222-2222-2222-2222-222222222222' },
+          ]),
+        })),
+      })),
+      transaction: vi.fn(async (callback) => callback(tx)),
+    };
+    const service = new CategoriesService(db as never);
+
+    await service.reorder([category.id, '22222222-2222-2222-2222-222222222222']);
+
+    expect(updatedRows).toEqual([
+      expect.objectContaining({ sortOrder: 10, updatedAt: expect.any(Date) }),
+      expect.objectContaining({ sortOrder: 20, updatedAt: expect.any(Date) }),
+    ]);
+  });
+
   it('删除分类前清空菜谱分类引用', async () => {
     const updateWhere = vi.fn(async () => undefined);
     const set = vi.fn(() => ({ where: updateWhere }));

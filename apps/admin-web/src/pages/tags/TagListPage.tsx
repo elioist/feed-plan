@@ -1,16 +1,26 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { App as AntdApp, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Space, Tag as AntTag } from 'antd';
-import { useState } from 'react';
+import {
+  App as AntdApp,
+  Button,
+  Card,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Space,
+  Tag as AntTag,
+} from 'antd';
+import { useEffect, useState } from 'react';
 import type { CreateTagInput, Tag, TagListQuery } from '@feed-plan/shared';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
-import { DataTable, TableHeader } from '~/components/core/tables';
+import { SortableDataTable, TableHeader } from '~/components/core/tables';
 import { useCanButton } from '~/hooks/use-button-access';
 import { api } from '~/lib/api-client';
 import { getApiErrorMessage } from '~/lib/error-parser';
 import { tagQueries } from '~/queries/tags';
 
-type TagFormValues = CreateTagInput;
+type TagFormValues = Pick<CreateTagInput, 'name'>;
 
 export function TagListPage() {
   const search = useSearch({ strict: false });
@@ -25,7 +35,13 @@ export function TagListPage() {
   const [searchForm] = Form.useForm<TagListQuery>();
   const [form] = Form.useForm<TagFormValues>();
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [orderedTags, setOrderedTags] = useState<Tag[]>(tags);
+  const keyword = typeof search.keyword === 'string' ? search.keyword.trim() : '';
+
+  useEffect(() => {
+    setOrderedTags(tags);
+  }, [tags]);
 
   const invalidateTags = async () => {
     await queryClient.invalidateQueries({ queryKey: ['tags'] });
@@ -33,11 +49,16 @@ export function TagListPage() {
 
   const saveMutation = useMutation({
     mutationFn: (input: TagFormValues) =>
-      editingTag ? api.tags.update(editingTag.id, input) : api.tags.create(input),
+      editingTag
+        ? api.tags.update(editingTag.id, input)
+        : api.tags.create({
+            ...input,
+            sortOrder: tags.reduce((max, tag) => Math.max(max, tag.sortOrder), 0) + 10,
+          }),
     onSuccess: async () => {
       await invalidateTags();
       message.success(editingTag ? '标签已更新' : '标签已创建');
-      closeDrawer();
+      closeModal();
     },
     onError: (error) => message.error(getApiErrorMessage(error)),
   });
@@ -51,6 +72,24 @@ export function TagListPage() {
     onError: (error) => message.error(getApiErrorMessage(error)),
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: (items: Tag[]) => {
+      const ids = items.map((item) => item.id).filter((id): id is string => Boolean(id));
+      if (ids.length !== items.length) {
+        throw new Error('排序数据异常，请刷新后重试');
+      }
+      return api.tags.reorder({ ids });
+    },
+    onSuccess: async () => {
+      await invalidateTags();
+      message.success('标签排序已更新');
+    },
+    onError: (error) => {
+      setOrderedTags(tags);
+      message.error(getApiErrorMessage(error));
+    },
+  });
+
   const updateSearch = async (values: TagListQuery) => {
     await navigate({ to: '/tags' as never, search: values as never });
   };
@@ -60,20 +99,25 @@ export function TagListPage() {
     await navigate({ to: '/tags' as never, search: {} as never });
   };
 
-  const openDrawer = (tag?: Tag) => {
+  const openModal = (tag?: Tag) => {
     setEditingTag(tag ?? null);
-    setDrawerOpen(true);
-    form.setFieldsValue(tag ? { name: tag.name, sortOrder: tag.sortOrder } : { name: '', sortOrder: 0 });
+    setModalOpen(true);
+    form.setFieldsValue(tag ? { name: tag.name } : { name: '' });
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditingTag(null);
     form.resetFields();
   };
 
   const saveTag = async () => {
     saveMutation.mutate(await form.validateFields());
+  };
+
+  const sortTags = (items: Tag[]) => {
+    setOrderedTags(items);
+    reorderMutation.mutate(items);
   };
 
   const searchItems: SearchFormItem[] = [
@@ -101,60 +145,61 @@ export function TagListPage() {
         <TableHeader
           left={
             canCreate ? (
-            <Button type="primary" onClick={() => openDrawer()}>
-              新建标签
-            </Button>
+              <Button type="primary" onClick={() => openModal()}>
+                新建标签
+              </Button>
             ) : null
           }
           loading={saveMutation.isPending}
           onRefresh={() => refetch()}
         />
-        <DataTable<Tag>
+        <SortableDataTable<Tag>
           rowKey="id"
-          dataSource={tags}
-          pagination={{
-            showQuickJumper: true,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
-          }}
+          dataSource={orderedTags}
+          disabled={
+            !canEdit || Boolean(keyword) || reorderMutation.isPending || orderedTags.length < 2
+          }
+          pagination={false}
+          onSortEnd={sortTags}
           columns={[
             {
               title: '标签名称',
               dataIndex: 'name',
               render: (_, item) => <AntTag color="blue">{item.name}</AntTag>,
             },
-            { title: '排序', dataIndex: 'sortOrder', width: 120 },
+            { title: '顺序', width: 120, render: (_, __, index) => index + 1 },
             {
               title: '类型',
               width: 120,
-              render: (_, item) => (item.isSystem ? <AntTag>系统</AntTag> : <AntTag color="green">自定义</AntTag>),
+              render: (_, item) =>
+                item.isSystem ? <AntTag>系统</AntTag> : <AntTag color="green">自定义</AntTag>,
             },
             {
               title: '操作',
               width: 180,
               render: (_, item) =>
                 canEdit || canDelete ? (
-                <Space>
-                  {canEdit ? (
-                  <Button type="link" onClick={() => openDrawer(item)}>
-                    编辑
-                  </Button>
-                  ) : null}
-                  {canDelete ? (
-                  <Popconfirm
-                    title="删除标签"
-                    description="删除后不会清理已写入菜谱的文本标签，确认继续？"
-                    okText="删除"
-                    okButtonProps={{ danger: true }}
-                    cancelText="取消"
-                    onConfirm={() => deleteMutation.mutate(item.id)}
-                  >
-                    <Button type="link" danger loading={deleteMutation.isPending}>
-                      删除
-                    </Button>
-                  </Popconfirm>
-                  ) : null}
-                </Space>
+                  <Space>
+                    {canEdit ? (
+                      <Button type="link" onClick={() => openModal(item)}>
+                        编辑
+                      </Button>
+                    ) : null}
+                    {canDelete ? (
+                      <Popconfirm
+                        title="删除标签"
+                        description="删除后不会清理已写入菜谱的文本标签，确认继续？"
+                        okText="删除"
+                        okButtonProps={{ danger: true }}
+                        cancelText="取消"
+                        onConfirm={() => deleteMutation.mutate(item.id)}
+                      >
+                        <Button type="link" danger loading={deleteMutation.isPending}>
+                          删除
+                        </Button>
+                      </Popconfirm>
+                    ) : null}
+                  </Space>
                 ) : (
                   '-'
                 ),
@@ -163,35 +208,28 @@ export function TagListPage() {
         />
       </Card>
 
-      <Drawer
+      <Modal
         title={editingTag ? '编辑标签' : '新建标签'}
-        open={drawerOpen}
-        onClose={closeDrawer}
-        size={520}
+        open={modalOpen}
+        width={480}
         destroyOnHidden
-        extra={
-          <Space>
-            <Button onClick={closeDrawer}>取消</Button>
-            <Button
-              type="primary"
-              disabled={editingTag ? !canEdit : !canCreate}
-              loading={saveMutation.isPending}
-              onClick={saveTag}
-            >
-              保存
-            </Button>
-          </Space>
-        }
+        okText="保存"
+        cancelText="取消"
+        confirmLoading={saveMutation.isPending}
+        okButtonProps={{ disabled: editingTag ? !canEdit : !canCreate }}
+        onCancel={closeModal}
+        onOk={saveTag}
       >
-        <Form form={form} layout="vertical" initialValues={{ sortOrder: 0 }}>
-          <Form.Item label="标签名称" name="name" rules={[{ required: true, message: '请输入标签名称' }]}>
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="标签名称"
+            name="name"
+            rules={[{ required: true, message: '请输入标签名称' }]}
+          >
             <Input maxLength={32} placeholder="例如 快手菜" />
           </Form.Item>
-          <Form.Item label="排序值" name="sortOrder" rules={[{ required: true, message: '请输入排序值' }]}>
-            <InputNumber min={0} precision={0} style={{ width: '100%' }} />
-          </Form.Item>
         </Form>
-      </Drawer>
+      </Modal>
     </>
   );
 }

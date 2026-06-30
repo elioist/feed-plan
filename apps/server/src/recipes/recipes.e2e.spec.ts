@@ -16,7 +16,9 @@ import { DishesService } from './dishes.service.js';
 const chef: JwtPayload = {
   sub: '11111111-1111-1111-1111-111111111111',
   username: 'chef',
-  roles: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null }],
+  roles: [
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', key: 'chef', name: '主厨', description: null },
+  ],
   actions: ['recipes.dishes.manage'],
   menuKeys: [],
   buttonKeys: [],
@@ -24,7 +26,9 @@ const chef: JwtPayload = {
 const diner: JwtPayload = {
   sub: '22222222-2222-2222-2222-222222222222',
   username: 'diner',
-  roles: [{ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', key: 'diner', name: '食客', description: null }],
+  roles: [
+    { id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', key: 'diner', name: '食客', description: null },
+  ],
   actions: [],
   menuKeys: [],
   buttonKeys: [],
@@ -63,6 +67,7 @@ const categoriesService = {
   list: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
+  reorder: vi.fn(),
   remove: vi.fn(),
 };
 const dishesService = {
@@ -94,12 +99,16 @@ function makeAccessDb(actionsByUserId: Record<string, string[]>) {
           innerJoin: () => query,
           where: async (condition: unknown) => {
             const values = collectParamValues(condition);
-            const userId = values.find((value) => typeof value === 'string' && value in actionsByUserId);
+            const userId = values.find(
+              (value) => typeof value === 'string' && value in actionsByUserId,
+            );
             const actions = values.flatMap((value) => (Array.isArray(value) ? value : []));
             const userActions = actionsByUserId[String(userId)] ?? [];
-            return (actions.length > 0 ? userActions.filter((action) => actions.includes(action)) : userActions).map(
-              (action) => ({ action }),
-            );
+            return (
+              actions.length > 0
+                ? userActions.filter((action) => actions.includes(action))
+                : userActions
+            ).map((action) => ({ action }));
           },
         };
         return query;
@@ -148,6 +157,7 @@ describe('Recipes API (e2e)', () => {
     categoriesService.list.mockResolvedValue([category]);
     categoriesService.create.mockResolvedValue(category);
     categoriesService.update.mockResolvedValue({ ...category, name: '快手菜' });
+    categoriesService.reorder.mockResolvedValue(undefined);
     categoriesService.remove.mockResolvedValue(undefined);
     dishesService.list.mockResolvedValue([dishSummary]);
     dishesService.getById.mockResolvedValue(dishDetail);
@@ -199,6 +209,24 @@ describe('Recipes API (e2e)', () => {
     expect(res.status).toBe(400);
   });
 
+  it('PATCH /categories/reorder chef → 200', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/categories/reorder')
+      .set('Authorization', `Bearer ${chefToken}`)
+      .send({ ids: [category.id] });
+    expect(res.status).toBe(200);
+    expect(categoriesService.reorder).toHaveBeenCalledWith([category.id]);
+  });
+
+  it('PATCH /categories/reorder duplicate ids → 400', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/categories/reorder')
+      .set('Authorization', `Bearer ${chefToken}`)
+      .send({ ids: [category.id, category.id] });
+    expect(res.status).toBe(400);
+    expect(categoriesService.reorder).not.toHaveBeenCalled();
+  });
+
   it('DELETE /categories/:id chef → 200', async () => {
     const res = await request(app.getHttpServer())
       .delete(`/categories/${category.id}`)
@@ -223,7 +251,9 @@ describe('Recipes API (e2e)', () => {
     expect(res.body[0]).toHaveProperty('categories');
     expect(dishesService.list).toHaveBeenCalledWith(
       { categoryIds: [category.id], keyword: '番茄' },
-      expect.objectContaining({ roles: expect.arrayContaining([expect.objectContaining({ key: 'diner' })]) }),
+      expect.objectContaining({
+        roles: expect.arrayContaining([expect.objectContaining({ key: 'diner' })]),
+      }),
     );
   });
 
@@ -234,7 +264,9 @@ describe('Recipes API (e2e)', () => {
     expect(res.status).toBe(200);
     expect(dishesService.list).toHaveBeenCalledWith(
       { isActive: false },
-      expect.objectContaining({ roles: expect.arrayContaining([expect.objectContaining({ key: 'chef' })]) }),
+      expect.objectContaining({
+        roles: expect.arrayContaining([expect.objectContaining({ key: 'chef' })]),
+      }),
     );
   });
 

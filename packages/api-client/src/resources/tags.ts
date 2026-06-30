@@ -1,4 +1,10 @@
-import type { CreateTagInput, Tag, TagListQuery, UpdateTagInput } from '@feed-plan/shared';
+import type {
+  CreateTagInput,
+  ReorderItemsInput,
+  Tag,
+  TagListQuery,
+  UpdateTagInput,
+} from '@feed-plan/shared';
 
 import type { ApiRequest } from '../types.js';
 
@@ -15,6 +21,12 @@ export function createTagsResource(request: ApiRequest) {
     },
     update(id: string, input: UpdateTagInput) {
       return request<Tag>(`/tags/${id}`, {
+        method: 'PATCH',
+        body: input,
+      });
+    },
+    reorder(input: ReorderItemsInput) {
+      return request<{ ok: true }>('/tags/reorder', {
         method: 'PATCH',
         body: input,
       });

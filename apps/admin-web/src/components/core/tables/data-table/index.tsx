@@ -5,7 +5,7 @@ type DataTableParams = Record<string, unknown>;
 
 export type DataTableColumn<RecordType extends Record<string, unknown>> = ProColumns<RecordType>;
 
-type DataTableProps<RecordType extends Record<string, unknown>> = Omit<
+export type DataTableProps<RecordType extends Record<string, unknown>> = Omit<
   ProTableProps<RecordType, DataTableParams>,
   'cardProps' | 'options' | 'search' | 'tableAlertRender'
 >;

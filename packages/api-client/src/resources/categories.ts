@@ -2,6 +2,7 @@ import type {
   Category,
   CategoryListQuery,
   CreateCategoryInput,
+  ReorderItemsInput,
   UpdateCategoryInput,
 } from '@feed-plan/shared';
 
@@ -20,6 +21,12 @@ export function createCategoriesResource(request: ApiRequest) {
     },
     update(id: string, input: UpdateCategoryInput) {
       return request<Category>(`/categories/${id}`, {
+        method: 'PATCH',
+        body: input,
+      });
+    },
+    reorder(input: ReorderItemsInput) {
+      return request<{ ok: true }>('/categories/reorder', {
         method: 'PATCH',
         body: input,
       });

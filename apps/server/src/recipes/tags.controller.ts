@@ -1,11 +1,23 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   createTagSchema,
   idParamSchema,
+  reorderItemsSchema,
   tagListQuerySchema,
   updateTagSchema,
   type CreateTagInput,
   type IdParam,
+  type ReorderItemsInput,
   type Tag,
   type TagListQuery,
   type UpdateTagInput,
@@ -31,6 +43,12 @@ export class TagsController {
   @Post()
   create(@Body(new ZodValidationPipe(createTagSchema)) body: CreateTagInput): Promise<Tag> {
     return this.tags.create(body);
+  }
+
+  @Patch('reorder')
+  async reorder(@Body(new ZodValidationPipe(reorderItemsSchema)) body: ReorderItemsInput) {
+    await this.tags.reorder(body.ids);
+    return { ok: true };
   }
 
   @Patch(':id')

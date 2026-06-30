@@ -34,6 +34,7 @@ const categoryApiMocks = vi.hoisted(() => ({
   },
   createCategory: vi.fn(),
   deleteCategory: vi.fn(),
+  reorderCategories: vi.fn(),
   updateCategory: vi.fn(),
 }));
 
@@ -62,11 +63,16 @@ vi.mock('@tanstack/react-router', () => ({
   useSearch: () => routerMocks.search,
 }));
 
+vi.mock('~/hooks/use-button-access', () => ({
+  useCanButton: () => () => true,
+}));
+
 vi.mock('~/lib/api-client', () => ({
   api: {
     categories: {
       create: categoryApiMocks.createCategory,
       delete: categoryApiMocks.deleteCategory,
+      reorder: categoryApiMocks.reorderCategories,
       update: categoryApiMocks.updateCategory,
     },
   },
@@ -75,36 +81,185 @@ vi.mock('~/queries/categories', () => ({
   categoryQueries: categoryApiMocks.categoryQueries,
 }));
 
-vi.mock('antd', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('antd')>();
+vi.mock('~/components/core/tables', () => ({
+  SortableDataTable: ({
+    columns,
+    dataSource,
+  }: {
+    columns: Array<{
+      dataIndex?: keyof Category;
+      render?: (value: unknown, record: Category, index: number) => React.ReactNode;
+      title: React.ReactNode;
+    }>;
+    dataSource: Category[];
+  }) => (
+    <table>
+      <tbody>
+        {dataSource.map((record, index) => (
+          <tr key={record.id}>
+            {columns.map((column, columnIndex) => (
+              <td key={String(column.dataIndex ?? columnIndex)}>
+                {column.render
+                  ? column.render(
+                      column.dataIndex ? record[column.dataIndex] : undefined,
+                      record,
+                      index,
+                    )
+                  : column.dataIndex
+                    ? String(record[column.dataIndex])
+                    : null}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ),
+  TableHeader: ({ left, onRefresh }: { left?: React.ReactNode; onRefresh?: () => void }) => (
+    <div>
+      {left}
+      <button type="button" onClick={onRefresh}>
+        刷新
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('antd', async () => {
+  const React = await import('react');
+  type MockFormInstance = {
+    values: Record<string, unknown>;
+    resetFields: () => void;
+    setFieldsValue: (values: Record<string, unknown>) => void;
+    validateFields: () => Promise<Record<string, unknown>>;
+  };
+  const FormContext = React.createContext<MockFormInstance | null>(null);
+  const createForm = (): MockFormInstance => ({
+    values: {},
+    resetFields() {
+      this.values = {};
+    },
+    setFieldsValue(values) {
+      this.values = { ...this.values, ...values };
+    },
+    async validateFields() {
+      return this.values;
+    },
+  });
+  const Form = Object.assign(
+    ({
+      children,
+      form,
+      initialValues,
+    }: {
+      children: React.ReactNode;
+      form?: MockFormInstance;
+      initialValues?: Record<string, unknown>;
+    }) => {
+      if (form && initialValues) {
+        form.setFieldsValue(initialValues);
+      }
+
+      return <FormContext.Provider value={form ?? null}>{children}</FormContext.Provider>;
+    },
+    {
+      Item: ({
+        children,
+        label,
+        name,
+      }: {
+        children: React.ReactElement;
+        label?: React.ReactNode;
+        name?: string;
+      }) => {
+        const form = React.useContext(FormContext);
+        const child = React.isValidElement(children)
+          ? React.cloneElement(children, {
+              'aria-label': typeof label === 'string' ? label : undefined,
+              value: name && form ? String(form.values[name] ?? '') : undefined,
+              onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                if (name && form) {
+                  form.values = { ...form.values, [name]: event.target.value };
+                }
+                const childProps = children.props as {
+                  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+                };
+                childProps.onChange?.(event);
+              },
+            } as React.InputHTMLAttributes<HTMLInputElement>)
+          : children;
+
+        return label ? (
+          <label>
+            {label}
+            {child}
+          </label>
+        ) : (
+          child
+        );
+      },
+      useForm: () => [createForm()],
+    },
+  );
+  const Button = ({
+    children,
+    loading: _loading,
+    type: _type,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean; type?: string }) => (
+    <button {...props} type="button">
+      {children}
+    </button>
+  );
+  const Input = Object.assign(
+    (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+    {
+      Search: (props: React.InputHTMLAttributes<HTMLInputElement> & { onSearch?: () => void }) => (
+        <input {...props} />
+      ),
+    },
+  );
+
   return {
-    ...actual,
     App: {
-      ...actual.App,
       useApp: () => ({ message: antdAppMocks.message }),
     },
-    Drawer: ({
+    Button,
+    Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Col: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    DatePicker: Object.assign(
+      (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+      {
+        RangePicker: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+      },
+    ),
+    Form,
+    Input,
+    Modal: ({
       children,
-      extra,
-      onClose,
+      cancelText,
+      okText,
+      onCancel,
+      onOk,
       open,
       title,
     }: {
       children: React.ReactNode;
-      extra?: React.ReactNode;
-      onClose: () => void;
+      cancelText?: React.ReactNode;
+      okText?: React.ReactNode;
+      onCancel: () => void;
+      onOk: () => void;
       open: boolean;
       title: React.ReactNode;
     }) =>
       open ? (
         <section aria-label={String(title)} role="dialog">
-          {extra}
           {children}
-          <button type="button" onClick={onClose}>
-            Cancel
+          <button type="button" onClick={onCancel}>
+            {cancelText ?? '取消'}
           </button>
-          <button type="button" onClick={onClose}>
-            Close
+          <button type="button" onClick={onOk}>
+            {okText ?? '保存'}
           </button>
         </section>
       ) : null,
@@ -116,6 +271,10 @@ vi.mock('antd', async (importOriginal) => {
         </button>
       </span>
     ),
+    Row: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Select: (props: React.SelectHTMLAttributes<HTMLSelectElement>) => <select {...props} />,
+    Space: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+    Tag: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
   };
 });
 
@@ -155,16 +314,18 @@ describe('CategoryListPage', () => {
     categoryApiMocks.createCategory.mockReset();
     categoryApiMocks.deleteCategory.mockReset();
     categoryApiMocks.deleteCategory.mockResolvedValue({ ok: true });
+    categoryApiMocks.reorderCategories.mockReset();
+    categoryApiMocks.reorderCategories.mockResolvedValue({ ok: true });
     categoryApiMocks.updateCategory.mockReset();
     antdAppMocks.message.error.mockReset();
     antdAppMocks.message.success.mockReset();
   });
 
-  it('renders the category list', () => {
+  it('renders the category list', async () => {
     render(<CategoryListPage />);
 
-    expect(screen.getByRole('button', { name: '新建分类' })).toBeInTheDocument();
-    expect(screen.getByText('家常菜')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '新建分类' })).toBeInTheDocument();
+    expect(await screen.findByText('家常菜')).toBeInTheDocument();
     expect(screen.getByText('汤')).toBeInTheDocument();
     expect(screen.getAllByText('1').length).toBeGreaterThan(0);
     expect(screen.getByText('2')).toBeInTheDocument();
@@ -181,17 +342,15 @@ describe('CategoryListPage', () => {
 
     render(<CategoryListPage />);
 
-    await user.click(screen.getByRole('button', { name: '新建分类' }));
+    await user.click(await screen.findByRole('button', { name: '新建分类' }));
     const dialog = await screen.findByRole('dialog', { name: '新建分类' });
     await user.type(within(dialog).getByLabelText('分类名称'), '新分类');
-    await user.clear(within(dialog).getByLabelText('排序值'));
-    await user.type(within(dialog).getByLabelText('排序值'), '3');
     await user.click(within(dialog).getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() => {
       expect(categoryApiMocks.createCategory).toHaveBeenCalledWith({
         name: '新分类',
-        sortOrder: 3,
+        sortOrder: 12,
       });
     });
     expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['categories'] });
@@ -203,7 +362,7 @@ describe('CategoryListPage', () => {
 
     render(<CategoryListPage />);
 
-    await user.click(screen.getAllByRole('button', { name: '确认删除' })[0]!);
+    await user.click((await screen.findAllByRole('button', { name: '确认删除' }))[0]!);
 
     await waitFor(() => {
       expect(categoryApiMocks.deleteCategory).toHaveBeenCalledWith(categories[0]!.id);
@@ -218,7 +377,7 @@ describe('CategoryListPage', () => {
 
     render(<CategoryListPage />);
 
-    await user.click(screen.getAllByRole('button', { name: '确认删除' })[0]!);
+    await user.click((await screen.findAllByRole('button', { name: '确认删除' }))[0]!);
 
     await waitFor(() => {
       expect(categoryApiMocks.deleteCategory).toHaveBeenCalledWith(categories[0]!.id);

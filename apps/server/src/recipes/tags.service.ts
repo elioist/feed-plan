@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { asc, eq, ilike } from 'drizzle-orm';
+import { asc, eq, ilike, inArray } from 'drizzle-orm';
 import { tags, type TagRow } from '@feed-plan/db';
 import type { CreateTagInput, Tag, TagListQuery, UpdateTagInput } from '@feed-plan/shared';
 import { isUniqueViolation } from '../common/db-errors.js';
@@ -56,6 +56,29 @@ export class TagsService {
       if (isUniqueViolation(error)) throw new ConflictException('标签名称已存在');
       throw error;
     }
+  }
+
+  async reorder(ids: string[]): Promise<void> {
+    const rows = await this.db.select({ id: tags.id }).from(tags).where(inArray(tags.id, ids));
+
+    if (rows.length !== ids.length) {
+      throw new NotFoundException('标签不存在');
+    }
+
+    const updatedAt = new Date();
+    await this.db.transaction(async (tx) => {
+      await Promise.all(
+        ids.map((id, index) =>
+          tx
+            .update(tags)
+            .set({
+              sortOrder: (index + 1) * 10,
+              updatedAt,
+            })
+            .where(eq(tags.id, id)),
+        ),
+      );
+    });
   }
 
   async remove(id: string): Promise<void> {

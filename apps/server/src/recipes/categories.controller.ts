@@ -1,13 +1,25 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   categoryListQuerySchema,
   createCategorySchema,
   idParamSchema,
+  reorderItemsSchema,
   updateCategorySchema,
   type Category,
   type CategoryListQuery,
   type CreateCategoryInput,
   type IdParam,
+  type ReorderItemsInput,
   type UpdateCategoryInput,
 } from '@feed-plan/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
@@ -23,7 +35,9 @@ export class CategoriesController {
   constructor(private readonly categories: CategoriesService) {}
 
   @Get()
-  list(@Query(new ZodValidationPipe(categoryListQuerySchema)) query: CategoryListQuery): Promise<Category[]> {
+  list(
+    @Query(new ZodValidationPipe(categoryListQuerySchema)) query: CategoryListQuery,
+  ): Promise<Category[]> {
     return this.categories.list(query);
   }
 
@@ -32,6 +46,14 @@ export class CategoriesController {
   @RequireAccess(ACCESS_ACTIONS.recipesManage)
   create(@Body(new ZodValidationPipe(createCategorySchema)) body: CreateCategoryInput) {
     return this.categories.create(body);
+  }
+
+  @Patch('reorder')
+  @UseGuards(AccessGuard)
+  @RequireAccess(ACCESS_ACTIONS.recipesManage)
+  async reorder(@Body(new ZodValidationPipe(reorderItemsSchema)) body: ReorderItemsInput) {
+    await this.categories.reorder(body.ids);
+    return { ok: true };
   }
 
   @Patch(':id')
