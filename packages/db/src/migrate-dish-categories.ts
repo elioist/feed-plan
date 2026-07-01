@@ -4,7 +4,7 @@ import { dishes, dishCategories } from './schema/recipes.js';
 
 async function migrate() {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5432/feed_plan',
+    connectionString: process.env.DATABASE_URL ?? 'postgres://postgres:postgres@localhost:9529/feed_plan',
   });
 
   const db = drizzle(pool);

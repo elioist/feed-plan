@@ -9,7 +9,7 @@ import { AppModule } from './app.module.js';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
-  const port = config.get<number>('PORT') ?? 3000;
+  const port = config.get<number>('PORT') ?? 9527;
   const uploadDir = config.get<string>('UPLOAD_DIR') ?? 'uploads';
 
   app.useStaticAssets(resolve(process.cwd(), uploadDir), {

@@ -47,15 +47,15 @@ export default defineConfig(({ command }) => {
       dedupe: ['react', 'react-dom', 'react/jsx-dev-runtime', 'react/jsx-runtime'],
     },
     server: {
-      port: 5173,
+      port: 9528,
       proxy: {
         '/api': {
-          target: 'http://localhost:3000',
+          target: 'http://localhost:9527',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
         '/uploads': {
-          target: 'http://localhost:3000',
+          target: 'http://localhost:9527',
           changeOrigin: true,
         },
       },

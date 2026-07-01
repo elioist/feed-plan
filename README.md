@@ -42,13 +42,13 @@ openspec/        # SDD 规约（变更提案与已确立规约）
    docker compose up -d --build
    ```
 
-   - postgres 暴露在宿主 `localhost:55432`（避开本机常用的 5432）。
-   - server 暴露在 `localhost:3000`。
+   - postgres 暴露在宿主 `localhost:9529`（避开本机常用的 5432）。
+   - server 暴露在 `localhost:9527`。
 
 4. 执行数据库迁移（包含用户、分类、菜谱、食材、做法步骤表）：
 
    ```bash
-   DATABASE_URL=postgres://postgres:postgres@localhost:55432/feed_plan \
+   DATABASE_URL=postgres://postgres:postgres@localhost:9529/feed_plan \
      pnpm --filter @feed-plan/db db:migrate
    ```
 
@@ -56,15 +56,15 @@ openspec/        # SDD 规约（变更提案与已确立规约）
 
    ```bash
    set -a; source .env; set +a
-   DATABASE_URL=postgres://postgres:postgres@localhost:55432/feed_plan \
+   DATABASE_URL=postgres://postgres:postgres@localhost:9529/feed_plan \
      pnpm --filter @feed-plan/server seed
    ```
 
 6. 验证：
 
    ```bash
-   curl http://localhost:3000/health
-   curl -X POST http://localhost:3000/auth/login \
+   curl http://localhost:9527/health
+   curl -X POST http://localhost:9527/auth/login \
      -H 'Content-Type: application/json' \
      -d '{"username":"super_admin","password":"<你的 SEED_SUPER_ADMIN_PASSWORD>"}'
    ```
@@ -74,14 +74,14 @@ openspec/        # SDD 规约（变更提案与已确立规约）
    ```bash
    TOKEN='<上一步返回的 accessToken>'
 
-   curl -X POST http://localhost:3000/categories \
+   curl -X POST http://localhost:9527/categories \
      -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' \
      -d '{"name":"家常菜","sortOrder":1}'
 
    CATEGORY_ID='<上一步返回的分类 id>'
 
-   curl -X POST http://localhost:3000/dishes \
+   curl -X POST http://localhost:9527/dishes \
      -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' \
      -d "{
@@ -95,29 +95,29 @@ openspec/        # SDD 规约（变更提案与已确立规约）
 
    DISH_ID='<上一步返回的菜谱 id>'
 
-   curl -X POST http://localhost:3000/meals/current \
+   curl -X POST http://localhost:9527/meals/current \
      -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' \
      -d '{"mealDate":"2026-06-17","mealType":"dinner","title":"今天晚餐"}'
 
    MEAL_ID='<上一步返回的 meal.id>'
 
-   curl -X POST "http://localhost:3000/meals/$MEAL_ID/orders" \
+   curl -X POST "http://localhost:9527/meals/$MEAL_ID/orders" \
      -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' \
      -d "{\"dishId\":\"$DISH_ID\",\"quantity\":1,\"note\":\"少油\"}"
 
-   curl http://localhost:3000/meals/today \
+   curl http://localhost:9527/meals/today \
      -H "Authorization: Bearer $TOKEN"
 
-   curl -X PATCH "http://localhost:3000/meals/$MEAL_ID/complete" \
+   curl -X PATCH "http://localhost:9527/meals/$MEAL_ID/complete" \
      -H "Authorization: Bearer $TOKEN"
    ```
 
 7. 启动 PC 管理后台：
 
    ```bash
-   VITE_API_BASE_URL=http://localhost:3000 pnpm --filter @feed-plan/admin-web dev
+   VITE_API_BASE_URL=http://localhost:9527 pnpm --filter @feed-plan/admin-web dev
    ```
 
    打开 Vite 输出的本地地址，使用 seed 创建的 super_admin 账号登录。后台首版包含首页、分类管理、菜谱管理和点菜菜单。
@@ -125,19 +125,19 @@ openspec/        # SDD 规约（变更提案与已确立规约）
 8. 启动移动端：
 
    ```bash
-   EXPO_PUBLIC_API_BASE=http://localhost:3000 pnpm --filter @feed-plan/mobile dev
+   EXPO_PUBLIC_API_BASE=http://localhost:9527 pnpm --filter @feed-plan/mobile dev
    ```
 
    Expo 真机或 Android 模拟器不能总是使用 `localhost` 访问电脑上的后端。若移动端点单提示连接不到后端，请按运行环境调整：
 
-   - iOS Simulator 通常可用 `http://localhost:3000`。
-   - Android Emulator 通常使用 `http://10.0.2.2:3000`。
-   - 真机使用电脑局域网 IP，例如 `http://192.168.1.8:3000`，并确保手机和电脑在同一网络。
+   - iOS Simulator 通常可用 `http://localhost:9527`。
+   - Android Emulator 通常使用 `http://10.0.2.2:9527`。
+   - 真机使用电脑局域网 IP，例如 `http://192.168.1.8:9527`，并确保手机和电脑在同一网络。
 
    示例：
 
    ```bash
-   EXPO_PUBLIC_API_BASE=http://192.168.1.8:3000 pnpm --filter @feed-plan/mobile dev
+   EXPO_PUBLIC_API_BASE=http://192.168.1.8:9527 pnpm --filter @feed-plan/mobile dev
    ```
 
 ### 常用脚本
