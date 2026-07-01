@@ -1,6 +1,6 @@
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Text } from 'tamagui';
-import { AlertCircle, ArrowLeft, Heart, Utensils, Tag, Clock, Users, ChefHat, Lightbulb, Link, ChevronRight, Plus, Flame } from '@tamagui/lucide-icons';
+import { AlertCircle, ArrowLeft, Heart, Utensils, Tag, Clock, Users, ChefHat, Lightbulb, Link, ChevronRight, Plus, Flame, Minus, ShoppingCart } from '@tamagui/lucide-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,6 +44,9 @@ export default function DishDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const addItem = useCartStore((s) => s.addItem);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const items = useCartStore((s) => s.items);
+  const totalItems = useCartStore((s) => s.totalItems);
 
   const { data: dish, isLoading } = useQuery<DishDetail>({
     queryKey: ['dish', id],
@@ -69,6 +72,8 @@ export default function DishDetailScreen() {
   }
 
   const difficulty = DIFFICULTY_LABELS[dish.difficulty] ?? DIFFICULTY_LABELS.medium;
+  const quantity = items.find((item) => item.dishId === dish.id)?.quantity ?? 0;
+  const total = totalItems();
   const steps = dish.recipeContent
     ? dish.recipeContent.split(/\n+/).filter((s) => s.trim())
     : [];
@@ -76,6 +81,14 @@ export default function DishDetailScreen() {
   // Detect platform from referenceUrl
   const detectedPlatform = dish.referenceUrl ? detectPlatform(dish.referenceUrl) : null;
   const otherPlatforms = PLATFORMS.filter((p) => p !== detectedPlatform);
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/(tabs)/meals');
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fdf6ee' }}>
@@ -87,7 +100,7 @@ export default function DishDetailScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={handleBack}
           style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center' }}
         >
           <ArrowLeft size={20} color="#2d1f14" />
@@ -260,22 +273,47 @@ export default function DishDetailScreen() {
       <View
         style={{
           position: 'absolute', left: 0, right: 0, bottom: 0,
-          padding: 13, paddingBottom: 16,
+          padding: 13, paddingBottom: Math.max(insets.bottom, 12) + 4,
           backgroundColor: 'rgba(255, 252, 248, 0.92)',
           borderTopWidth: 1, borderTopColor: '#e8ddd0',
+          flexDirection: 'row', alignItems: 'center', gap: 10,
         }}
       >
+        {quantity > 0 ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, height: 48, borderRadius: 14, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0' }}>
+            <TouchableOpacity
+              onPress={() => updateQuantity(dish.id, quantity - 1)}
+              style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: '#e8ddd0', backgroundColor: '#fffcf8', alignItems: 'center', justifyContent: 'center' }}
+              activeOpacity={0.8}
+            >
+              <Minus size={15} color="#2d1f14" />
+            </TouchableOpacity>
+            <Text style={{ minWidth: 22, textAlign: 'center', color: '#2d1f14', fontSize: 16, fontWeight: '800', fontFamily: '"Baloo 2"' }}>{quantity}</Text>
+            <TouchableOpacity
+              onPress={() => addItem({ dishId: dish.id, name: dish.name, coverImage: dish.coverImage })}
+              style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#c45a32', alignItems: 'center', justifyContent: 'center' }}
+              activeOpacity={0.8}
+            >
+              <Plus size={15} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => addItem({ dishId: dish.id, name: dish.name, coverImage: dish.coverImage })}
+            style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#c45a32', alignItems: 'center', justifyContent: 'center' }}
+            activeOpacity={0.85}
+          >
+            <Plus size={20} color="#ffffff" />
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
-          onPress={() => addItem({ dishId: dish.id, name: dish.name, coverImage: dish.coverImage })}
-          style={{
-            backgroundColor: '#c45a32', paddingVertical: 14, borderRadius: 14,
-            alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8,
-            shadowColor: '#c45a32', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.32, shadowRadius: 16, elevation: 6,
-          }}
+          onPress={() => router.push('/(tabs)/cart')}
+          style={{ flex: 1, height: 48, backgroundColor: '#c45a32', borderRadius: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8, shadowColor: '#c45a32', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.32, shadowRadius: 16, elevation: 6 }}
           activeOpacity={0.85}
         >
-          <Plus size={18} color="#ffffff" />
-          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700', fontFamily: '"Baloo 2"' }}>加入这一单</Text>
+          <ShoppingCart size={18} color="#ffffff" />
+          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700', fontFamily: '"Baloo 2"' }}>{total > 0 ? `${total} 道菜 · 去下单` : '购物车空空，先挑一道'}</Text>
         </TouchableOpacity>
       </View>
     </View>
