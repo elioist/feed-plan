@@ -32,7 +32,12 @@ export default function OrdersScreen() {
     return (
       <TouchableOpacity
         className="mb-3 rounded border border-border bg-surface p-4"
-        onPress={() => router.push(`/meals/${item.id}`)}
+        onPress={() => {
+          router.push({
+            pathname: '/meals/[id]',
+            params: { id: item.id, returnTo: '/(tabs)/orders' },
+          });
+        }}
         activeOpacity={0.7}
       >
         <View className="flex-row items-center justify-between">

@@ -19,7 +19,7 @@ const MEAL_TYPE_CONFIG: Record<string, { label: string; bg: string; fg: string; 
 };
 
 export default function MealDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, returnTo } = useLocalSearchParams<{ id: string; returnTo?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -31,6 +31,10 @@ export default function MealDetailScreen() {
     enabled: !!id,
   });
 
+  const returnPath = typeof returnTo === 'string' && returnTo.startsWith('/')
+    ? returnTo
+    : '/(tabs)/orders';
+
   const completeMutation = useMutation({
     mutationFn: async () => {
       const detail = await api.meals.complete(id!);
@@ -40,7 +44,7 @@ export default function MealDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       queryClient.invalidateQueries({ queryKey: ['meal', id] });
       Alert.alert('完成', '点餐已锁定', [
-        { text: '确定', onPress: () => router.replace('/meals') },
+        { text: '确定', onPress: () => router.replace(returnPath) },
       ]);
     },
   });
@@ -50,6 +54,20 @@ export default function MealDetailScreen() {
       { text: '取消', style: 'cancel' },
       { text: '确定', onPress: () => completeMutation.mutate() },
     ]);
+  };
+
+  const handleBack = () => {
+    if (typeof returnTo === 'string' && returnTo.startsWith('/')) {
+      router.replace(returnPath);
+      return;
+    }
+
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/(tabs)/orders');
   };
 
   if (isLoading) {
@@ -81,7 +99,7 @@ export default function MealDetailScreen() {
     <SafeScreen>
       {/* 顶部导航栏 */}
       <View className="flex-row items-center bg-bg px-4 pb-3 pt-2">
-        <TouchableOpacity className="size-[38px] items-center justify-center rounded-full border border-border bg-surface" onPress={() => router.back()}>
+        <TouchableOpacity className="size-[38px] items-center justify-center rounded-full border border-border bg-surface" onPress={handleBack}>
           <ChevronLeft size={24} color="#2d1f14" />
         </TouchableOpacity>
         <View className="ml-3 flex-1">
