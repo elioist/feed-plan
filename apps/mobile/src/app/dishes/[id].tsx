@@ -1,6 +1,5 @@
-import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'tamagui';
-import { AlertCircle, ArrowLeft, Heart, Utensils, Tag, Clock, Users, ChefHat, Lightbulb, Link, ChevronRight, Plus, Flame, Minus, ShoppingCart } from '@tamagui/lucide-icons';
+import { View, ScrollView, TouchableOpacity, Image, Text } from 'react-native';
+import { AlertCircle, ArrowLeft, Heart, Utensils, Tag, Clock, Users, ChefHat, Lightbulb, Link, ChevronRight, Plus, Flame, Minus, ShoppingCart } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { BrandIcon } from '~/components/brand-icon';
 import { openUrl } from '~/lib/utils';
+import { getBottomSafeArea } from '~/constants/layout';
 import type { DishDetail } from '@feed-plan/shared';
 
 const DIFFICULTY_LABELS: Record<string, { label: string; bg: string; fg: string }> = {
@@ -56,17 +56,17 @@ export default function DishDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#fdf6ee', justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: '#8a7565' }}>加载中...</Text>
+      <View className="flex-1 items-center justify-center bg-bg">
+        <Text className="text-muted">加载中...</Text>
       </View>
     );
   }
 
   if (!dish) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#fdf6ee', justifyContent: 'center', alignItems: 'center' }}>
+      <View className="flex-1 items-center justify-center bg-bg">
         <AlertCircle size={48} color="#e8ddd0" />
-        <Text style={{ color: '#b8a898', marginTop: 12 }}>菜谱不存在</Text>
+        <Text className="mt-3 text-faint">菜谱不存在</Text>
       </View>
     );
   }
@@ -91,133 +91,137 @@ export default function DishDetailScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fdf6ee' }}>
+    <View className="flex-1 bg-bg">
       {/* Top Bar */}
       <View
-        style={{
-          paddingTop: insets.top, paddingHorizontal: 16, paddingBottom: 10,
-          backgroundColor: '#fdf6ee', flexDirection: 'row', alignItems: 'center', gap: 10,
-        }}
+        className="flex-row items-center gap-2.5 bg-bg px-4 pb-2.5"
+        style={{ paddingTop: insets.top }}
       >
         <TouchableOpacity
           onPress={handleBack}
-          style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center' }}
+          className="size-[38px] items-center justify-center rounded-full border border-border bg-surface"
         >
           <ArrowLeft size={20} color="#2d1f14" />
         </TouchableOpacity>
-        <Text style={{ flex: 1, fontSize: 17, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }} numberOfLines={1}>
+        <Text className="flex-1 font-display text-[17px] font-bold text-fg" numberOfLines={1}>
           {dish.name}
         </Text>
         <TouchableOpacity
-          style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center' }}
+          className="size-[38px] items-center justify-center rounded-full border border-border bg-surface"
         >
           <Heart size={20} color="#2d1f14" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView
+        className="flex-1"
+        automaticallyAdjustContentInsets={false}
+        automaticallyAdjustsScrollIndicatorInsets={false}
+        contentContainerStyle={{ paddingBottom: getBottomSafeArea(insets.bottom) + 96 }}
+        scrollIndicatorInsets={{ bottom: getBottomSafeArea(insets.bottom) + 80 }}
+      >
         {/* Cover */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+        <View className="mb-4 px-5">
           {getImageUrl(dish.coverImage) ? (
-            <Image source={{ uri: getImageUrl(dish.coverImage)! }} style={{ width: '100%', height: 200, borderRadius: 20 }} resizeMode="cover" />
+            <Image source={{ uri: getImageUrl(dish.coverImage)! }} className="h-[200px] w-full rounded-[20px]" resizeMode="cover" />
           ) : (
-            <View style={{ width: '100%', height: 200, borderRadius: 20, backgroundColor: '#fae8df', alignItems: 'center', justifyContent: 'center' }}>
+            <View className="h-[200px] w-full items-center justify-center rounded-[20px] bg-chef-soft">
               <Utensils size={80} color="#c45a32" />
             </View>
           )}
         </View>
 
-        <View style={{ paddingHorizontal: 20 }}>
+        <View className="px-5">
           {/* Category */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 4, borderRadius: 999, backgroundColor: '#fae8df', alignSelf: 'flex-start', marginBottom: 9 }}>
+          <View className="mb-[9px] flex-row items-center gap-1.5 self-start rounded-full bg-chef-soft px-[11px] py-1">
             <Tag size={13} color="#c45a32" />
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#8b3a1e', fontFamily: '"Baloo 2"' }}>{dish.categories?.[0]?.name}</Text>
+            <Text className="font-display text-[11px] font-bold text-accent-ink">{dish.categories?.[0]?.name}</Text>
           </View>
 
           {dish.description ? (
-            <Text style={{ fontSize: 13, color: '#8a7565', lineHeight: 20, marginBottom: 16 }}>{dish.description}</Text>
+            <Text className="mb-4 text-[13px] leading-5 text-muted">{dish.description}</Text>
           ) : null}
 
           {/* Stats */}
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+          <View className="mb-3.5 flex-row gap-2.5">
             {[
               { Icon: Clock, value: dish.difficulty === 'easy' ? '15' : dish.difficulty === 'hard' ? '45' : '30', label: '分钟' },
               { Icon: Flame, value: dish.difficulty === 'easy' ? '200' : dish.difficulty === 'hard' ? '500' : '350', label: 'kcal' },
               { Icon: Users, value: '2', label: '人份' },
             ].map((stat) => (
-              <View key={stat.label} style={{ flex: 1, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', borderRadius: 16, padding: 12, alignItems: 'center' }}>
+              <View key={stat.label} className="flex-1 items-center rounded border border-border bg-surface p-3">
                 <stat.Icon size={20} color="#c45a32" />
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#2d1f14', marginTop: 4, fontFamily: '"Baloo 2"' }}>{stat.value}</Text>
-                <Text style={{ fontSize: 11, color: '#8a7565' }}>{stat.label}</Text>
+                <Text className="mt-1 font-display text-base font-extrabold text-fg">{stat.value}</Text>
+                <Text className="text-[11px] text-muted">{stat.label}</Text>
               </View>
             ))}
           </View>
 
           {/* Difficulty */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 11, borderRadius: 16, backgroundColor: difficulty.bg, marginBottom: 20 }}>
+          <View className="mb-5 flex-row items-center gap-2.5 rounded p-[11px]" style={{ backgroundColor: difficulty.bg }}>
             <ChefHat size={20} color={difficulty.fg} />
-            <Text style={{ fontSize: 12, fontWeight: '700', color: difficulty.fg, fontFamily: '"Baloo 2"' }}>难度：{difficulty.label}</Text>
+            <Text className="font-display text-xs font-bold" style={{ color: difficulty.fg }}>难度：{difficulty.label}</Text>
           </View>
 
           {/* Steps */}
           {steps.length > 0 && (
-            <View style={{ marginBottom: 20 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 14 }}>
-                <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: '#f7f3ee', alignItems: 'center', justifyContent: 'center' }}>
+            <View className="mb-5">
+              <View className="mb-3.5 flex-row items-center gap-[9px]">
+                <View className="size-[30px] items-center justify-center rounded-[9px] bg-[#f7f3ee]">
                   <Utensils size={18} color="#c45a32" />
                 </View>
-                <Text style={{ fontSize: 17, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>做法步骤</Text>
-                <Text style={{ marginLeft: 'auto', fontSize: 12, color: '#b8a898', fontFamily: '"Baloo 2"', fontWeight: '700' }}>{steps.length} 步</Text>
+                <Text className="font-display text-[17px] font-extrabold text-fg">做法步骤</Text>
+                <Text className="ml-auto font-display text-xs font-bold text-faint">{steps.length} 步</Text>
               </View>
               {steps.map((step, index) => (
-                <View key={index} style={{ flexDirection: 'row', gap: 13 }}>
-                  <View style={{ alignItems: 'center' }}>
-                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#c45a32', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff', fontFamily: '"Baloo 2"' }}>{index + 1}</Text>
+                <View key={index} className="flex-row gap-[13px]">
+                  <View className="items-center">
+                    <View className="size-7 items-center justify-center rounded-full bg-accent">
+                      <Text className="font-display text-[13px] font-extrabold text-white">{index + 1}</Text>
                     </View>
-                    {index < steps.length - 1 && <View style={{ width: 2, flex: 1, backgroundColor: '#e8ddd0', marginVertical: 4 }} />}
+                    {index < steps.length - 1 && <View className="my-1 w-0.5 flex-1 bg-border" />}
                   </View>
-                  <Text style={{ flex: 1, fontSize: 14, lineHeight: 22, color: '#2d1f14', paddingBottom: 18 }}>{step}</Text>
+                  <Text className="flex-1 pb-[18px] text-sm leading-[22px] text-fg">{step}</Text>
                 </View>
               ))}
             </View>
           )}
 
           {/* Tips */}
-          <View style={{ padding: 13, borderRadius: 16, backgroundColor: '#faf3dc', flexDirection: 'row', gap: 11, alignItems: 'flex-start', marginBottom: 20 }}>
-            <Lightbulb size={20} color="#8b6a2a" style={{ marginTop: 1 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#8b6a2a', fontFamily: '"Baloo 2"' }}>主厨小贴士</Text>
-              <Text style={{ fontSize: 12, color: '#8b6a2a', lineHeight: 18, marginTop: 4 }}>
+          <View className="mb-5 flex-row items-start gap-[11px] rounded bg-yolk-soft p-[13px]">
+            <Lightbulb size={20} color="#8b6a2a" />
+            <View className="flex-1">
+              <Text className="font-display text-[13px] font-bold text-[#8b6a2a]">主厨小贴士</Text>
+              <Text className="mt-1 text-xs leading-[18px] text-[#8b6a2a]">
                 {dish.description ?? '这道菜的关键在于火候控制，注意翻炒时间。'}
               </Text>
             </View>
           </View>
 
           {/* Reference Links */}
-          <View style={{ marginBottom: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 14 }}>
-              <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: '#f7f3ee', alignItems: 'center', justifyContent: 'center' }}>
+          <View className="mb-5">
+            <View className="mb-3.5 flex-row items-center gap-[9px]">
+              <View className="size-[30px] items-center justify-center rounded-[9px] bg-[#f7f3ee]">
                 <Link size={18} color="#c45a32" />
               </View>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>参考链接</Text>
+              <Text className="font-display text-[17px] font-extrabold text-fg">参考链接</Text>
             </View>
 
             {/* Primary link (detected platform) */}
             {detectedPlatform && dish.referenceUrl && (
               <TouchableOpacity
                 onPress={() => openUrl(dish.referenceUrl!)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 13, padding: 14, marginBottom: 10, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', borderRadius: 16 }}
+                className="mb-2.5 flex-row items-center gap-[13px] rounded border border-border bg-surface p-3.5"
                 activeOpacity={0.7}
               >
-                <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: detectedPlatform.color, alignItems: 'center', justifyContent: 'center' }}>
+                <View className="size-[42px] items-center justify-center rounded-xl" style={{ backgroundColor: detectedPlatform.color }}>
                   <BrandIcon icon={detectedPlatform.iconifyIcon} size={24} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }} numberOfLines={1}>
+                <View className="flex-1">
+                  <Text className="font-display text-sm font-bold text-fg" numberOfLines={1}>
                     {detectedPlatform.name} · {dish.name}
                   </Text>
-                  <Text style={{ fontSize: 11, color: '#8a7565' }}>查看详细内容</Text>
+                  <Text className="text-[11px] text-muted">查看详细内容</Text>
                 </View>
                 <ChevronRight size={18} color="#b8a898" />
               </TouchableOpacity>
@@ -227,17 +231,17 @@ export default function DishDetailScreen() {
             {dish.referenceUrl && !detectedPlatform && (
               <TouchableOpacity
                 onPress={() => openUrl(dish.referenceUrl!)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 13, padding: 14, marginBottom: 10, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', borderRadius: 16 }}
+                className="mb-2.5 flex-row items-center gap-[13px] rounded border border-border bg-surface p-3.5"
                 activeOpacity={0.7}
               >
-                <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: '#6b7890', alignItems: 'center', justifyContent: 'center' }}>
+                <View className="size-[42px] items-center justify-center rounded-xl bg-[#6b7890]">
                   <Link size={24} color="#ffffff" />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }} numberOfLines={1}>
+                <View className="flex-1">
+                  <Text className="font-display text-sm font-bold text-fg" numberOfLines={1}>
                     {dish.name} · 参考链接
                   </Text>
-                  <Text style={{ fontSize: 11, color: '#8a7565' }}>{dish.referenceUrl}</Text>
+                  <Text className="text-[11px] text-muted">{dish.referenceUrl}</Text>
                 </View>
                 <ChevronRight size={18} color="#b8a898" />
               </TouchableOpacity>
@@ -248,17 +252,17 @@ export default function DishDetailScreen() {
               <TouchableOpacity
                 key={platform.name}
                 onPress={() => openUrl(platform.getUrl(dish.name))}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 13, padding: 14, marginBottom: 10, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0', borderRadius: 16 }}
+                className="mb-2.5 flex-row items-center gap-[13px] rounded border border-border bg-surface p-3.5"
                 activeOpacity={0.7}
               >
-                <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: platform.color, alignItems: 'center', justifyContent: 'center' }}>
+                <View className="size-[42px] items-center justify-center rounded-xl" style={{ backgroundColor: platform.color }}>
                   <BrandIcon icon={platform.iconifyIcon} size={24} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>
+                <View className="flex-1">
+                  <Text className="font-display text-sm font-bold text-fg">
                     {platform.name} · 搜「{dish.name}」
                   </Text>
-                  <Text style={{ fontSize: 11, color: '#8a7565' }}>
+                  <Text className="text-[11px] text-muted">
                     {platform.name === 'YouTube' ? 'Search for video' : '查看相关内容'}
                   </Text>
                 </View>
@@ -271,27 +275,24 @@ export default function DishDetailScreen() {
 
       {/* Bottom Bar */}
       <View
+        className="absolute bottom-0 left-0 right-0 flex-row items-center gap-2.5 border-t border-border bg-surface/90 p-[13px]"
         style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0,
-          padding: 13, paddingBottom: Math.max(insets.bottom, 12) + 4,
-          backgroundColor: 'rgba(255, 252, 248, 0.92)',
-          borderTopWidth: 1, borderTopColor: '#e8ddd0',
-          flexDirection: 'row', alignItems: 'center', gap: 10,
+          paddingBottom: getBottomSafeArea(insets.bottom) + 4,
         }}
       >
         {quantity > 0 ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, height: 48, borderRadius: 14, backgroundColor: '#fffcf8', borderWidth: 1, borderColor: '#e8ddd0' }}>
+          <View className="h-12 flex-row items-center gap-2 rounded-[14px] border border-border bg-surface px-2.5">
             <TouchableOpacity
               onPress={() => updateQuantity(dish.id, quantity - 1)}
-              style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: '#e8ddd0', backgroundColor: '#fffcf8', alignItems: 'center', justifyContent: 'center' }}
+              className="size-[30px] items-center justify-center rounded-full border border-border bg-surface"
               activeOpacity={0.8}
             >
               <Minus size={15} color="#2d1f14" />
             </TouchableOpacity>
-            <Text style={{ minWidth: 22, textAlign: 'center', color: '#2d1f14', fontSize: 16, fontWeight: '800', fontFamily: '"Baloo 2"' }}>{quantity}</Text>
+            <Text className="min-w-[22px] text-center font-display text-base font-extrabold text-fg">{quantity}</Text>
             <TouchableOpacity
               onPress={() => addItem({ dishId: dish.id, name: dish.name, coverImage: dish.coverImage })}
-              style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#c45a32', alignItems: 'center', justifyContent: 'center' }}
+              className="size-[30px] items-center justify-center rounded-full bg-accent"
               activeOpacity={0.8}
             >
               <Plus size={15} color="#ffffff" />
@@ -300,7 +301,7 @@ export default function DishDetailScreen() {
         ) : (
           <TouchableOpacity
             onPress={() => addItem({ dishId: dish.id, name: dish.name, coverImage: dish.coverImage })}
-            style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#c45a32', alignItems: 'center', justifyContent: 'center' }}
+            className="size-12 items-center justify-center rounded-[14px] bg-accent"
             activeOpacity={0.85}
           >
             <Plus size={20} color="#ffffff" />
@@ -309,11 +310,12 @@ export default function DishDetailScreen() {
 
         <TouchableOpacity
           onPress={() => router.push('/(tabs)/cart')}
-          style={{ flex: 1, height: 48, backgroundColor: '#c45a32', borderRadius: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8, shadowColor: '#c45a32', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.32, shadowRadius: 16, elevation: 6 }}
+          className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-[14px] bg-accent"
+          style={{ shadowColor: '#c45a32', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.32, shadowRadius: 16, elevation: 6 }}
           activeOpacity={0.85}
         >
           <ShoppingCart size={18} color="#ffffff" />
-          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700', fontFamily: '"Baloo 2"' }}>{total > 0 ? `${total} 道菜 · 去下单` : '购物车空空，先挑一道'}</Text>
+          <Text className="font-display text-[15px] font-bold text-white">{total > 0 ? `${total} 道菜 · 去下单` : '购物车空空，先挑一道'}</Text>
         </TouchableOpacity>
       </View>
     </View>

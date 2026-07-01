@@ -1,13 +1,29 @@
 import { Tabs } from 'expo-router';
+import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Home, BookOpen, Plus, ClipboardList, User } from '@tamagui/lucide-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Home, BookOpen, Plus, ClipboardList, User } from 'lucide-react-native';
+import { getBottomSafeArea, getTabBarHeight } from '~/constants/layout';
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+  const tabBarBottomPadding = getBottomSafeArea(insets.bottom);
+  const tabBarStyle = useMemo(
+    () => [
+      styles.tabbar,
+      {
+        height: getTabBarHeight(insets.bottom),
+        paddingBottom: tabBarBottomPadding,
+      },
+    ],
+    [insets.bottom, tabBarBottomPadding],
+  );
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabbar,
+        tabBarStyle,
         tabBarShowLabel: true,
         tabBarLabelStyle: styles.tabLabel,
       }}
@@ -17,7 +33,7 @@ export default function TabsLayout() {
         options={{
           title: '首页',
           tabBarIcon: ({ color, size }) => (
-            <Home size={size + 4} color={color as any} strokeWidth={1.8} />
+            <Home size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -28,7 +44,7 @@ export default function TabsLayout() {
         options={{
           title: '菜单',
           tabBarIcon: ({ color, size }) => (
-            <BookOpen size={size + 4} color={color as any} strokeWidth={1.8} />
+            <BookOpen size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -39,7 +55,7 @@ export default function TabsLayout() {
         options={{
           title: '开单',
           tabBarIcon: () => (
-            <View style={styles.fab}>
+            <View className="mt-[-28px] size-[58px] items-center justify-center rounded-full border-[3px] border-surface bg-accent" style={styles.fabShadow}>
               <Plus size={30} color="#ffffff" strokeWidth={2.5} />
             </View>
           ),
@@ -51,7 +67,7 @@ export default function TabsLayout() {
         options={{
           title: '当前单',
           tabBarIcon: ({ color, size }) => (
-            <ClipboardList size={size + 4} color={color as any} strokeWidth={1.8} />
+            <ClipboardList size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -62,7 +78,7 @@ export default function TabsLayout() {
         options={{
           title: '我的',
           tabBarIcon: ({ color, size }) => (
-            <User size={size + 4} color={color as any} strokeWidth={1.8} />
+            <User size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
           tabBarActiveTintColor: '#c45a32',
           tabBarInactiveTintColor: '#b8a898',
@@ -83,7 +99,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingTop: 8,
-    paddingBottom: 24,
     backgroundColor: 'rgba(255, 252, 248, 0.92)',
     borderTopWidth: 1,
     borderTopColor: '#e8ddd0',
@@ -93,16 +108,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: '"Baloo 2"',
   },
-  fab: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#c45a32',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -28,
-    borderWidth: 3,
-    borderColor: '#fffcf8',
+  fabShadow: {
     shadowColor: '#c45a32',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,

@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { AlertCircle } from '@tamagui/lucide-icons';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { AlertCircle } from 'lucide-react-native';
 
 interface Props {
   children: ReactNode;
@@ -37,12 +37,14 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <View style={styles.container}>
+        <View className="flex-1 items-center justify-center bg-bg p-6">
           <AlertCircle size={48} color="#c45a32" />
-          <Text style={styles.title}>出错了</Text>
-          <Text style={styles.message}>{this.state.error?.message ?? '未知错误'}</Text>
-          <TouchableOpacity style={styles.button} onPress={this.handleRetry}>
-            <Text style={styles.buttonText}>重试</Text>
+          <Text className="mt-3 text-lg font-bold text-fg">出错了</Text>
+          <Text className="mt-2 text-center text-sm leading-5 text-muted">
+            {this.state.error?.message ?? '未知错误'}
+          </Text>
+          <TouchableOpacity className="mt-5 rounded-xl bg-accent px-6 py-2.5" onPress={this.handleRetry}>
+            <Text className="text-sm font-semibold text-white">重试</Text>
           </TouchableOpacity>
         </View>
       );
@@ -51,38 +53,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fdf6ee',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2d1f14',
-    marginTop: 12,
-  },
-  message: {
-    fontSize: 14,
-    color: '#8a7565',
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 20,
-  },
-  button: {
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    backgroundColor: '#c45a32',
-    borderRadius: 12,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});

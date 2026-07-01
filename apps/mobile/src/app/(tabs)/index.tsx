@@ -1,9 +1,10 @@
-import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'tamagui';
-import { Utensils, Plus, Bell } from '@tamagui/lucide-icons';
+import { View, ScrollView, TouchableOpacity, Image, Text } from 'react-native';
+import { Utensils, Plus, Bell } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeScreen } from '~/components/safe-screen';
+import { getTabBarHeight } from '~/constants/layout';
 import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { useAuthStore } from '~/stores/auth-store';
@@ -17,6 +18,7 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string 
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
   const addItem = useCartStore((s) => s.addItem);
   const role = user?.roles[0]
@@ -51,43 +53,29 @@ export default function HomeScreen() {
   const renderDishCard = (item: DishSummary) => (
     <TouchableOpacity
       key={item.id}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 11,
-        backgroundColor: '#fffcf8',
-        borderWidth: 1,
-        borderColor: '#e8ddd0',
-        borderRadius: 16,
-        marginBottom: 10,
-      }}
+      className="mb-2.5 flex-row items-center rounded border border-border bg-surface p-[11px]"
       onPress={() => router.push(`/dishes/${item.id}`)}
       activeOpacity={0.7}
     >
-      <View
-        style={{
-          width: 58, height: 58, borderRadius: 14, backgroundColor: '#fae8df',
-          alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-        }}
-      >
+      <View className="size-[58px] items-center justify-center overflow-hidden rounded-[14px] bg-chef-soft">
         {getImageUrl(item.coverImage) ? (
-          <Image source={{ uri: getImageUrl(item.coverImage)! }} style={{ width: 58, height: 58 }} resizeMode="cover" />
+          <Image source={{ uri: getImageUrl(item.coverImage)! }} className="size-[58px]" resizeMode="cover" />
         ) : (
           <Utensils size={28} color="#c45a32" />
         )}
       </View>
 
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={{ fontSize: 15, fontWeight: '700', color: '#2d1f14', fontFamily: '"Baloo 2"' }} numberOfLines={1}>
+      <View className="ml-3 flex-1">
+        <Text className="font-display text-[15px] font-bold text-fg" numberOfLines={1}>
           {item.name}
         </Text>
-        <Text style={{ fontSize: 12, color: '#8a7565', marginTop: 2 }} numberOfLines={1}>
+        <Text className="mt-0.5 text-xs text-muted" numberOfLines={1}>
           {item.description}
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+        <View className="mt-1.5 flex-row items-center gap-2">
           {item.difficulty && (
-            <View style={{ backgroundColor: DIFFICULTY_CONFIG[item.difficulty]?.bg ?? '#fdf0dc', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: DIFFICULTY_CONFIG[item.difficulty]?.fg ?? '#8b6a2a' }}>
+            <View className="rounded-full px-[7px] py-0.5" style={{ backgroundColor: DIFFICULTY_CONFIG[item.difficulty]?.bg ?? '#fdf0dc' }}>
+              <Text className="text-[11px] font-semibold" style={{ color: DIFFICULTY_CONFIG[item.difficulty]?.fg ?? '#8b6a2a' }}>
                 {DIFFICULTY_CONFIG[item.difficulty]?.label ?? '中等'}
               </Text>
             </View>
@@ -100,10 +88,7 @@ export default function HomeScreen() {
           e.stopPropagation?.();
           addItem({ dishId: item.id, name: item.name, coverImage: item.coverImage });
         }}
-        style={{
-          width: 34, height: 34, borderRadius: 17, backgroundColor: '#c45a32',
-          alignItems: 'center', justifyContent: 'center',
-        }}
+        className="size-[34px] items-center justify-center rounded-full bg-accent"
       >
         <Plus size={20} color="#ffffff" />
       </TouchableOpacity>
@@ -112,73 +97,71 @@ export default function HomeScreen() {
 
   return (
     <SafeScreen>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView
+        className="flex-1"
+        automaticallyAdjustContentInsets={false}
+        automaticallyAdjustsScrollIndicatorInsets={false}
+        contentContainerStyle={{ paddingBottom: getTabBarHeight(insets.bottom) + 20 }}
+        scrollIndicatorInsets={{ bottom: getTabBarHeight(insets.bottom) }}
+      >
         {/* Greeting */}
-        <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 24, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>
+        <View className="flex-row items-start gap-3 px-[18px] pb-2 pt-3">
+          <View className="flex-1">
+            <Text className="font-display text-2xl font-extrabold text-fg">
               {getGreeting()}，{user?.username ?? '食客'}
             </Text>
-            <Text style={{ fontSize: 13, color: '#8a7565', marginTop: 2 }}>
+            <Text className="mt-0.5 text-[13px] text-muted">
               {getDateStr()} · 今天想吃点什么
             </Text>
           </View>
-          <TouchableOpacity
-            style={{
-              width: 38, height: 38, borderRadius: 19, backgroundColor: '#fffcf8',
-              borderWidth: 1, borderColor: '#e8ddd0', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
+          <TouchableOpacity className="size-[38px] items-center justify-center rounded-full border border-border bg-surface">
             <Bell size={19} color="#2d1f14" />
           </TouchableOpacity>
         </View>
 
         {/* Role Badge */}
         {role && (
-          <View style={{ paddingHorizontal: 18, paddingBottom: 4 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: role.backgroundColor, alignSelf: 'flex-start' }}>
-              <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: role.color, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+          <View className="px-[18px] pb-1">
+            <View className="flex-row items-center gap-[7px] self-start rounded-full px-3 py-[5px]" style={{ backgroundColor: role.backgroundColor }}>
+              <View className="size-[22px] items-center justify-center rounded-full" style={{ backgroundColor: role.color }}>
+                <Text className="text-[11px] font-bold text-white">
                   {role.shortLabel}
                 </Text>
               </View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: role.color }}>
+              <Text className="text-[13px] font-bold" style={{ color: role.color }}>
                 {role.label} · 随时点菜
               </Text>
             </View>
           </View>
         )}
 
-        <View style={{ paddingHorizontal: 18, paddingTop: 8 }}>
+        <View className="px-[18px] pt-2">
           {/* Open Card */}
           <View
+            className="mb-5 rounded-xl bg-accent p-[18px]"
             style={{
-              padding: 18, borderRadius: 28, marginBottom: 20,
-              backgroundColor: '#c45a32',
               shadowColor: '#c45a32', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.22, shadowRadius: 24, elevation: 8,
             }}
           >
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#ffffff', opacity: 0.85, letterSpacing: 0.5, fontFamily: '"Baloo 2"' }}>
+            <Text className="font-display text-xs font-bold tracking-[0.5px] text-white/85">
               今日尚未开单
             </Text>
-            <Text style={{ fontSize: 21, fontWeight: '800', color: '#ffffff', marginTop: 6, fontFamily: '"Baloo 2"' }}>
+            <Text className="mt-1.5 font-display text-[21px] font-extrabold text-white">
               开启今天的点单
             </Text>
-            <Text style={{ fontSize: 13, color: '#ffffff', opacity: 0.9, marginTop: 4, lineHeight: 20 }}>
+            <Text className="mt-1 text-[13px] leading-5 text-white/90">
               开单后，你和食客都能随时加菜{'\n'}直到你这位主厨喊停。
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/cart')}
+              className="mt-[15px] flex-row items-center gap-2 self-start rounded-[14px] bg-white px-5 py-3"
               style={{
-                marginTop: 15, flexDirection: 'row', alignItems: 'center', gap: 8,
-                backgroundColor: '#ffffff', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-                alignSelf: 'flex-start',
                 shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 16, elevation: 4,
               }}
               activeOpacity={0.85}
             >
               <Plus size={18} color="#8b3a1e" />
-              <Text style={{ fontSize: 15, fontWeight: '800', color: '#8b3a1e', fontFamily: '"Baloo 2"' }}>
+              <Text className="font-display text-[15px] font-extrabold text-accent-ink">
                 我来开单
               </Text>
             </TouchableOpacity>
@@ -187,14 +170,14 @@ export default function HomeScreen() {
           {/* Breakfast Section */}
           {dishes.length > 0 && (
             <>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <View style={{ backgroundColor: '#fdf0dc', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#8b6a2a' }}>早</Text>
+              <View className="mb-3 flex-row items-center gap-2">
+                <View className="rounded-full bg-morning-soft px-2 py-[3px]">
+                  <Text className="text-xs font-bold text-[#8b6a2a]">早</Text>
                 </View>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#2d1f14', fontFamily: '"Baloo 2"' }}>今日推荐</Text>
-                <View style={{ flex: 1 }} />
+                <Text className="font-display text-base font-extrabold text-fg">今日推荐</Text>
+                <View className="flex-1" />
                 <TouchableOpacity onPress={() => router.push('/(tabs)/meals')}>
-                  <Text style={{ fontSize: 12, color: '#8a7565', fontWeight: '600' }}>全部 ›</Text>
+                  <Text className="text-xs font-semibold text-muted">全部 ›</Text>
                 </TouchableOpacity>
               </View>
               {dishes.slice(0, 4).map((dish) => renderDishCard(dish))}

@@ -1,14 +1,18 @@
-import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native';
-import { Text } from 'tamagui';
-import { Loader, AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon } from '@tamagui/lucide-icons';
+import type { ComponentType } from 'react';
+import { View, ScrollView, Alert, TouchableOpacity, Image, Text } from 'react-native';
+import { Loader, AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon } from 'lucide-react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, getImageUrl } from '~/lib/api-client';
 import { useAuthStore } from '~/stores/auth-store';
 import { SafeScreen } from '~/components/safe-screen';
+import { getBottomSafeArea } from '~/constants/layout';
 import type { MenuDetail } from '@feed-plan/shared';
 
-const MEAL_TYPE_CONFIG: Record<string, { label: string; bg: string; fg: string; Icon: any }> = {
+type MealTypeIcon = ComponentType<{ size?: number; color?: string }>;
+
+const MEAL_TYPE_CONFIG: Record<string, { label: string; bg: string; fg: string; Icon: MealTypeIcon }> = {
   breakfast: { label: '早餐', bg: '#fdf0dc', fg: '#8b6a2a', Icon: Sun },
   lunch: { label: '午餐', bg: '#fae8df', fg: '#c45a32', Icon: Cloud },
   dinner: { label: '晚餐', bg: '#f0e8f5', fg: '#8b5fa8', Icon: Moon },
@@ -17,6 +21,7 @@ const MEAL_TYPE_CONFIG: Record<string, { label: string; bg: string; fg: string; 
 export default function MealDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
 
@@ -49,18 +54,18 @@ export default function MealDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeScreen style={styles.center}>
+      <SafeScreen className="items-center justify-center">
         <Loader size={32} color="#b8a898" />
-        <Text style={styles.loadingText}>加载中...</Text>
+        <Text className="mt-3 text-sm text-faint">加载中...</Text>
       </SafeScreen>
     );
   }
 
   if (!data) {
     return (
-      <SafeScreen style={styles.center}>
+      <SafeScreen className="items-center justify-center">
         <AlertCircle size={48} color="#e8ddd0" />
-        <Text style={styles.emptyText}>订单不存在</Text>
+        <Text className="mt-3 text-base font-semibold text-muted">订单不存在</Text>
       </SafeScreen>
     );
   }
@@ -73,53 +78,63 @@ export default function MealDetailScreen() {
   const totalQuantity = items.reduce((sum, item) => sum + item.totalQuantity, 0);
 
   return (
-    <SafeScreen style={styles.container}>
+    <SafeScreen>
       {/* 顶部导航栏 */}
-      <View style={styles.topbar}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <View className="flex-row items-center bg-bg px-4 pb-3 pt-2">
+        <TouchableOpacity className="size-[38px] items-center justify-center rounded-full border border-border bg-surface" onPress={() => router.back()}>
           <ChevronLeft size={24} color="#2d1f14" />
         </TouchableOpacity>
-        <View style={styles.topbarContent}>
-          <Text style={styles.topbarTitle}>进行中的一单</Text>
-          <Text style={styles.topbarSubtitle}>
+        <View className="ml-3 flex-1">
+          <Text className="font-display text-xl font-extrabold text-fg">进行中的一单</Text>
+          <Text className="mt-0.5 text-xs text-muted">
             {mealConfig.label} · {isOrdering ? '还没出餐，随时能加菜' : '已完成'}
           </Text>
         </View>
-        <View style={styles.spacer} />
         {isOrdering ? (
-          <View style={styles.statusPill}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>进行中</Text>
+          <View className="flex-row items-center gap-1.5 rounded-full bg-herb-soft px-2.5 py-[5px]">
+            <View className="size-[7px] rounded-full bg-herb" />
+            <Text className="font-display text-[11px] font-bold text-herb">进行中</Text>
           </View>
         ) : (
-          <View style={[styles.statusPill, styles.statusDone]}>
-            <Text style={[styles.statusText, styles.statusTextDone]}>已完成</Text>
+          <View className="flex-row items-center rounded-full bg-[#f5f5f5] px-2.5 py-[5px]">
+            <Text className="font-display text-[11px] font-bold text-muted">已完成</Text>
           </View>
         )}
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="p-4"
+        automaticallyAdjustContentInsets={false}
+        automaticallyAdjustsScrollIndicatorInsets={false}
+        contentContainerStyle={{
+          paddingBottom: isOrdering && canCompleteMeal ? getBottomSafeArea(insets.bottom) + 112 : 24,
+        }}
+        scrollIndicatorInsets={{
+          bottom: isOrdering && canCompleteMeal ? getBottomSafeArea(insets.bottom) + 88 : 0,
+        }}
+      >
         {/* 订单头部 */}
-        <View style={styles.orderHeader}>
-          <View style={styles.orderHeaderTop}>
-            <View style={styles.mealTypeBadge}>
+        <View className="mb-5 rounded-[20px] border border-border bg-surface p-4">
+          <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center gap-1 rounded-full bg-chef-soft px-2 py-1">
               <mealConfig.Icon size={14} color={mealConfig.fg} />
-              <Text style={[styles.mealTypeText, { color: mealConfig.fg }]}>{mealConfig.label}</Text>
+              <Text className="font-display text-xs font-bold" style={{ color: mealConfig.fg }}>{mealConfig.label}</Text>
             </View>
-            <Text style={styles.orderDate}>{meal.mealDate}</Text>
+            <Text className="text-xs text-muted">{meal.mealDate}</Text>
           </View>
           {meal.title && (
-            <Text style={styles.orderTitle}>{meal.title}</Text>
+            <Text className="mt-2.5 font-display text-[15px] font-bold text-fg">{meal.title}</Text>
           )}
         </View>
 
         {/* 菜品列表 */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>这一单的菜</Text>
-          <Text style={styles.sectionCount}>{totalQuantity} 道</Text>
+        <View className="mb-3 flex-row items-baseline gap-2">
+          <Text className="font-display text-[17px] font-extrabold text-fg">这一单的菜</Text>
+          <Text className="text-xs font-semibold text-muted">{totalQuantity} 道</Text>
         </View>
 
-        <View style={styles.dishList}>
+        <View className="rounded-[20px] border border-border bg-surface p-2">
           {items.map((item) => {
             const dish = item.dish;
             const quantities = item.quantities;
@@ -129,34 +144,34 @@ export default function MealDetailScreen() {
             return (
               <TouchableOpacity
                 key={dish.id}
-                style={styles.dishItem}
+                className="flex-row items-center gap-3 p-[11px]"
                 onPress={() => router.push(`/dishes/${dish.id}`)}
                 activeOpacity={0.7}
               >
-                <View style={styles.dishThumb}>
+                <View className="size-[50px] items-center justify-center rounded-[13px] bg-chef-soft">
                   {getImageUrl(dish.coverImage) ? (
                     <Image
                       source={{ uri: getImageUrl(dish.coverImage)! }}
-                      style={styles.dishThumbImage}
+                      className="size-[50px] overflow-hidden rounded-[13px]"
                       resizeMode="cover"
                     />
                   ) : (
                     <Utensils size={28} color="#c45a32" />
                   )}
                 </View>
-                <View style={styles.dishInfo}>
-                  <Text style={styles.dishName}>{dish.name}</Text>
-                  <View style={styles.dishMeta}>
-                    <View style={styles.whoBadge}>
-                      <Text style={styles.whoText}>{whoLabel}</Text>
+                <View className="min-w-0 flex-1">
+                  <Text className="font-display text-sm font-bold text-fg">{dish.name}</Text>
+                  <View className="mt-1 flex-row items-center gap-1.5">
+                    <View className="size-[18px] items-center justify-center rounded-full bg-accent">
+                      <Text className="font-display text-[10px] font-bold text-white">{whoLabel}</Text>
                     </View>
-                    <Text style={styles.dishBy}>
+                    <Text className="text-[11px] text-muted">
                       {primaryUser?.username ?? '有人'}点
                       {primaryUser?.guestName ? ` · ${primaryUser.guestName}` : ''}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.dishQuantity}>×{item.totalQuantity}</Text>
+                <Text className="font-display text-[15px] font-extrabold text-fg">×{item.totalQuantity}</Text>
               </TouchableOpacity>
             );
           })}
@@ -165,27 +180,27 @@ export default function MealDetailScreen() {
         {/* 加菜按钮 */}
         {isOrdering && (
           <TouchableOpacity
-            style={styles.addMoreBtn}
+            className="mt-4 flex-row items-center justify-center gap-2 rounded border-[1.5px] border-dashed border-border bg-chef-soft p-3.5"
             onPress={() => router.push('/(tabs)/meals')}
           >
             <Plus size={18} color="#c45a32" />
-            <Text style={styles.addMoreText}>还想吃？继续加菜</Text>
+            <Text className="font-display text-sm font-bold text-accent">还想吃？继续加菜</Text>
           </TouchableOpacity>
         )}
 
         {/* 提示信息 */}
         {isOrdering && canCompleteMeal && (
-          <View style={styles.tipRow}>
+          <View className="mt-3.5 flex-row items-center gap-[11px] rounded bg-[#f5f0ea] p-3">
             <Lock size={18} color="#b8a898" />
-            <Text style={styles.tipText}>
+            <Text className="flex-1 text-xs leading-[18px] text-muted">
               这一单由你负责结单。结单前大家都能随时加菜。
             </Text>
           </View>
         )}
         {isOrdering && !canCompleteMeal && (
-          <View style={styles.tipRow}>
+          <View className="mt-3.5 flex-row items-center gap-[11px] rounded bg-[#f5f0ea] p-3">
             <Lock size={18} color="#b8a898" />
-            <Text style={styles.tipText}>
+            <Text className="flex-1 text-xs leading-[18px] text-muted">
               这一单会由有结单权限的人完成。结单前大家都能随时加菜。
             </Text>
           </View>
@@ -194,14 +209,18 @@ export default function MealDetailScreen() {
 
       {/* 底部按钮 */}
       {isOrdering && canCompleteMeal && (
-        <View style={styles.footer}>
+        <View
+          className="absolute bottom-0 left-0 right-0 border-t border-border bg-bg/90 px-4 pt-3"
+          style={{ paddingBottom: getBottomSafeArea(insets.bottom) + 4 }}
+        >
           <TouchableOpacity
-            style={styles.completeBtn}
+            className="flex-row items-center justify-center gap-2 rounded-[14px] bg-accent py-3.5"
+            style={{ shadowColor: '#c45a32', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.32, shadowRadius: 16, elevation: 4 }}
             onPress={handleComplete}
             disabled={completeMutation.isPending}
           >
             <CheckCircle size={20} color="#ffffff" />
-            <Text style={styles.completeBtnText}>
+            <Text className="font-display text-[15px] font-bold text-white">
               {completeMutation.isPending ? '处理中...' : '完成点餐'}
             </Text>
           </TouchableOpacity>
@@ -210,285 +229,3 @@ export default function MealDetailScreen() {
     </SafeScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fdf6ee',
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fdf6ee',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#b8a898',
-  },
-  emptyText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#8a7565',
-    fontWeight: '600',
-  },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-    backgroundColor: '#fdf6ee',
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#fffcf8',
-    borderWidth: 1,
-    borderColor: '#e8ddd0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topbarContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  topbarTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#2d1f14',
-    fontFamily: '"Baloo 2"',
-  },
-  topbarSubtitle: {
-    fontSize: 12,
-    color: '#8a7565',
-    marginTop: 2,
-  },
-  spacer: {
-    flex: 1,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#e8f5eb',
-    borderRadius: 999,
-  },
-  statusDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#5a9a6a',
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#5a9a6a',
-    fontFamily: '"Baloo 2"',
-  },
-  statusDone: {
-    backgroundColor: '#f5f5f5',
-  },
-  statusTextDone: {
-    color: '#8a7565',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 120,
-  },
-  orderHeader: {
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: '#fffcf8',
-    borderWidth: 1,
-    borderColor: '#e8ddd0',
-    marginBottom: 20,
-  },
-  orderHeaderTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  mealTypeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: '#fae8df',
-  },
-  mealTypeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: '"Baloo 2"',
-  },
-  orderDate: {
-    fontSize: 12,
-    color: '#8a7565',
-  },
-  orderTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#2d1f14',
-    marginTop: 10,
-    fontFamily: '"Baloo 2"',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#2d1f14',
-    fontFamily: '"Baloo 2"',
-  },
-  sectionCount: {
-    fontSize: 12,
-    color: '#8a7565',
-    fontWeight: '600',
-  },
-  dishList: {
-    backgroundColor: '#fffcf8',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#e8ddd0',
-    padding: 8,
-  },
-  dishItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 11,
-    gap: 12,
-  },
-  dishThumb: {
-    width: 50,
-    height: 50,
-    borderRadius: 13,
-    backgroundColor: '#fae8df',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dishThumbImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 13,
-    overflow: 'hidden',
-  },
-  dishInfo: {
-    flex: 1,
-    minWidth: 0,
-  },
-  dishName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#2d1f14',
-    fontFamily: '"Baloo 2"',
-  },
-  dishMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  whoBadge: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#c45a32',
-  },
-  whoText: {
-    fontSize: 10,
-    fontWeight: '700',
-    fontFamily: '"Baloo 2"',
-    color: '#ffffff',
-  },
-  dishBy: {
-    fontSize: 11,
-    color: '#8a7565',
-  },
-  dishQuantity: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#2d1f14',
-    fontFamily: '"Baloo 2"',
-  },
-  addMoreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 16,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: '#e8ddd0',
-    backgroundColor: '#fae8df',
-  },
-  addMoreText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#c45a32',
-    fontFamily: '"Baloo 2"',
-  },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 16,
-    backgroundColor: '#f5f0ea',
-  },
-  tipText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#8a7565',
-    lineHeight: 18,
-  },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 32,
-    backgroundColor: 'rgba(253, 246, 238, 0.92)',
-    borderTopWidth: 1,
-    borderTopColor: '#e8ddd0',
-  },
-  completeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#c45a32',
-    shadowColor: '#c45a32',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.32,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  completeBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#ffffff',
-    fontFamily: '"Baloo 2"',
-  },
-});

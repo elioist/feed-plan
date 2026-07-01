@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
-import { Input, Text } from 'tamagui';
-import { UtensilsCrossed, Eye, EyeOff } from '@tamagui/lucide-icons';
+import { View, KeyboardAvoidingView, Platform, TouchableOpacity, Text, TextInput } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { UtensilsCrossed, Eye, EyeOff } from 'lucide-react-native';
 import { useAuthStore } from '~/stores/auth-store';
+import { cn } from '@feed-plan/shared';
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,21 +38,19 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fdf6ee' }}
+      className="flex-1 bg-bg"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
     >
-      <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 28 }}>
+      <View className="flex-1 justify-center px-7">
         {/* Logo */}
-        <View style={{ alignItems: 'center', marginBottom: 48 }}>
+        <View className="mb-12 items-center">
           <View
+            className="mb-5 size-[88px] items-center justify-center rounded-xl bg-accent"
             style={{
-              width: 88,
-              height: 88,
-              borderRadius: 28,
-              backgroundColor: '#c45a32',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 20,
               shadowColor: '#c45a32',
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.35,
@@ -60,136 +60,76 @@ export default function LoginScreen() {
           >
             <UtensilsCrossed size={44} color="#ffffff" />
           </View>
-          <Text
-            style={{
-              fontSize: 32,
-              fontWeight: '800',
-              color: '#2d1f14',
-              fontFamily: '"Baloo 2"',
-              letterSpacing: -0.5,
-            }}
-          >
+          <Text className="font-display text-[32px] font-extrabold tracking-[-0.5px] text-fg">
             两人食堂
           </Text>
-          <Text style={{ fontSize: 15, color: '#8a7565', marginTop: 6 }}>
+          <Text className="mt-1.5 text-[15px] text-muted">
             书宁 & 阿圆 · 家庭点菜服务
           </Text>
         </View>
 
         {/* Role Cards */}
-        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 32 }}>
-          <View
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              padding: 12,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: '#e8ddd0',
-              backgroundColor: '#fffcf8',
-            }}
-          >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#c45a32',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>厨</Text>
+        <View className="mb-8 flex-row gap-2.5">
+          <View className="flex-1 flex-row items-center gap-2.5 rounded border border-border bg-surface p-3">
+            <View className="size-9 items-center justify-center rounded-full bg-accent">
+              <Text className="text-sm font-bold text-white">厨</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#2d1f14' }}>主厨</Text>
-              <Text style={{ fontSize: 11, color: '#8a7565' }}>掌勺、出餐</Text>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-fg">主厨</Text>
+              <Text className="text-[11px] text-muted">掌勺、出餐</Text>
             </View>
           </View>
-          <View
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              padding: 12,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: '#e8ddd0',
-              backgroundColor: '#fffcf8',
-            }}
-          >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#8b5fa8',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>客</Text>
+          <View className="flex-1 flex-row items-center gap-2.5 rounded border border-border bg-surface p-3">
+            <View className="size-9 items-center justify-center rounded-full bg-diner">
+              <Text className="text-sm font-bold text-white">客</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#2d1f14' }}>食客</Text>
-              <Text style={{ fontSize: 11, color: '#8a7565' }}>点餐、加菜</Text>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-fg">食客</Text>
+              <Text className="text-[11px] text-muted">点餐、加菜</Text>
             </View>
           </View>
         </View>
 
         {/* Form */}
-        <View style={{ gap: 14 }}>
+        <View className="gap-3.5">
           <View>
-            <Input
+            <TextInput
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
               autoCorrect={false}
-              borderWidth={1}
-              borderColor="#e8ddd0"
-              borderRadius={14}
-              backgroundColor="#fffcf8"
+              className="h-12 rounded-[14px] border border-border bg-surface px-4 text-[15px] text-fg"
               placeholder="用户名"
               placeholderTextColor="#b8a898"
             />
           </View>
 
           <View>
-            <Input
+            <TextInput
               value={password}
               onChangeText={setPassword}
               secureTextEntry={secureEntry}
-              borderWidth={1}
-              borderColor="#e8ddd0"
-              borderRadius={14}
-              backgroundColor="#fffcf8"
+              className="h-12 rounded-[14px] border border-border bg-surface px-4 pr-11 text-[15px] text-fg"
               placeholder="密码"
               placeholderTextColor="#b8a898"
             />
             <TouchableOpacity
               onPress={() => setSecureEntry(!secureEntry)}
-              style={{ position: 'absolute', right: 12, top: 12 }}
+              className="absolute right-3 top-3"
             >
               {secureEntry ? <EyeOff size={20} color="#8a7565" /> : <Eye size={20} color="#8a7565" />}
             </TouchableOpacity>
           </View>
 
           {error ? (
-            <Text style={{ fontSize: 14, color: '#c45a32' }}>{error}</Text>
+            <Text className="text-sm text-accent">{error}</Text>
           ) : null}
 
           <TouchableOpacity
             onPress={handleLogin}
             disabled={isSubmitting}
+            className={cn('mt-2 items-center rounded-[14px] py-4', isSubmitting ? 'bg-[#d4845a]' : 'bg-accent')}
             style={{
-              backgroundColor: isSubmitting ? '#d4845a' : '#c45a32',
-              paddingVertical: 16,
-              borderRadius: 14,
-              alignItems: 'center',
-              marginTop: 8,
               shadowColor: '#c45a32',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.32,
@@ -198,14 +138,7 @@ export default function LoginScreen() {
             }}
             activeOpacity={0.85}
           >
-            <Text
-              style={{
-                color: '#ffffff',
-                fontSize: 16,
-                fontWeight: '700',
-                fontFamily: '"Baloo 2"',
-              }}
-            >
+            <Text className="font-display text-base font-bold text-white">
               {isSubmitting ? '登录中...' : '开始点餐'}
             </Text>
           </TouchableOpacity>

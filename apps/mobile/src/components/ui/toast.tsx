@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { createContext, useContext, useState, useCallback, type ComponentType, type ReactNode } from 'react';
+import { View, StyleSheet, Text } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { CheckCircle, XCircle, Info } from '@tamagui/lucide-icons';
+import { CheckCircle, XCircle, Info } from 'lucide-react-native';
 
 interface ToastData {
   id: number;
@@ -19,7 +19,9 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
-const TOAST_ICONS: Record<ToastData['type'], any> = {
+type ToastIcon = ComponentType<{ size?: number; color?: string }>;
+
+const TOAST_ICONS: Record<ToastData['type'], ToastIcon> = {
   success: CheckCircle,
   error: XCircle,
   info: Info,
@@ -46,19 +48,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <View style={styles.container} pointerEvents="none">
+      <View className="absolute left-0 right-0 top-[100px] z-[9999] items-center" pointerEvents="none">
         {toasts.map((t) => (
           <Animated.View
             key={t.id}
             entering={FadeIn.duration(200)}
             exiting={FadeOut.duration(150)}
+            className="mb-2 flex-row items-center gap-2 rounded-xl bg-[#2c1f14]/90 px-4 py-3"
             style={styles.toast}
           >
             {React.createElement(TOAST_ICONS[t.type], {
               size: 20,
               color: TOAST_COLORS[t.type],
             })}
-            <Text style={styles.message}>{t.message}</Text>
+            <Text className="text-sm font-semibold text-white">{t.message}</Text>
           </Animated.View>
         ))}
       </View>
@@ -66,32 +69,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
-import { Text } from 'react-native';
-
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 100,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 9999,
-  },
   toast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: 'rgba(44, 31, 20, 0.9)',
-    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  message: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
