@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   type AccessListQuery,
   type AdminMenu,
+  type MenuButton,
   type Role,
 } from '@feed-plan/shared';
 import { SearchBar, type SearchFormItem } from '~/components/core/search';
@@ -182,7 +183,11 @@ export function RoleListPage() {
     const nextMenuIds = includeParentMenus(menuIds, menus);
     const nextMenuSet = new Set(nextMenuIds);
     const allowedButtonIds = new Set(
-      menus.flatMap((menu) => (nextMenuSet.has(menu.id) ? menu.buttons.map((button) => button.id) : [])),
+      menus.flatMap((menu) =>
+        nextMenuSet.has(menu.id)
+          ? menu.buttons.map((button: MenuButton) => button.id)
+          : [],
+      ),
     );
     setSelectedMenuIds(nextMenuIds);
     setSelectedButtonIds((current) => current.filter((buttonId) => allowedButtonIds.has(buttonId)));
@@ -332,7 +337,7 @@ export function RoleListPage() {
                           <div style={{ marginBottom: 8, fontWeight: 500 }}>{menu.title}</div>
                           <Checkbox.Group
                             value={selectedButtonIds}
-                            options={menu.buttons.map((button) => ({
+                            options={menu.buttons.map((button: MenuButton) => ({
                               label: `${button.name}（${button.action}）`,
                               value: button.id,
                               disabled: !selectedMenuIds.includes(menu.id),

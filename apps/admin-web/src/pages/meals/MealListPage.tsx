@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button, Card, Form, Popconfirm, Space, Tag, App as AntdApp } from 'antd';
 import dayjs from 'dayjs';
 import type { MealQuery, MenuDetail } from '@feed-plan/shared';
@@ -8,6 +9,7 @@ import { useCanButton } from '~/hooks/use-button-access';
 import { mealQueries } from '~/queries/meals';
 import { api } from '~/lib/api-client';
 import { MealSearchBar, type MealSearchFormValues } from './components/MealSearchBar';
+import { MealDetailDrawer } from './components/MealDetailDrawer';
 
 const toSearchFormValues = (search: MealQuery): MealSearchFormValues => {
   const from = search.mealDateFrom ?? search.mealDate;
@@ -52,10 +54,16 @@ export function MealListPage() {
   const queryClient = useQueryClient();
   const { message } = AntdApp.useApp();
   const [filterForm] = Form.useForm<MealSearchFormValues>();
+  const [selectedMeal, setSelectedMeal] = useState<MenuDetail | null>(null);
 
   const completeMutation = useMutation({
     mutationFn: api.meals.complete,
-    onSuccess: async () => {
+    onSuccess: async (_detail, mealId) => {
+      setSelectedMeal((current) =>
+        current?.meal.id === mealId
+          ? { ...current, meal: { ...current.meal, status: 'completed', completedAt: new Date() } }
+          : current,
+      );
       await queryClient.invalidateQueries({ queryKey: ['meals'] });
       message.success('本次点餐已完成');
     },
@@ -106,9 +114,9 @@ export function MealListPage() {
               title: '操作',
               render: (_, item) => (
                 <Space>
-                  <Link to="/meals/$mealId" params={{ mealId: item.meal.id }}>
+                  <Button type="link" onClick={() => setSelectedMeal(item)}>
                     查看
-                  </Link>
+                  </Button>
                   {item.meal.status === 'ordering' && canComplete ? (
                     <Popconfirm
                       title="完成点餐"
@@ -132,6 +140,14 @@ export function MealListPage() {
           ]}
         />
       </Card>
+
+      <MealDetailDrawer
+        meal={selectedMeal}
+        canComplete={canComplete}
+        completeLoading={completeMutation.isPending}
+        onClose={() => setSelectedMeal(null)}
+        onComplete={(mealId) => completeMutation.mutate(mealId)}
+      />
     </>
   );
 }

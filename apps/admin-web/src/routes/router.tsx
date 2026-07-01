@@ -127,13 +127,6 @@ const profileRouteEntry: RouteRegistryEntry = {
   component: lazyRouteComponent(() => import('~/pages/profile/ProfilePage'), 'ProfilePage'),
 };
 
-const mealDetailRouteEntry: RouteRegistryEntry = {
-  loader: async ({ context: { queryClient }, params }) => {
-    await queryClient.ensureQueryData(mealQueries.detail(params.mealId));
-  },
-  component: lazyRouteComponent(() => import('~/pages/meals/MealDetailPage'), 'MealDetailPage'),
-};
-
 function RootRoute() {
   return <Outlet />;
 }
@@ -259,21 +252,12 @@ export function getRouter({ queryClient, routeMenus }: GetRouterInput) {
     .map((menu) => createRegisteredRoute(authenticatedRoute, menu))
     .filter((route): route is NonNullable<typeof route> => Boolean(route));
 
-  const hasMeals = flatMenus.some((menu) => menu.key === 'meals');
   const extraRoutes = [
     createRoute({
       getParentRoute: () => authenticatedRoute,
       path: '/profile',
       component: profileRouteEntry.component,
     }),
-    hasMeals
-      ? createRoute({
-          getParentRoute: () => authenticatedRoute,
-          path: '/meals/$mealId',
-          loader: mealDetailRouteEntry.loader,
-          component: mealDetailRouteEntry.component,
-        })
-      : null,
   ].filter((route): route is NonNullable<typeof route> => Boolean(route));
 
   const homeMenu = flatMenus.find(

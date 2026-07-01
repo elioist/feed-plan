@@ -78,21 +78,13 @@ vi.mock('@tanstack/react-query', () => ({
 }));
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    params,
-    to,
-  }: {
-    children: ReactNode;
-    params?: Record<string, string>;
-    to: string;
-  }) => <a href={params?.mealId ? '/meals/' + params.mealId : to}>{children}</a>,
   useNavigate: () => routerMocks.navigate,
   useSearch: () => routerMocks.search,
 }));
 
 vi.mock('~/lib/api-client', () => ({
   api: {
+    getImageUrl: (path: string | null) => path,
     meals: {
       complete: mealApiMocks.completeMeal,
     },
@@ -235,10 +227,7 @@ describe('MealListPage', () => {
     expect(screen.getByText('2026-06-19')).toBeInTheDocument();
     expect(screen.getAllByText('点菜中').length).toBeGreaterThan(0);
     expect(screen.getAllByText('1').length).toBeGreaterThan(0);
-    expect(screen.getByRole('link', { name: '查看' })).toHaveAttribute(
-      'href',
-      '/meals/11111111-1111-1111-1111-111111111111',
-    );
+    expect(screen.getByRole('button', { name: '查看' })).toBeInTheDocument();
   });
 
   it('submits filters through URL search', async () => {
@@ -269,6 +258,26 @@ describe('MealListPage', () => {
     render(<MealListPage />);
 
     await user.click(screen.getByRole('button', { name: '确认完成' }));
+
+    await waitFor(() => {
+      expect(mealApiMocks.completeMeal).toHaveBeenCalledWith(menuDetails[0]!.meal.id);
+    });
+    expect(reactQueryMocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['meals'] });
+    expect(antdAppMocks.message.success).toHaveBeenCalledWith('本次点餐已完成');
+  });
+
+  it('opens meal detail drawer and completes the meal inside it', async () => {
+    const user = userEvent.setup();
+    render(<MealListPage />);
+
+    await user.click(screen.getByRole('button', { name: '查看' }));
+
+    expect(screen.getByText('菜品明细')).toBeInTheDocument();
+    expect(screen.getAllByText('番茄炒蛋').length).toBeGreaterThan(0);
+    expect(screen.getByText('暂无点单人明细')).toBeInTheDocument();
+    expect(screen.getByText('等待结单')).toBeInTheDocument();
+
+    await user.click(screen.getAllByRole('button', { name: '确认完成' }).at(-1)!);
 
     await waitFor(() => {
       expect(mealApiMocks.completeMeal).toHaveBeenCalledWith(menuDetails[0]!.meal.id);
