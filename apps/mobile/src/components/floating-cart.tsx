@@ -8,8 +8,9 @@ import { useCartStore } from '~/stores/cart-store';
 export function FloatingCart() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const totalItems = useCartStore((state) => state.totalItems);
-  const total = totalItems();
+  const total = useCartStore((state) =>
+    state.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
 
   if (total === 0) return null;
 

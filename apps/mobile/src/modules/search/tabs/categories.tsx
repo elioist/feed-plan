@@ -1,7 +1,6 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronRight, FolderOpen } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
 import { type Category } from '@feed-plan/shared';
 import { api } from '~/lib/api-client';
 import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
@@ -19,8 +18,7 @@ const CategorySkeleton = () => (
 );
 
 export function SearchCategoriesTab() {
-  const router = useRouter();
-  const { submittedKeyword } = useSearchContext();
+  const { selectCategory, submittedKeyword } = useSearchContext();
   const hasQuery = Boolean(submittedKeyword);
 
   const { data: categories = [], isLoading } = useQuery<Category[]>({
@@ -51,12 +49,7 @@ export function SearchCategoriesTab() {
           <TouchableOpacity
             key={category.id}
             className="mb-2.5 flex-row items-center rounded-[16px] border border-border bg-surface p-4"
-            onPress={() => {
-              router.replace({
-                pathname: '/(tabs)/meals',
-                params: { categoryId: category.id },
-              });
-            }}
+            onPress={() => selectCategory(category.id)}
             activeOpacity={0.78}
           >
             <View className="size-10 items-center justify-center rounded-[14px] bg-chef-soft">

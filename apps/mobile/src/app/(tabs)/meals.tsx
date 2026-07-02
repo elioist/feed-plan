@@ -5,11 +5,10 @@ import {
   TouchableOpacity,
   Image,
   Text,
-  TextInput,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { Utensils, Minus, Plus, Search, AlertCircle, Sparkles } from 'lucide-react-native';
+import { Utensils, Minus, Plus, AlertCircle, Sparkles } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +18,10 @@ import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { FloatingCart } from '~/components/floating-cart';
 import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
+import { SearchContent } from '~/modules/search/content';
+import { SearchProvider, useSearchContext } from '~/modules/search/context';
+import { SearchHeader } from '~/modules/search/header';
+import { SearchTabBar } from '~/modules/search/tab-bar';
 import { cn, type DishSummary, type Category } from '@feed-plan/shared';
 import {
   findCategoryAtPosition,
@@ -36,6 +39,14 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string 
 };
 
 export default function MenuScreen() {
+  return (
+    <SearchProvider>
+      <MenuScreenContent />
+    </SearchProvider>
+  );
+}
+
+function MenuScreenContent() {
   const insets = useSafeAreaInsets();
   const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
@@ -49,6 +60,11 @@ export default function MenuScreen() {
   const activeCatIdRef = useRef<string | null>(null);
   const routeCategorySyncedRef = useRef<string | null>(null);
   const router = useRouter();
+  const {
+    categoryTargetId,
+    clearCategoryTarget,
+    isFocused: isSearchFocused,
+  } = useSearchContext();
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const items = useCartStore((s) => s.items);
@@ -135,16 +151,24 @@ export default function MenuScreen() {
   };
 
   const handleGroupLayout = useCallback((catId: string, y: number) => {
-    if (groupOffsets.current.get(catId) === y) return;
+    if (groupOffsets.current.get(catId) === y && categoryTargetId !== catId) return;
     groupOffsets.current.set(catId, y);
     sortedGroupOffsets.current = sortCategoryOffsets(groupOffsets.current);
+
+    if (categoryTargetId === catId) {
+      setActiveCategory(catId);
+      requestAnimationFrame(() => {
+        if (scrollToCategory(catId)) clearCategoryTarget();
+      });
+      return;
+    }
 
     if (categoryId === catId && routeCategorySyncedRef.current !== catId) {
       routeCategorySyncedRef.current = catId;
       setActiveCategory(catId);
       requestAnimationFrame(() => scrollToCategory(catId));
     }
-  }, [categoryId, scrollToCategory, setActiveCategory]);
+  }, [categoryId, categoryTargetId, clearCategoryTarget, scrollToCategory, setActiveCategory]);
 
   useEffect(() => {
     if (!categoryId || !groupedDishes.some((group) => group.category.id === categoryId)) return;
@@ -155,6 +179,20 @@ export default function MenuScreen() {
       routeCategorySyncedRef.current = categoryId;
     }
   }, [categoryId, groupedDishes, scrollToCategory, setActiveCategory]);
+
+  useEffect(() => {
+    if (!categoryTargetId || !groupedDishes.some((group) => group.category.id === categoryTargetId)) return;
+
+    setActiveCategory(categoryTargetId);
+    if (scrollToCategory(categoryTargetId)) {
+      clearCategoryTarget();
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      if (scrollToCategory(categoryTargetId)) clearCategoryTarget();
+    });
+  }, [categoryTargetId, clearCategoryTarget, groupedDishes, scrollToCategory, setActiveCategory]);
 
   const renderDishCard = (item: DishSummary) => {
     const diff = DIFFICULTY_CONFIG[item.difficulty] ?? DIFFICULTY_CONFIG.medium;
@@ -226,24 +264,15 @@ export default function MenuScreen() {
         <Text className="mt-0.5 text-xs text-muted">按类型浏览 · 点菜名看食材与做法</Text>
       </View>
 
-      <View className="px-[18px] pb-2.5">
-        <TouchableOpacity
-          className="flex-row items-center gap-2 rounded-xl border border-border bg-surface px-3"
-          onPress={() => router.push('/search')}
-          activeOpacity={0.78}
-        >
-          <Search size={18} color="#b8a898" />
-          <TextInput
-            editable={false}
-            pointerEvents="none"
-            placeholder="搜菜名、做法、分类或标签"
-            placeholderTextColor="#b8a898"
-            className="flex-1 py-[11px] text-sm text-fg"
-          />
-        </TouchableOpacity>
-      </View>
+      <SearchHeader />
 
-      <View className="flex-1 flex-row">
+      {isSearchFocused ? (
+        <>
+          <SearchTabBar />
+          <SearchContent />
+        </>
+      ) : (
+        <View className="flex-1 flex-row">
         {/* 左侧分类 */}
         <View className="w-1/4 border-r border-border bg-[#f7f3ee]">
           <ScrollView
@@ -334,6 +363,7 @@ export default function MenuScreen() {
           )}
         </View>
       </View>
+      )}
 
       <FloatingCart />
     </SafeScreen>
