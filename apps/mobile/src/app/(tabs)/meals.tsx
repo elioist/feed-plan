@@ -12,8 +12,9 @@ import { Utensils, Minus, Plus, AlertCircle, Sparkles } from 'lucide-react-nativ
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BackToTop } from '~/components/back-to-top';
 import { SafeScreen } from '~/components/safe-screen';
-import { getTabBarHeight } from '~/constants/layout';
+import { FLOATING_CART_TAB_GAP, getTabBarHeight } from '~/constants/layout';
 import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { FloatingCart } from '~/components/floating-cart';
@@ -31,6 +32,9 @@ import {
   sortCategoryOffsets,
   type CategoryOffset,
 } from '~/lib/menu-scroll';
+
+const BACK_TO_TOP_VISIBLE_Y = 360;
+const BACK_TO_TOP_CART_OFFSET = 74;
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string }> = {
   easy: { label: '简单', bg: '#e8f5eb', fg: '#5a9a6a' },
@@ -50,6 +54,7 @@ function MenuScreenContent() {
   const insets = useSafeAreaInsets();
   const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [rightViewportHeight, setRightViewportHeight] = useState(0);
   const rightScrollRef = useRef<ScrollView>(null);
   const groupOffsets = useRef<Map<string, number>>(new Map());
@@ -58,6 +63,7 @@ function MenuScreenContent() {
   const programmaticTargetYRef = useRef<number | null>(null);
   const programmaticTargetCatIdRef = useRef<string | null>(null);
   const activeCatIdRef = useRef<string | null>(null);
+  const showBackToTopRef = useRef(false);
   const routeCategorySyncedRef = useRef<string | null>(null);
   const router = useRouter();
   const {
@@ -70,6 +76,7 @@ function MenuScreenContent() {
   const items = useCartStore((s) => s.items);
 
   const getItemQuantity = (dishId: string) => items.find((i) => i.dishId === dishId)?.quantity ?? 0;
+  const cartTotal = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery<Category[]>({ queryKey: ['categories'], queryFn: () => api.categories.list() });
   const { data: dishes = [], isLoading: isDishesLoading } = useQuery<DishSummary[]>({ queryKey: ['dishes'], queryFn: () => api.dishes.list({ isActive: true }) });
@@ -109,9 +116,18 @@ function MenuScreenContent() {
     if (hit) setActiveCategory(hit);
   }, [setActiveCategory]);
 
+  const syncBackToTopVisibility = useCallback((y: number) => {
+    const nextVisible = y > BACK_TO_TOP_VISIBLE_Y;
+    if (showBackToTopRef.current === nextVisible) return;
+
+    showBackToTopRef.current = nextVisible;
+    setShowBackToTop(nextVisible);
+  }, []);
+
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
     const targetY = programmaticTargetYRef.current;
+    syncBackToTopVisibility(y);
 
     if (targetY !== null) {
       if (isProgrammaticScrollSettled(y, targetY)) {
@@ -149,6 +165,13 @@ function MenuScreenContent() {
     setActiveCategory(catId);
     scrollToCategory(catId);
   };
+
+  const scrollToTop = useCallback(() => {
+    programmaticTargetYRef.current = 0;
+    programmaticTargetCatIdRef.current = groupedDishes[0]?.category.id ?? null;
+    rightScrollRef.current?.scrollTo({ y: 0, animated: true });
+    syncBackToTopVisibility(0);
+  }, [groupedDishes, syncBackToTopVisibility]);
 
   const handleGroupLayout = useCallback((catId: string, y: number) => {
     if (groupOffsets.current.get(catId) === y && categoryTargetId !== catId) return;
@@ -236,6 +259,9 @@ function MenuScreenContent() {
   };
 
   const activeCat = groupedDishes.find((g) => g.category.id === activeCatId);
+  const backToTopBottom = getTabBarHeight(insets.bottom)
+    + FLOATING_CART_TAB_GAP
+    + (cartTotal > 0 ? BACK_TO_TOP_CART_OFFSET : 0);
   const rightContentBottomSpace = getRightContentBottomSpace(rightViewportHeight);
   const isMenuLoading = (isCategoriesLoading || isDishesLoading) && groupedDishes.length === 0;
 
@@ -359,6 +385,11 @@ function MenuScreenContent() {
                 </View>
                 <View style={{ height: rightContentBottomSpace }} />
               </ScrollView>
+              <BackToTop
+                bottom={backToTopBottom}
+                onPress={scrollToTop}
+                visible={showBackToTop}
+              />
             </View>
           )}
         </View>
