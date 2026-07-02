@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, BookOpen, Plus, ClipboardList, User } from 'lucide-react-native';
+import { Home, BookOpen, ClipboardList, User } from 'lucide-react-native';
 import { getBottomSafeArea, getTabBarHeight } from '~/constants/layout';
 
 export default function TabsLayout() {
@@ -25,13 +25,16 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarStyle,
         tabBarShowLabel: true,
+        tabBarLabelPosition: 'below-icon',
         tabBarLabelStyle: styles.tabLabel,
+        tabBarItemStyle: styles.tabItem,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: '首页',
+          tabBarLabel: '首页',
           tabBarIcon: ({ color, size }) => (
             <Home size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
@@ -43,6 +46,7 @@ export default function TabsLayout() {
         name="meals"
         options={{
           title: '菜单',
+          tabBarLabel: '菜单',
           tabBarIcon: ({ color, size }) => (
             <BookOpen size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
@@ -53,19 +57,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="cart"
         options={{
-          title: '开单',
-          tabBarIcon: () => (
-            <View className="mt-[-28px] size-[58px] items-center justify-center rounded-full border-[3px] border-surface bg-accent" style={styles.fabShadow}>
-              <Plus size={30} color="#ffffff" strokeWidth={2.5} />
-            </View>
-          ),
-          tabBarLabel: () => null,
+          href: null,
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
           title: '当前单',
+          tabBarLabel: '当前单',
           tabBarIcon: ({ color, size }) => (
             <ClipboardList size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
@@ -77,6 +76,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: '我的',
+          tabBarLabel: '我的',
           tabBarIcon: ({ color, size }) => (
             <User size={size + 4} color={String(color)} strokeWidth={1.8} />
           ),
@@ -95,24 +95,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 80,
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 14,
     paddingTop: 8,
     backgroundColor: 'rgba(255, 252, 248, 0.92)',
     borderTopWidth: 1,
     borderTopColor: '#e8ddd0',
   },
-  tabLabel: {
-    fontSize: 10.5,
-    fontWeight: '600',
-    fontFamily: 'SNPro',
+  tabItem: {
+    paddingTop: 2,
   },
-  fabShadow: {
-    shadowColor: '#c45a32',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 8,
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    fontFamily: 'SNPro',
   },
 });
