@@ -39,8 +39,8 @@ module.exports = {
         '2xl': '36px',
       },
       fontFamily: {
-        display: ['"Baloo 2"', 'PingFang SC', 'system-ui', 'sans-serif'],
-        body: ['PingFang SC', 'system-ui', 'sans-serif'],
+        display: ['SNPro', 'SN Pro', 'system-ui', 'sans-serif'],
+        body: ['SNPro', 'SN Pro', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         sm: '0 1px 2px rgba(60,40,20,0.05), 0 8px 24px rgba(60,40,20,0.08)',

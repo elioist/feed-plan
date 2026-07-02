@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, TouchableOpacity, Text, TextInput } from 'react-native';
+import { View, KeyboardAvoidingView, Platform, TouchableOpacity, Text, TextInput, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { UtensilsCrossed, Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useAuthStore } from '~/stores/auth-store';
 import { cn } from '@feed-plan/shared';
+import logoSource from '../../assets/logo.png';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -49,22 +50,22 @@ export default function LoginScreen() {
         {/* Logo */}
         <View className="mb-12 items-center">
           <View
-            className="mb-5 size-[88px] items-center justify-center rounded-xl bg-accent"
+            className="mb-5 size-[96px] items-center justify-center overflow-hidden rounded-[22px] bg-surface"
             style={{
               shadowColor: '#c45a32',
               shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.35,
+              shadowOpacity: 0.18,
               shadowRadius: 20,
               elevation: 8,
             }}
           >
-            <UtensilsCrossed size={44} color="#ffffff" />
+            <Image source={logoSource} className="size-[96px]" resizeMode="cover" />
           </View>
           <Text className="font-display text-[32px] font-extrabold tracking-[-0.5px] text-fg">
-            两人食堂
+            Feed Plan
           </Text>
           <Text className="mt-1.5 text-[15px] text-muted">
-            书宁 & 阿圆 · 家庭点菜服务
+            先点菜，快乐会准时开饭
           </Text>
         </View>
 

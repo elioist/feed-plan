@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 10.5,
     fontWeight: '600',
-    fontFamily: '"Baloo 2"',
+    fontFamily: 'SNPro',
   },
   fabShadow: {
     shadowColor: '#c45a32',

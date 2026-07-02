@@ -9,22 +9,68 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.feedplan.app"
+      "bundleIdentifier": "com.feedplan.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        },
+        "NSLocalNetworkUsageDescription": "用于连接同一 Wi-Fi 下的 Feed Plan 后端服务。"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#FFF6EA",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.feedplan.app",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/sn-pro/SNPro-Regular.otf",
+            "./assets/fonts/sn-pro/SNPro-Medium.otf",
+            "./assets/fonts/sn-pro/SNPro-Semibold.otf",
+            "./assets/fonts/sn-pro/SNPro-Bold.otf",
+            "./assets/fonts/sn-pro/SNPro-Heavy.otf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "SNPro",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/sn-pro/SNPro-Regular.otf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/sn-pro/SNPro-Medium.otf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/fonts/sn-pro/SNPro-Semibold.otf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/fonts/sn-pro/SNPro-Bold.otf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "./assets/fonts/sn-pro/SNPro-Heavy.otf",
+                    "weight": 800
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
       [
         "expo-image-picker",
         {

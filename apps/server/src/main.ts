@@ -16,8 +16,8 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  await app.listen(port);
-  Logger.log(`Server listening on http://localhost:${port}`, 'Bootstrap');
+  await app.listen(port, '0.0.0.0');
+  Logger.log(`Server listening on http://0.0.0.0:${port}`, 'Bootstrap');
 }
 
 void bootstrap();
