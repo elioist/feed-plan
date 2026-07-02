@@ -20,6 +20,7 @@ import { cn, formatDateTime, type MealType, type MenuDetail } from '@feed-plan/s
 import { SafeScreen } from '~/components/safe-screen';
 import { getBottomSafeArea } from '~/constants/layout';
 import { api } from '~/lib/api-client';
+import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
 
 type MealTypeIcon = ComponentType<{ size?: number; color?: string }>;
 type MealFilter = 'all' | MealType;
@@ -51,6 +52,32 @@ const getParticipantsCount = (meal: MenuDetail) => {
 
   return participants.size;
 };
+
+const HistoryCardSkeleton = ({ id }: { id: string }) => (
+  <SkeletonCard className="mb-3 rounded-[20px] p-4">
+    <View className="flex-row items-start gap-3">
+      <Skeleton className="size-11 rounded-2xl bg-chef-soft/70" />
+      <View className="flex-1">
+        <View className="flex-row gap-2">
+          <Skeleton className="h-6 w-14 rounded-full bg-morning-soft/80" />
+          <Skeleton className="h-6 w-28 rounded-full bg-bg" />
+        </View>
+        <SkeletonText className="mt-3" lines={1} widths={['w-2/3']} />
+      </View>
+      <Skeleton className="size-9 rounded-full bg-bg" />
+    </View>
+    <View className="mt-4 flex-row gap-2">
+      {['dish', 'quantity', 'people'].map((item) => (
+        <Skeleton key={`${id}-${item}`} className="h-[58px] flex-1 rounded bg-bg" />
+      ))}
+    </View>
+    <View className="mt-3 flex-row gap-1.5">
+      <Skeleton className="h-6 w-16 rounded-full bg-chef-soft/70" />
+      <Skeleton className="h-6 w-20 rounded-full bg-chef-soft/70" />
+      <Skeleton className="h-6 w-14 rounded-full bg-bg" />
+    </View>
+  </SkeletonCard>
+);
 
 export default function MealHistoryScreen() {
   const router = useRouter();
@@ -226,29 +253,50 @@ export default function MealHistoryScreen() {
                   <History size={20} color="#ffffff" />
                 </View>
                 <View className="flex-1">
-                  <Text className="font-display text-lg font-extrabold text-white">吃过的都在这儿</Text>
-                  <Text className="mt-px text-xs text-white/70">
-                    {isLoading ? '正在翻账本...' : `${sortedMeals.length} 单，${totalQuantity} 份好吃的`}
-                  </Text>
+                  {isLoading && sortedMeals.length === 0 ? (
+                    <View>
+                      <Skeleton className="h-5 w-32 rounded-full bg-white/15" />
+                      <Skeleton className="mt-2 h-3 w-40 rounded-full bg-white/10" />
+                    </View>
+                  ) : (
+                    <>
+                      <Text className="font-display text-lg font-extrabold text-white">吃过的都在这儿</Text>
+                      <Text className="mt-px text-xs text-white/70">
+                        {`${sortedMeals.length} 单，${totalQuantity} 份好吃的`}
+                      </Text>
+                    </>
+                  )}
                 </View>
               </View>
 
               <View className="mt-5 flex-row gap-2">
                 <View className="flex-1 rounded-[16px] bg-white/10 px-3 py-3">
                   <CalendarDays size={17} color="rgba(255,255,255,0.76)" />
-                  <Text className="mt-2 font-display text-2xl font-extrabold text-white">{sortedMeals.length}</Text>
+                  {isLoading && sortedMeals.length === 0 ? (
+                    <Skeleton className="mt-2 h-8 w-8 rounded-full bg-white/15" />
+                  ) : (
+                    <Text className="mt-2 font-display text-2xl font-extrabold text-white">{sortedMeals.length}</Text>
+                  )}
                   <Text className="text-[11px] font-semibold text-white/65">完成单数</Text>
                 </View>
                 <View className="flex-1 rounded-[16px] bg-white/10 px-3 py-3">
                   <Soup size={17} color="rgba(255,255,255,0.76)" />
-                  <Text className="mt-2 font-display text-2xl font-extrabold text-white">{totalQuantity}</Text>
+                  {isLoading && sortedMeals.length === 0 ? (
+                    <Skeleton className="mt-2 h-8 w-10 rounded-full bg-white/15" />
+                  ) : (
+                    <Text className="mt-2 font-display text-2xl font-extrabold text-white">{totalQuantity}</Text>
+                  )}
                   <Text className="text-[11px] font-semibold text-white/65">累计份数</Text>
                 </View>
                 <View className="flex-1 rounded-[16px] bg-white/10 px-3 py-3">
                   <UsersRound size={17} color="rgba(255,255,255,0.76)" />
-                  <Text className="mt-2 font-display text-base font-extrabold text-white" numberOfLines={1}>
-                    {topDish?.name ?? '-'}
-                  </Text>
+                  {isLoading && sortedMeals.length === 0 ? (
+                    <Skeleton className="mt-2 h-5 w-16 rounded-full bg-white/15" />
+                  ) : (
+                    <Text className="mt-2 font-display text-base font-extrabold text-white" numberOfLines={1}>
+                      {topDish?.name ?? '-'}
+                    </Text>
+                  )}
                   <Text className="text-[11px] font-semibold text-white/65">常点菜</Text>
                 </View>
               </View>
@@ -282,15 +330,23 @@ export default function MealHistoryScreen() {
           </View>
         }
         ListEmptyComponent={
-          <View className="items-center justify-center rounded-[20px] border border-dashed border-border bg-surface px-5 py-16">
-            <AlertCircle size={48} color="#e8ddd0" />
-            <Text className="mt-3 font-display text-base font-bold text-muted">
-              {isLoading ? '加载中...' : '还没有历史单'}
-            </Text>
-            <Text className="mt-1 text-center text-xs leading-5 text-faint">
-              完成一单之后，这里就会留下好吃的回忆
-            </Text>
-          </View>
+          isLoading ? (
+            <View>
+              {['history-skeleton-1', 'history-skeleton-2', 'history-skeleton-3'].map((id) => (
+                <HistoryCardSkeleton key={id} id={id} />
+              ))}
+            </View>
+          ) : (
+            <View className="items-center justify-center rounded-[20px] border border-dashed border-border bg-surface px-5 py-16">
+              <AlertCircle size={48} color="#e8ddd0" />
+              <Text className="mt-3 font-display text-base font-bold text-muted">
+                还没有历史单
+              </Text>
+              <Text className="mt-1 text-center text-xs leading-5 text-faint">
+                完成一单之后，这里就会留下好吃的回忆
+              </Text>
+            </View>
+          )
         }
       />
     </SafeScreen>

@@ -7,6 +7,7 @@ import { cn, formatDateTime, type MealType, type MenuDetail } from '@feed-plan/s
 import { SafeScreen } from '~/components/safe-screen';
 import { getTabBarHeight } from '~/constants/layout';
 import { api } from '~/lib/api-client';
+import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
 
 const MEAL_LABELS: Record<MealType, { label: string; badgeClassName: string; textClassName: string }> = {
   breakfast: { label: '早餐', badgeClassName: 'bg-morning-soft', textClassName: 'text-[#8b6a2a]' },
@@ -19,6 +20,38 @@ const SummaryItem = ({ label, value }: { label: string; value: number | string }
     <Text className="text-[11px] font-semibold text-muted">{label}</Text>
     <Text className="mt-0.5 font-display text-xl font-extrabold text-fg">{value}</Text>
   </View>
+);
+
+const SummaryItemSkeleton = () => (
+  <View className="flex-1 rounded border border-border bg-surface px-3 py-2.5">
+    <Skeleton className="h-3 w-10 rounded-full" />
+    <Skeleton className="mt-2 h-6 w-8 rounded-full" />
+  </View>
+);
+
+const OrderCardSkeleton = ({ id }: { id: string }) => (
+  <SkeletonCard className="mb-3 rounded-lg p-4">
+    <View className="flex-row items-start justify-between gap-3">
+      <View className="flex-1">
+        <View className="flex-row gap-2">
+          <Skeleton className="h-6 w-14 rounded-full bg-morning-soft/80" />
+          <Skeleton className="h-6 w-16 rounded-full bg-herb-soft/80" />
+        </View>
+        <SkeletonText className="mt-3" lines={2} widths={['w-2/3', 'w-1/2']} />
+      </View>
+      <Skeleton className="size-9 rounded-full bg-bg" />
+    </View>
+    <View className="mt-4 flex-row gap-2">
+      {['dish', 'quantity', 'people'].map((item) => (
+        <Skeleton key={`${id}-${item}`} className="h-11 flex-1 rounded bg-bg" />
+      ))}
+    </View>
+    <View className="mt-3 flex-row gap-1.5">
+      <Skeleton className="h-6 w-16 rounded-full bg-chef-soft/70" />
+      <Skeleton className="h-6 w-20 rounded-full bg-chef-soft/70" />
+      <Skeleton className="h-6 w-12 rounded-full bg-bg" />
+    </View>
+  </SkeletonCard>
 );
 
 export default function OrdersScreen() {
@@ -172,23 +205,41 @@ export default function OrdersScreen() {
                 </View>
               </View>
               <View className="mt-4 flex-row gap-2">
-                <SummaryItem label="场次" value={meals.length} />
-                <SummaryItem label="菜品" value={totalDishes} />
-                <SummaryItem label="份数" value={totalQuantity} />
+                {isLoading && meals.length === 0 ? (
+                  <>
+                    <SummaryItemSkeleton />
+                    <SummaryItemSkeleton />
+                    <SummaryItemSkeleton />
+                  </>
+                ) : (
+                  <>
+                    <SummaryItem label="场次" value={meals.length} />
+                    <SummaryItem label="菜品" value={totalDishes} />
+                    <SummaryItem label="份数" value={totalQuantity} />
+                  </>
+                )}
               </View>
             </View>
           </View>
         }
         ListEmptyComponent={
-          <View className="items-center justify-center rounded-lg border border-dashed border-border bg-surface px-5 py-16">
-            <FileText size={48} color="#e8ddd0" />
-            <Text className="mt-3 font-display text-base font-bold text-muted">
-              {isLoading ? '加载中...' : '暂时没有进行中的单'}
-            </Text>
-            <Text className="mt-1 text-xs text-faint">
-              先去菜单挑几道，厨房就有活儿了
-            </Text>
-          </View>
+          isLoading ? (
+            <View>
+              {['order-skeleton-1', 'order-skeleton-2', 'order-skeleton-3'].map((id) => (
+                <OrderCardSkeleton key={id} id={id} />
+              ))}
+            </View>
+          ) : (
+            <View className="items-center justify-center rounded-lg border border-dashed border-border bg-surface px-5 py-16">
+              <FileText size={48} color="#e8ddd0" />
+              <Text className="mt-3 font-display text-base font-bold text-muted">
+                暂时没有进行中的单
+              </Text>
+              <Text className="mt-1 text-xs text-faint">
+                先去菜单挑几道，厨房就有活儿了
+              </Text>
+            </View>
+          )
         }
       />
     </SafeScreen>

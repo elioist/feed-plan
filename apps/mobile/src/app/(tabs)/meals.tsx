@@ -18,6 +18,7 @@ import { getTabBarHeight } from '~/constants/layout';
 import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { FloatingCart } from '~/components/floating-cart';
+import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
 import { cn, type DishSummary, type Category } from '@feed-plan/shared';
 import {
   findCategoryAtPosition,
@@ -53,8 +54,8 @@ export default function MenuScreen() {
 
   const getItemQuantity = (dishId: string) => items.find((i) => i.dishId === dishId)?.quantity ?? 0;
 
-  const { data: categories = [] } = useQuery<Category[]>({ queryKey: ['categories'], queryFn: () => api.categories.list() });
-  const { data: dishes = [], isLoading } = useQuery<DishSummary[]>({ queryKey: ['dishes'], queryFn: () => api.dishes.list({ isActive: true }) });
+  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery<Category[]>({ queryKey: ['categories'], queryFn: () => api.categories.list() });
+  const { data: dishes = [], isLoading: isDishesLoading } = useQuery<DishSummary[]>({ queryKey: ['dishes'], queryFn: () => api.dishes.list({ isActive: true }) });
 
   const groupedDishes = useMemo(() => categories.map((cat) => ({
     category: cat,
@@ -180,6 +181,25 @@ export default function MenuScreen() {
 
   const activeCat = groupedDishes.find((g) => g.category.id === activeCatId);
   const rightContentBottomSpace = getRightContentBottomSpace(rightViewportHeight);
+  const isMenuLoading = (isCategoriesLoading || isDishesLoading) && groupedDishes.length === 0;
+
+  const renderCategorySkeleton = (key: string) => (
+    <View key={key} className="border-l-[3px] border-transparent px-2.5 py-3.5 pl-3">
+      <Skeleton className="h-3.5 w-12 rounded-full" />
+      <Skeleton className="mt-2 h-2.5 w-8 rounded-full bg-border/40" />
+    </View>
+  );
+
+  const renderMenuDishSkeleton = (key: string) => (
+    <SkeletonCard key={key} className="mb-2 flex-row items-center rounded-[14px] p-2.5">
+      <Skeleton className="size-[52px] rounded-xl bg-chef-soft/70" />
+      <View className="ml-2.5 flex-1">
+        <SkeletonText lines={2} widths={['w-2/3', 'w-full']} />
+        <Skeleton className="mt-2 h-4 w-12 rounded-full bg-morning-soft/80" />
+      </View>
+      <Skeleton className="ml-2 size-8 rounded-full bg-chef-soft/80" />
+    </SkeletonCard>
+  );
 
   return (
     <SafeScreen>
@@ -207,7 +227,7 @@ export default function MenuScreen() {
             contentContainerStyle={{ paddingBottom: getTabBarHeight(insets.bottom) + 20 }}
             scrollIndicatorInsets={{ bottom: getTabBarHeight(insets.bottom) }}
           >
-            {groupedDishes.map((g) => {
+            {isMenuLoading ? ['cat-1', 'cat-2', 'cat-3', 'cat-4', 'cat-5', 'cat-6'].map(renderCategorySkeleton) : groupedDishes.map((g) => {
               const isActive = activeCatId === g.category.id;
               return (
                 <TouchableOpacity key={g.category.id} onPress={() => handleCategoryPress(g.category.id)}
@@ -226,8 +246,15 @@ export default function MenuScreen() {
 
         {/* 右侧菜品 */}
         <View className="flex-1" onLayout={(e) => setRightViewportHeight(e.nativeEvent.layout.height)}>
-          {isLoading ? (
-            <View className="flex-1 items-center justify-center"><Text className="text-sm text-faint">加载中...</Text></View>
+          {isMenuLoading ? (
+            <View className="flex-1 p-3">
+              <View className="h-12 flex-row items-center gap-2">
+                <Skeleton className="h-4 w-[3px] rounded-sm bg-chef-soft" />
+                <Skeleton className="h-4 w-20 rounded-full" />
+                <Skeleton className="h-3 w-9 rounded-full bg-border/40" />
+              </View>
+              {['dish-1', 'dish-2', 'dish-3', 'dish-4', 'dish-5'].map(renderMenuDishSkeleton)}
+            </View>
           ) : groupedDishes.length === 0 ? (
             <View className="flex-1 items-center justify-center"><AlertCircle size={40} color="#e8ddd0" /><Text className="mt-2 text-[13px] text-faint">暂无菜谱</Text></View>
           ) : (

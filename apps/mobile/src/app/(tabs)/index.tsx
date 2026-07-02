@@ -11,6 +11,7 @@ import { useCartStore } from '~/stores/cart-store';
 import { useAuthStore } from '~/stores/auth-store';
 import { formatDateTime, type DishSummary, type MenuDetail } from '@feed-plan/shared';
 import { FloatingCart } from '~/components/floating-cart';
+import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string }> = {
   easy: { label: '简单', bg: '#e8f5eb', fg: '#5a9a6a' },
@@ -36,7 +37,7 @@ export default function HomeScreen() {
       }
     : null;
 
-  const { data: dishes = [] } = useQuery<DishSummary[]>({
+  const { data: dishes = [], isLoading: isDishesLoading } = useQuery<DishSummary[]>({
     queryKey: ['dishes'],
     queryFn: () => api.dishes.list({ isActive: true }),
   });
@@ -153,6 +154,17 @@ export default function HomeScreen() {
       </TouchableOpacity>
     );
   };
+
+  const renderDishSkeleton = (key: string) => (
+    <SkeletonCard key={key} className="mb-2.5 flex-row items-center rounded border p-[11px]">
+      <Skeleton className="size-[58px] rounded-[14px] bg-chef-soft/70" />
+      <View className="ml-3 flex-1">
+        <SkeletonText lines={2} widths={['w-2/3', 'w-full']} />
+        <Skeleton className="mt-2 h-5 w-14 rounded-full bg-morning-soft/80" />
+      </View>
+      <Skeleton className="ml-2 size-[34px] rounded-full bg-chef-soft/80" />
+    </SkeletonCard>
+  );
 
   const renderMealCard = () => {
     if (isTodayMealsLoading) {
@@ -362,7 +374,7 @@ export default function HomeScreen() {
           {renderMealCard()}
 
           {/* Breakfast Section */}
-          {dishes.length > 0 && (
+          {(dishes.length > 0 || isDishesLoading) && (
             <>
               <View className="mb-3 flex-row items-center gap-2">
                 <View className="rounded-full bg-morning-soft px-2 py-[3px]">
@@ -374,7 +386,9 @@ export default function HomeScreen() {
                   <Text className="text-xs font-semibold text-muted">全部 ›</Text>
                 </TouchableOpacity>
               </View>
-              {dishes.slice(0, 4).map((dish) => renderDishCard(dish))}
+              {isDishesLoading && dishes.length === 0
+                ? ['home-dish-1', 'home-dish-2', 'home-dish-3', 'home-dish-4'].map(renderDishSkeleton)
+                : dishes.slice(0, 4).map((dish) => renderDishCard(dish))}
             </>
           )}
         </View>

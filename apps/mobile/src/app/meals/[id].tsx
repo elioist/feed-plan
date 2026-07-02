@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import { View, ScrollView, Alert, TouchableOpacity, Image, Text } from 'react-native';
-import { Loader, AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon, Clock3 } from 'lucide-react-native';
+import { AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon, Clock3 } from 'lucide-react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { api, getImageUrl } from '~/lib/api-client';
 import { useAuthStore } from '~/stores/auth-store';
 import { SafeScreen } from '~/components/safe-screen';
 import { getBottomSafeArea } from '~/constants/layout';
+import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
 
 type MealTypeIcon = ComponentType<{ size?: number; color?: string }>;
 
@@ -72,9 +73,50 @@ export default function MealDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeScreen className="items-center justify-center">
-        <Loader size={32} color="#b8a898" />
-        <Text className="mt-3 text-sm text-faint">加载中...</Text>
+      <SafeScreen>
+        <View className="flex-row items-center bg-bg px-4 pb-3 pt-2">
+          <Skeleton className="size-[38px] rounded-full bg-surface" />
+          <View className="ml-3 flex-1">
+            <Skeleton className="h-6 w-32 rounded-full" />
+            <Skeleton className="mt-2 h-3 w-28 rounded-full bg-border/40" />
+          </View>
+          <Skeleton className="h-7 w-16 rounded-full bg-herb-soft/80" />
+        </View>
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="p-4"
+          automaticallyAdjustContentInsets={false}
+          automaticallyAdjustsScrollIndicatorInsets={false}
+          contentContainerStyle={{ paddingBottom: getBottomSafeArea(insets.bottom) + 24 }}
+          scrollIndicatorInsets={{ bottom: getBottomSafeArea(insets.bottom) }}
+        >
+          <SkeletonCard className="mb-5 rounded-[20px] p-4">
+            <View className="flex-row items-center gap-2">
+              <Skeleton className="h-6 w-14 rounded-full bg-morning-soft/80" />
+              <Skeleton className="h-4 w-32 rounded-full" />
+            </View>
+            <Skeleton className="mt-3 h-5 w-40 rounded-full" />
+          </SkeletonCard>
+
+          <View className="mb-3 flex-row items-baseline gap-2">
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-3 w-10 rounded-full bg-border/40" />
+          </View>
+
+          <SkeletonCard className="rounded-[20px] p-2">
+            {['meal-dish-1', 'meal-dish-2', 'meal-dish-3'].map((item) => (
+              <View key={item} className="flex-row items-center gap-3 p-[11px]">
+                <Skeleton className="size-[50px] rounded-[13px] bg-chef-soft/70" />
+                <View className="flex-1">
+                  <SkeletonText lines={2} widths={['w-2/3', 'w-1/2']} />
+                </View>
+                <Skeleton className="h-5 w-8 rounded-full" />
+              </View>
+            ))}
+          </SkeletonCard>
+          <Skeleton className="mt-4 h-12 rounded border border-border bg-chef-soft/70" />
+          <SkeletonCard className="mt-3.5 h-[66px] rounded" />
+        </ScrollView>
       </SafeScreen>
     );
   }

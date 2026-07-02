@@ -9,6 +9,7 @@ import { BrandIcon } from '~/components/brand-icon';
 import { openUrl } from '~/lib/utils';
 import { getBottomSafeArea } from '~/constants/layout';
 import type { DishDetail } from '@feed-plan/shared';
+import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
 
 const DIFFICULTY_LABELS: Record<string, { label: string; bg: string; fg: string }> = {
   easy: { label: '简单', bg: '#e8f5eb', fg: '#5a9a6a' },
@@ -56,8 +57,58 @@ export default function DishDetailScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg">
-        <Text className="text-muted">加载中...</Text>
+      <View className="flex-1 bg-bg">
+        <View
+          className="flex-row items-center gap-2.5 bg-bg px-4 pb-2.5"
+          style={{ paddingTop: insets.top }}
+        >
+          <Skeleton className="size-[38px] rounded-full bg-surface" />
+          <Skeleton className="h-5 flex-1 rounded-full" />
+          <Skeleton className="size-[38px] rounded-full bg-surface" />
+        </View>
+        <ScrollView
+          className="flex-1"
+          automaticallyAdjustContentInsets={false}
+          automaticallyAdjustsScrollIndicatorInsets={false}
+          contentContainerStyle={{ paddingBottom: getBottomSafeArea(insets.bottom) + 96 }}
+          scrollIndicatorInsets={{ bottom: getBottomSafeArea(insets.bottom) + 80 }}
+        >
+          <View className="mb-4 px-5">
+            <Skeleton className="h-[200px] w-full rounded-[20px] bg-chef-soft/70" />
+          </View>
+          <View className="px-5">
+            <Skeleton className="mb-[9px] h-6 w-20 rounded-full bg-chef-soft/70" />
+            <SkeletonText className="mb-4" lines={2} widths={['w-full', 'w-4/5']} />
+            <View className="mb-3.5 flex-row gap-2.5">
+              {['time', 'calorie', 'people'].map((item) => (
+                <SkeletonCard key={item} className="h-[86px] flex-1 rounded p-3" />
+              ))}
+            </View>
+            <Skeleton className="mb-5 h-[42px] rounded bg-morning-soft/80" />
+            <View className="mb-5">
+              <View className="mb-3.5 flex-row items-center gap-[9px]">
+                <Skeleton className="size-[30px] rounded-[9px] bg-chef-soft/70" />
+                <Skeleton className="h-5 w-24 rounded-full" />
+              </View>
+              {['step-1', 'step-2', 'step-3'].map((item) => (
+                <View key={item} className="mb-4 flex-row gap-[13px]">
+                  <Skeleton className="size-7 rounded-full bg-chef-soft/80" />
+                  <SkeletonText className="flex-1" lines={2} widths={['w-full', 'w-4/5']} />
+                </View>
+              ))}
+            </View>
+            <SkeletonCard className="mb-5 h-[84px] rounded" />
+            <SkeletonCard className="mb-2.5 h-[70px] rounded" />
+            <SkeletonCard className="mb-2.5 h-[70px] rounded" />
+          </View>
+        </ScrollView>
+        <View
+          className="absolute bottom-0 left-0 right-0 flex-row items-center gap-2.5 border-t border-border bg-surface/90 p-[13px]"
+          style={{ paddingBottom: getBottomSafeArea(insets.bottom) + 4 }}
+        >
+          <Skeleton className="size-12 rounded-[14px] bg-chef-soft/80" />
+          <Skeleton className="h-12 flex-1 rounded-[14px] bg-chef-soft/80" />
+        </View>
       </View>
     );
   }
