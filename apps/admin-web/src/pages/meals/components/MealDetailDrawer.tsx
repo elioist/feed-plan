@@ -1,5 +1,5 @@
 import { CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import type { MenuDetail, MealType } from '@feed-plan/shared';
+import { formatDateTime, type MenuDetail, type MealType } from '@feed-plan/shared';
 import { Badge, Button, Descriptions, Drawer, Image, Popconfirm, Statistic, Tag, Typography } from 'antd';
 import { api } from '~/lib/api-client';
 
@@ -36,7 +36,7 @@ const getParticipantCount = (meal: MenuDetail) => {
 
 const getMealTitle = (meal: MenuDetail) => {
   const type = mealTypeMap[meal.meal.mealType].label;
-  return `${meal.meal.mealDate} · ${type}`;
+  return `${formatDateTime(meal.meal.createdAt) ?? '-'} · ${type}`;
 };
 
 const DishCover = ({ dish }: { dish: MenuDetail['items'][number]['dish'] }) => {
@@ -149,7 +149,7 @@ export function MealDetailDrawer({
                 column={2}
                 size="small"
                 items={[
-                  { key: 'date', label: '日期', children: meal.meal.mealDate },
+                  { key: 'created', label: '开单时间', children: formatDateTime(meal.meal.createdAt) ?? '-' },
                   {
                     key: 'type',
                     label: '餐型',
@@ -164,7 +164,7 @@ export function MealDetailDrawer({
                     key: 'completed',
                     label: '完成时间',
                     children: meal.meal.completedAt ? (
-                      new Date(meal.meal.completedAt).toLocaleString()
+                      formatDateTime(meal.meal.completedAt) ?? '-'
                     ) : (
                       <Text type="secondary">尚未完成</Text>
                     ),
@@ -250,7 +250,13 @@ export function MealDetailDrawer({
                     .filter((order) => order.note)
                     .map((order) => (
                       <div key={order.id} className="text-sm text-[var(--gray-700)]">
-                        {order.username ?? order.guestName ?? '未知食客'}：{order.note}
+                        <span className="font-medium">
+                          {order.username ?? order.guestName ?? '未知食客'}
+                        </span>
+                        <span className="ml-2 text-xs text-[var(--gray-500)]">
+                          {formatDateTime(order.createdAt) ?? '-'}
+                        </span>
+                        <div className="mt-1">{order.note}</div>
                       </div>
                     ))}
                 </div>

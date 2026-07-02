@@ -1,4 +1,4 @@
-import type { MenuDetail } from '@feed-plan/shared';
+import { formatDateTime, type MenuDetail } from '@feed-plan/shared';
 import type { ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -224,7 +224,7 @@ describe('MealListPage', () => {
     expect(screen.getByLabelText('开始日期')).toBeInTheDocument();
     expect(screen.getByLabelText('结束日期')).toBeInTheDocument();
     expect(screen.getByText('今日晚餐')).toBeInTheDocument();
-    expect(screen.getByText('2026-06-19')).toBeInTheDocument();
+    expect(screen.getByText(formatDateTime(menuDetails[0]!.meal.createdAt)!)).toBeInTheDocument();
     expect(screen.getAllByText('点菜中').length).toBeGreaterThan(0);
     expect(screen.getAllByText('1').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: '查看' })).toBeInTheDocument();

@@ -5,8 +5,11 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '~/stores/auth-store';
 import { AppProviders } from '~/providers';
+import { initializeDayjs } from '~/initialize/dayjs';
 
 const PUBLIC_ROUTES = ['login'];
+
+initializeDayjs();
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading, restoreSession } = useAuthStore();

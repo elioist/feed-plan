@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "clsx": "catalog:frontend",
+    "dayjs": "^1.11.21",
     "tailwind-merge": "catalog:frontend",
     "zod": "catalog:"
   },

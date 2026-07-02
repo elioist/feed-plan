@@ -2,6 +2,9 @@ import React from 'react';
 import '~/lib/iconify/offline-icons';
 import '~/styles/global.css';
 import '~/lib/theme-transition/styles.css';
+import { initializeDayjs } from '~/initialize/dayjs';
+
+initializeDayjs();
 
 async function enableRenderDebug() {
   if (!import.meta.env.DEV || import.meta.env.VITE_ENABLE_RENDER_DEBUG !== 'true') return;

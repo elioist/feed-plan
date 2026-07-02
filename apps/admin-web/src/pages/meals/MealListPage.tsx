@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button, Card, Form, Popconfirm, Space, Tag, App as AntdApp } from 'antd';
-import dayjs from 'dayjs';
-import type { MealQuery, MenuDetail } from '@feed-plan/shared';
+import { dayjs, formatDateTime, type MealQuery, type MenuDetail } from '@feed-plan/shared';
 import { DataTable, TableHeader } from '~/components/core/tables';
 import { useCanButton } from '~/hooks/use-button-access';
 import { mealQueries } from '~/queries/meals';
@@ -102,7 +101,7 @@ export function MealListPage() {
           }}
           columns={[
             { title: '标题', render: (_, item) => item.meal.title },
-            { title: '日期', render: (_, item) => item.meal.mealDate },
+            { title: '开单时间', render: (_, item) => formatDateTime(item.meal.createdAt) ?? '-' },
             { title: '餐型', render: (_, item) => item.meal.mealType },
             {
               title: '状态',

@@ -10,6 +10,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   restoreSession: () => Promise<void>;
+  setUser: (user: AuthUser) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -42,5 +43,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       await storage.deleteItem('access_token');
       set({ isLoading: false });
     }
+  },
+
+  setUser: (user) => {
+    set({ user, isAuthenticated: true });
   },
 }));

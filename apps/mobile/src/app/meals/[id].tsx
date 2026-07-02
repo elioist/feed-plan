@@ -1,14 +1,14 @@
 import type { ComponentType } from 'react';
 import { View, ScrollView, Alert, TouchableOpacity, Image, Text } from 'react-native';
-import { Loader, AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon } from 'lucide-react-native';
+import { Loader, AlertCircle, ChevronLeft, Utensils, Plus, Lock, CheckCircle, Sun, Cloud, Moon, Clock3 } from 'lucide-react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatDateTime, type MenuDetail } from '@feed-plan/shared';
 import { api, getImageUrl } from '~/lib/api-client';
 import { useAuthStore } from '~/stores/auth-store';
 import { SafeScreen } from '~/components/safe-screen';
 import { getBottomSafeArea } from '~/constants/layout';
-import type { MenuDetail } from '@feed-plan/shared';
 
 type MealTypeIcon = ComponentType<{ size?: number; color?: string }>;
 
@@ -139,11 +139,21 @@ export default function MealDetailScreen() {
               <mealConfig.Icon size={14} color={mealConfig.fg} />
               <Text className="font-display text-xs font-bold" style={{ color: mealConfig.fg }}>{mealConfig.label}</Text>
             </View>
-            <Text className="text-xs text-muted">{meal.mealDate}</Text>
+            <View className="flex-row items-center gap-1">
+              <Clock3 size={13} color="#8a7565" />
+              <Text className="text-xs text-muted">{formatDateTime(meal.createdAt) ?? '-'}</Text>
+            </View>
           </View>
           {meal.title && (
             <Text className="mt-2.5 font-display text-[15px] font-bold text-fg">{meal.title}</Text>
           )}
+          {meal.completedAt ? (
+            <View className="mt-3 rounded bg-herb-soft px-3 py-2">
+              <Text className="text-xs font-semibold text-herb">
+                完成时间：{formatDateTime(meal.completedAt) ?? '-'}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {/* 菜品列表 */}
@@ -223,6 +233,29 @@ export default function MealDetailScreen() {
             </Text>
           </View>
         )}
+
+        {data.orders.some((order) => order.note) ? (
+          <View className="mt-4 rounded-[20px] border border-border bg-surface p-4">
+            <Text className="font-display text-[15px] font-extrabold text-fg">备注</Text>
+            <View className="mt-3 gap-2.5">
+              {data.orders
+                .filter((order) => order.note)
+                .map((order) => (
+                  <View key={order.id} className="rounded bg-bg px-3 py-2.5">
+                    <Text className="text-xs font-bold text-fg">
+                      {order.username ?? order.guestName ?? '未知食客'}
+                    </Text>
+                    <Text className="mt-1 text-xs leading-[18px] text-muted">
+                      {order.note}
+                    </Text>
+                    <Text className="mt-1 text-[11px] text-faint">
+                      {formatDateTime(order.createdAt) ?? '-'}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
 
       {/* 底部按钮 */}

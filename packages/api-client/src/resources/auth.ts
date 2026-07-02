@@ -8,6 +8,7 @@ import type {
 } from '@feed-plan/shared';
 
 import { uploadFile } from '../file-upload.js';
+import type { UploadFileInput } from '../file-upload.js';
 import type { ApiRequest } from '../types.js';
 
 export function createAuthResource(request: ApiRequest) {
@@ -36,7 +37,7 @@ export function createAuthResource(request: ApiRequest) {
         body: input,
       });
     },
-    uploadAvatar(file: File) {
+    uploadAvatar(file: UploadFileInput) {
       return uploadFile<{ path: string }>('/auth/avatar', file, request);
     },
   };

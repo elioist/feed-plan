@@ -1,5 +1,5 @@
-import { View, TouchableOpacity, ScrollView, Image, Alert, Text } from 'react-native';
-import { Camera, User, Bell, Heart, Info, ChevronRight } from 'lucide-react-native';
+import { View, TouchableOpacity, ScrollView, Image, Text } from 'react-native';
+import { Camera, User, Bell, Heart, Info, ChevronRight, KeyRound } from 'lucide-react-native';
 import { useAuthStore } from '~/stores/auth-store';
 import { useRouter } from 'expo-router';
 import { SafeScreen } from '~/components/safe-screen';
@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getTabBarHeight } from '~/constants/layout';
 
 const menuItems = [
-  { Icon: User, label: '编辑资料', disabled: true },
+  { Icon: User, label: '编辑资料', path: '/profile/edit' },
+  { Icon: KeyRound, label: '账号安全', path: '/profile/password' },
   { Icon: Bell, label: '通知设置', disabled: true },
   { Icon: Heart, label: '我的收藏', disabled: true },
   { Icon: Info, label: '关于', disabled: true },
@@ -33,9 +34,7 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
-  const handleAvatarPress = () => {
-    Alert.alert('修改头像', '头像修改功能即将上线', [{ text: '确定' }]);
-  };
+  const handleAvatarPress = () => router.push('/profile/edit');
 
   return (
     <SafeScreen>
@@ -112,6 +111,11 @@ export default function ProfileScreen() {
               item.disabled && 'opacity-50',
             )}
             disabled={item.disabled}
+            onPress={() => {
+              if (item.path) {
+                router.push(item.path as never);
+              }
+            }}
           >
             <item.Icon size={22} color="#8a7565" />
             <Text className="ml-3 flex-1 text-[15px] font-semibold text-fg">
