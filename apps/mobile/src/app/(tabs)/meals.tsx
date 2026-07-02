@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Image,
   Text,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -19,11 +20,12 @@ import { api, getImageUrl } from '~/lib/api-client';
 import { useCartStore } from '~/stores/cart-store';
 import { FloatingCart } from '~/components/floating-cart';
 import { Skeleton, SkeletonCard, SkeletonText } from '~/components/ui/skeleton';
+import { CategoryActiveIndicator, CategoryItem } from '~/modules/menu/category-item';
 import { SearchContent } from '~/modules/search/content';
 import { SearchProvider, useSearchContext } from '~/modules/search/context';
 import { SearchHeader } from '~/modules/search/header';
 import { SearchTabBar } from '~/modules/search/tab-bar';
-import { cn, type DishSummary, type Category } from '@feed-plan/shared';
+import { type DishSummary, type Category } from '@feed-plan/shared';
 import {
   findCategoryAtPosition,
   getCategoryScrollTarget,
@@ -54,6 +56,7 @@ function MenuScreenContent() {
   const insets = useSafeAreaInsets();
   const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
+  const [categoryLayouts, setCategoryLayouts] = useState<Record<string, { height: number; y: number }>>({});
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [rightViewportHeight, setRightViewportHeight] = useState(0);
   const rightScrollRef = useRef<ScrollView>(null);
@@ -166,6 +169,19 @@ function MenuScreenContent() {
     scrollToCategory(catId);
   };
 
+  const handleCategoryItemLayout = useCallback((catId: string, event: LayoutChangeEvent) => {
+    const { height, y } = event.nativeEvent.layout;
+    setCategoryLayouts((previous) => {
+      const current = previous[catId];
+      if (current?.height === height && current.y === y) return previous;
+
+      return {
+        ...previous,
+        [catId]: { height, y },
+      };
+    });
+  }, []);
+
   const scrollToTop = useCallback(() => {
     programmaticTargetYRef.current = 0;
     programmaticTargetCatIdRef.current = groupedDishes[0]?.category.id ?? null;
@@ -259,6 +275,7 @@ function MenuScreenContent() {
   };
 
   const activeCat = groupedDishes.find((g) => g.category.id === activeCatId);
+  const activeCategoryLayout = activeCatId ? categoryLayouts[activeCatId] ?? null : null;
   const backToTopBottom = getTabBarHeight(insets.bottom)
     + FLOATING_CART_TAB_GAP
     + (cartTotal > 0 ? BACK_TO_TOP_CART_OFFSET : 0);
@@ -309,20 +326,21 @@ function MenuScreenContent() {
             contentContainerStyle={{ paddingBottom: getTabBarHeight(insets.bottom) + 20 }}
             scrollIndicatorInsets={{ bottom: getTabBarHeight(insets.bottom) }}
           >
-            {isMenuLoading ? ['cat-1', 'cat-2', 'cat-3', 'cat-4', 'cat-5', 'cat-6'].map(renderCategorySkeleton) : groupedDishes.map((g) => {
-              const isActive = activeCatId === g.category.id;
-              return (
-                <TouchableOpacity key={g.category.id} onPress={() => handleCategoryPress(g.category.id)}
-                  activeOpacity={0.85}
-                  className={cn(
-                    'border-l-[3px] px-2.5 py-3.5 pl-3',
-                    isActive ? 'border-accent bg-surface' : 'border-transparent bg-transparent',
-                  )}>
-                  <Text className={cn('font-display text-[13px] font-bold', isActive ? 'text-accent-ink' : 'text-muted')} numberOfLines={1}>{g.category.name}</Text>
-                  <Text className={cn('mt-0.5 text-[10px] font-semibold', isActive ? 'text-accent' : 'text-faint')}>{g.dishes.length} 道</Text>
-                </TouchableOpacity>
-              );
-            })}
+            <View className="relative py-1">
+              <CategoryActiveIndicator layout={activeCategoryLayout} />
+              {isMenuLoading ? ['cat-1', 'cat-2', 'cat-3', 'cat-4', 'cat-5', 'cat-6'].map(renderCategorySkeleton) : groupedDishes.map((g) => {
+                return (
+                  <CategoryItem
+                    key={g.category.id}
+                    count={g.dishes.length}
+                    isActive={activeCatId === g.category.id}
+                    name={g.category.name}
+                    onLayout={(event) => handleCategoryItemLayout(g.category.id, event)}
+                    onPress={() => handleCategoryPress(g.category.id)}
+                  />
+                );
+              })}
+            </View>
           </ScrollView>
         </View>
 
