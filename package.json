@@ -8,6 +8,12 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "build:admin": "pnpm --filter @feed-plan/admin-web build",
+    "build:android": "pnpm --filter @feed-plan/mobile build:android",
+    "build:android:prod": "pnpm --filter @feed-plan/mobile build:android:prod",
+    "build:ios": "pnpm --filter @feed-plan/mobile build:ios",
+    "build:ios:prod": "pnpm --filter @feed-plan/mobile build:ios:prod",
+    "build:server": "pnpm --filter @feed-plan/server build",
     "db:up": "docker compose up -d db",
     "dev": "pnpm db:up && turbo run dev",
     "dev:admin": "turbo run dev --filter=@feed-plan/admin-web",
