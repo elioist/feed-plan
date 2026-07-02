@@ -1,5 +1,5 @@
 import { View, FlatList, TouchableOpacity, Text } from 'react-native';
-import { ChevronRight, Clock3, CookingPot, FileText, Soup, UsersRound } from 'lucide-react-native';
+import { ChevronRight, Clock3, CookingPot, FileText, History, Soup, UsersRound } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -151,10 +151,14 @@ export default function OrdersScreen() {
                 <Text className="font-display text-[24px] font-extrabold text-fg">当前单</Text>
                 <Text className="mt-0.5 text-xs text-muted">进行中的点餐场次</Text>
               </View>
-              <View className="flex-row items-center gap-1.5 rounded-full bg-herb-soft px-3 py-1.5">
-                <CookingPot size={15} color="#5a9a6a" />
-                <Text className="text-xs font-bold text-herb">{meals.length} 单</Text>
-              </View>
+              <TouchableOpacity
+                className="flex-row items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5"
+                onPress={() => router.push('/meals/history')}
+                activeOpacity={0.78}
+              >
+                <History size={15} color="#8a7565" />
+                <Text className="text-xs font-bold text-muted">历史回顾</Text>
+              </TouchableOpacity>
             </View>
 
             <View className="rounded-lg border border-border bg-surface p-4">
