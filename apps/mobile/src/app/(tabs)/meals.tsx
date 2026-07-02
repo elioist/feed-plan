@@ -9,9 +9,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { Utensils, Minus, Plus, Search, XCircle, AlertCircle, Sparkles } from 'lucide-react-native';
+import { Utensils, Minus, Plus, Search, AlertCircle, Sparkles } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeScreen } from '~/components/safe-screen';
 import { getTabBarHeight } from '~/constants/layout';
@@ -37,7 +37,7 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; bg: string; fg: string 
 
 export default function MenuScreen() {
   const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState('');
+  const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [rightViewportHeight, setRightViewportHeight] = useState(0);
   const rightScrollRef = useRef<ScrollView>(null);
@@ -47,6 +47,7 @@ export default function MenuScreen() {
   const programmaticTargetYRef = useRef<number | null>(null);
   const programmaticTargetCatIdRef = useRef<string | null>(null);
   const activeCatIdRef = useRef<string | null>(null);
+  const routeCategorySyncedRef = useRef<string | null>(null);
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -59,12 +60,8 @@ export default function MenuScreen() {
 
   const groupedDishes = useMemo(() => categories.map((cat) => ({
     category: cat,
-    dishes: dishes.filter((d) => {
-      const inCat = d.categories.some((c) => c.id === cat.id);
-      const matchSearch = !search.trim() || d.name.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase());
-      return inCat && matchSearch;
-    }),
-  })).filter((g) => g.dishes.length > 0), [categories, dishes, search]);
+    dishes: dishes.filter((d) => d.categories.some((c) => c.id === cat.id)),
+  })).filter((g) => g.dishes.length > 0), [categories, dishes]);
 
   const groupedDishesKey = groupedDishes.map((g) => g.category.id).join('|');
   if (groupOffsetsKeyRef.current !== groupedDishesKey) {
@@ -121,22 +118,43 @@ export default function MenuScreen() {
     setActiveCategory(hit ?? fallbackCatId);
   };
 
+  const scrollToCategory = useCallback((catId: string, animated = true) => {
+    const y = groupOffsets.current.get(catId);
+    if (y === undefined) return false;
+
+    const targetY = getCategoryScrollTarget(y);
+    programmaticTargetYRef.current = targetY;
+    programmaticTargetCatIdRef.current = catId;
+    rightScrollRef.current?.scrollTo({ y: targetY, animated });
+    return true;
+  }, []);
+
   const handleCategoryPress = (catId: string) => {
     setActiveCategory(catId);
-    const y = groupOffsets.current.get(catId);
-    if (y !== undefined) {
-      const targetY = getCategoryScrollTarget(y);
-      programmaticTargetYRef.current = targetY;
-      programmaticTargetCatIdRef.current = catId;
-      rightScrollRef.current?.scrollTo({ y: targetY, animated: true });
-    }
+    scrollToCategory(catId);
   };
 
   const handleGroupLayout = useCallback((catId: string, y: number) => {
     if (groupOffsets.current.get(catId) === y) return;
     groupOffsets.current.set(catId, y);
     sortedGroupOffsets.current = sortCategoryOffsets(groupOffsets.current);
-  }, []);
+
+    if (categoryId === catId && routeCategorySyncedRef.current !== catId) {
+      routeCategorySyncedRef.current = catId;
+      setActiveCategory(catId);
+      requestAnimationFrame(() => scrollToCategory(catId));
+    }
+  }, [categoryId, scrollToCategory, setActiveCategory]);
+
+  useEffect(() => {
+    if (!categoryId || !groupedDishes.some((group) => group.category.id === categoryId)) return;
+
+    setActiveCategory(categoryId);
+    if (routeCategorySyncedRef.current === categoryId) return;
+    if (scrollToCategory(categoryId)) {
+      routeCategorySyncedRef.current = categoryId;
+    }
+  }, [categoryId, groupedDishes, scrollToCategory, setActiveCategory]);
 
   const renderDishCard = (item: DishSummary) => {
     const diff = DIFFICULTY_CONFIG[item.difficulty] ?? DIFFICULTY_CONFIG.medium;
@@ -209,11 +227,20 @@ export default function MenuScreen() {
       </View>
 
       <View className="px-[18px] pb-2.5">
-        <View className="flex-row items-center gap-2 rounded-xl border border-border bg-surface px-3">
+        <TouchableOpacity
+          className="flex-row items-center gap-2 rounded-xl border border-border bg-surface px-3"
+          onPress={() => router.push('/search')}
+          activeOpacity={0.78}
+        >
           <Search size={18} color="#b8a898" />
-          <TextInput value={search} onChangeText={setSearch} placeholder="搜菜名或食材" placeholderTextColor="#b8a898" className="flex-1 py-[11px] text-sm text-fg" />
-          {search ? <TouchableOpacity onPress={() => setSearch('')}><XCircle size={18} color="#8a7565" /></TouchableOpacity> : null}
-        </View>
+          <TextInput
+            editable={false}
+            pointerEvents="none"
+            placeholder="搜菜名、做法、分类或标签"
+            placeholderTextColor="#b8a898"
+            className="flex-1 py-[11px] text-sm text-fg"
+          />
+        </TouchableOpacity>
       </View>
 
       <View className="flex-1 flex-row">
